@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>/* instant theme — prevents flash */
+(function(){
+  var t=localStorage.getItem('cg-theme');
+  var d=t?t==='dark':window.matchMedia('(prefers-color-scheme:dark)').matches;
+  var r=document.documentElement.style;
+  if(d){
+    r.setProperty('--bg','#130805');r.setProperty('--bg2','#1a0d08');
+    r.setProperty('--card','#1f1008');r.setProperty('--card2','#261508');
+    r.setProperty('--bdr','#3a1f0f');r.setProperty('--bdr2','#4a2a18');
+    r.setProperty('--txt','#f5f0e8');r.setProperty('--txt2','#c8a882');r.setProperty('--muted','#8a6a50');
+  }else{
+    r.setProperty('--bg','#f5ede0');r.setProperty('--bg2','#ede0cf');
+    r.setProperty('--card','#fff8f0');r.setProperty('--card2','#f5ede0');
+    r.setProperty('--bdr','#dcc8b0');r.setProperty('--bdr2','#cbb898');
+    r.setProperty('--txt','#1a0e05');r.setProperty('--txt2','#6a4828');r.setProperty('--muted','#9a7858');
+  }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coded Games — Tournament</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --or:#f5a020;--or2:#c43a00;--or3:#ffd234;
+  --bg:#130805;--bg2:#1a0d08;--card:#1f1008;--card2:#261508;
+  --bdr:#3a1f0f;--bdr2:#4a2a18;
+  --txt:#f5f0e8;--txt2:#c8a882;--muted:#8a6a50;
+  --green:#4caf50;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;
+  --ff:'Plus Jakarta Sans',sans-serif;--fb:'Plus Jakarta Sans',sans-serif;--fc:'Nunito',sans-serif;
+}
+@media(prefers-color-scheme:light){
+  :root{--bg:#f5ede0;--bg2:#ede0cf;--card:#fff8f0;--card2:#f5ede0;
+    --bdr:#dcc8b0;--bdr2:#cbb898;--txt:#1a0e05;--txt2:#6a4828;--muted:#9a7858;}
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--fb);background:var(--bg);color:var(--txt);min-height:100vh;padding-bottom:100px}
+body::before{content:'';position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse 60% 30% at 50% 0%,rgba(245,160,32,.1) 0%,transparent 55%),var(--bg);
+  pointer-events:none}
+
+/* TOPBAR */
+.tb{position:sticky;top:0;z-index:100;height:52px;
+  display:flex;align-items:center;justify-content:space-between;padding:0 1rem;
+  background:rgba(19,8,5,.92);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--bdr)}
+@media(prefers-color-scheme:light){.tb{background:rgba(245,237,224,.92)}}
+.logo{display:flex;align-items:center;gap:.5rem;text-decoration:none}
+.logo-hex{width:28px;height:28px;background:var(--or);
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display:grid;place-items:center;font-size:.65rem;font-weight:900;color:#000}
+.logo-txt{font-family:var(--ff);font-size:1.1rem;font-weight:700;letter-spacing:2px;color:var(--txt)}
+.logo-txt b{color:var(--or)}
+.back-btn{display:flex;align-items:center;gap:.35rem;background:none;border:none;
+  color:var(--txt2);font-family:var(--fc);font-size:.8rem;font-weight:700;
+  letter-spacing:1px;cursor:pointer;text-transform:uppercase;padding:.3rem .5rem}
+.back-btn svg{width:16px;height:16px}
+
+/* CONTENT */
+.content{position:relative;z-index:1;padding:1rem;max-width:600px;margin:0 auto}
+
+/* LOADING */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:60vh;gap:1rem}
+.spin{width:40px;height:40px;border:3px solid var(--bdr2);
+  border-top-color:var(--or);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading p{font-family:var(--fc);font-size:.85rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+
+/* STATUS BANNER */
+.status-banner{padding:.6rem 1rem;text-align:center;font-family:var(--fc);
+  font-size:.75rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  border-radius:8px;margin-bottom:.8rem}
+.status-banner.upcoming{background:rgba(245,160,32,.12);border:1px solid rgba(245,160,32,.25);color:var(--or)}
+.status-banner.live{background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.3);color:var(--green);
+  animation:pulse-border 1.5s ease infinite}
+@keyframes pulse-border{0%,100%{border-color:rgba(76,175,80,.3)}50%{border-color:rgba(76,175,80,.7)}}
+.status-banner.completed{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:var(--blue)}
+.status-banner.cancelled{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--red)}
+.status-banner.postponed{background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.25);color:var(--purple)}
+
+/* HERO CARD */
+.hero-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;
+  overflow:hidden;margin-bottom:1rem;position:relative}
+.hero-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--or2),var(--or),var(--or3))}
+.hero-body{padding:1.1rem}
+.tourn-name{font-family:var(--ff);font-size:1.6rem;font-weight:700;letter-spacing:1px;
+  line-height:1.1;margin-bottom:.4rem}
+.tourn-meta{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.9rem}
+.tag{display:inline-flex;align-items:center;gap:.25rem;padding:.22rem .6rem;
+  border-radius:20px;font-family:var(--fc);font-size:.65rem;font-weight:700;
+  letter-spacing:.8px;text-transform:uppercase;border:1px solid}
+.tag-mode{background:rgba(245,160,32,.1);border-color:rgba(245,160,32,.25);color:var(--or)}
+.tag-map{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.2);color:var(--blue)}
+.tag-free{background:rgba(76,175,80,.08);border-color:rgba(76,175,80,.2);color:var(--green)}
+.tag-paid{background:rgba(245,160,32,.1);border-color:rgba(245,160,32,.25);color:var(--or3)}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.9rem}
+.info-item{background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:.6rem .7rem}
+.info-label{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.2rem}
+.info-val{font-family:var(--ff);font-size:1rem;font-weight:700;color:var(--txt)}
+.info-val.green{color:var(--green)}
+.info-val.orange{color:var(--or)}
+
+/* COUNTDOWN */
+.countdown-wrap{background:var(--bg2);border:1px solid var(--bdr2);border-radius:10px;
+  padding:.9rem;margin-bottom:1rem;text-align:center}
+.countdown-label{font-family:var(--fc);font-size:.7rem;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:.6rem}
+.countdown-tiles{display:flex;justify-content:center;gap:.5rem}
+.cd-tile{background:var(--card2);border:1px solid var(--bdr2);border-radius:8px;
+  padding:.5rem .7rem;min-width:52px;text-align:center}
+.cd-num{font-family:var(--ff);font-size:1.8rem;font-weight:700;color:var(--or);
+  line-height:1;display:block}
+.cd-unit{font-family:var(--fc);font-size:.55rem;font-weight:700;color:var(--muted);
+  letter-spacing:1px;text-transform:uppercase;margin-top:.1rem}
+.cd-sep{font-family:var(--ff);font-size:1.6rem;color:var(--bdr2);align-self:center;
+  line-height:1;padding-bottom:.4rem}
+.countdown-wrap.started .cd-num{color:var(--green)}
+
+/* REGISTER BTN */
+.reg-btn{width:100%;padding:.85rem;border-radius:10px;font-family:var(--fc);
+  font-size:1rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+  cursor:pointer;border:none;transition:all .2s;margin-bottom:1rem;position:relative;
+  overflow:hidden}
+.reg-btn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.08);
+  opacity:0;transition:opacity .15s}
+.reg-btn:hover:not(:disabled)::after{opacity:1}
+.reg-btn.join{background:linear-gradient(135deg,var(--or2),var(--or));color:#fff}
+.reg-btn.joined{background:rgba(76,175,80,.15);border:1px solid rgba(76,175,80,.3);
+  color:var(--green);cursor:default}
+.reg-btn.full{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);
+  color:var(--red);cursor:default}
+.reg-btn.locked{background:var(--bg2);border:1px solid var(--bdr);
+  color:var(--muted);cursor:default}
+.reg-btn:disabled{opacity:.7}
+
+/* ROOM CODE */
+.room-card{background:var(--card);border:1px solid var(--bdr);border-radius:12px;
+  padding:1rem;margin-bottom:1rem;position:relative;overflow:hidden}
+.room-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--green),#2dd4bf)}
+.room-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.8rem}
+.room-header-icon{font-size:1.2rem}
+.room-header-txt{font-family:var(--fc);font-size:.85rem;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase}
+.room-row{display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;
+  padding:.6rem .8rem;margin-bottom:.5rem}
+.room-row:last-child{margin-bottom:0}
+.room-key{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.room-val{font-family:var(--ff);font-size:1.1rem;font-weight:700;letter-spacing:2px;color:var(--or)}
+.room-copy{background:rgba(245,160,32,.15);border:1px solid rgba(245,160,32,.3);
+  color:var(--or);font-family:var(--fc);font-size:.65rem;font-weight:700;
+  letter-spacing:1px;padding:.25rem .6rem;border-radius:6px;cursor:pointer;
+  text-transform:uppercase;transition:all .15s}
+.room-copy:hover{background:rgba(245,160,32,.25)}
+.room-locked{text-align:center;padding:1.2rem}
+.room-locked-icon{font-size:2rem;margin-bottom:.5rem}
+.room-locked-txt{font-family:var(--fc);font-size:.8rem;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;color:var(--muted)}
+.room-locked-sub{font-size:.72rem;color:var(--muted);margin-top:.3rem}
+
+/* SECTIONS */
+.sec-title{font-family:var(--fc);font-size:.8rem;font-weight:700;letter-spacing:.5px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:.7rem;
+  display:flex;align-items:center;gap:.5rem}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--bdr)}
+
+/* PRIZE SECTION */
+.prize-card{background:var(--card);border:1px solid var(--bdr);border-radius:12px;
+  padding:1rem;margin-bottom:1rem;overflow:hidden;position:relative}
+.prize-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--or3),var(--or))}
+.prize-row{display:flex;align-items:center;justify-content:space-between;
+  padding:.55rem 0;border-bottom:1px solid var(--bdr)}
+.prize-row:last-child{border-bottom:none;padding-bottom:0}
+.prize-pos{display:flex;align-items:center;gap:.6rem}
+.prize-medal{font-size:1.2rem;width:28px;text-align:center;flex-shrink:0}
+.prize-pos-txt{font-family:var(--ff);font-size:.95rem;font-weight:700}
+.prize-amt{font-family:var(--ff);font-size:.95rem;font-weight:700;color:var(--or)}
+.prize-kill-info{background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;
+  padding:.7rem .8rem;display:flex;flex-direction:column;gap:.4rem}
+.prize-kill-row{display:flex;justify-content:space-between;align-items:center}
+.prize-kill-label{font-size:.72rem;color:var(--txt2)}
+.prize-kill-val{font-family:var(--ff);font-size:.95rem;font-weight:700;color:var(--or)}
+
+/* RULES */
+.rules-card{background:var(--card);border:1px solid var(--bdr);border-radius:12px;
+  padding:1rem;margin-bottom:1rem}
+.rules-txt{font-size:.82rem;color:var(--txt2);line-height:1.7;white-space:pre-wrap}
+
+/* PLAYERS LIST */
+.players-card{background:var(--card);border:1px solid var(--bdr);border-radius:12px;
+  padding:1rem;margin-bottom:1rem}
+.player-row{display:flex;align-items:center;gap:.7rem;
+  padding:.55rem 0;border-bottom:1px solid var(--bdr)}
+.player-row:last-child{border-bottom:none;padding-bottom:0}
+.player-num{font-family:var(--fc);font-size:.7rem;font-weight:700;color:var(--muted);
+  width:22px;text-align:right;flex-shrink:0}
+.player-ava{width:30px;height:30px;border-radius:50%;background:var(--or);
+  display:grid;place-items:center;font-family:var(--ff);font-size:.8rem;
+  font-weight:700;color:#000;flex-shrink:0}
+.player-name{font-family:var(--ff);font-size:.95rem;font-weight:700;flex:1}
+.player-igname{font-size:.7rem;color:var(--muted)}
+.player-you{font-family:var(--fc);font-size:.6rem;font-weight:700;letter-spacing:.8px;
+  text-transform:uppercase;padding:.15rem .45rem;border-radius:10px;
+  background:rgba(245,160,32,.15);border:1px solid rgba(245,160,32,.25);color:var(--or)}
+
+/* EMPTY */
+.empty{text-align:center;padding:1.5rem;color:var(--muted)}
+.empty-icon{font-size:2rem;margin-bottom:.5rem}
+.empty-txt{font-size:.82rem}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--card2);border:1px solid var(--bdr2);border-radius:10px;
+  padding:.7rem 1.2rem;font-family:var(--fc);font-size:.8rem;font-weight:700;
+  letter-spacing:1px;color:var(--txt);z-index:9999;white-space:nowrap;
+  opacity:0;transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.green{border-color:rgba(76,175,80,.4);color:var(--green)}
+.toast.red{border-color:rgba(239,68,68,.35);color:var(--red)}
+
+/* MODAL */
+.modal{position:fixed;inset:0;z-index:500;display:flex;align-items:flex-end;
+  justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+  opacity:0;pointer-events:none;transition:opacity .25s}
+.modal.on{opacity:1;pointer-events:all}
+.modal-box{background:var(--card);border:1px solid var(--bdr2);
+  border-radius:16px 16px 0 0;padding:1.4rem 1.2rem 1.8rem;
+  width:100%;max-width:500px;transform:translateY(40px);
+  transition:transform .3s}
+.modal.on .modal-box{transform:translateY(0)}
+.modal-title{font-family:var(--ff);font-size:1.2rem;font-weight:700;letter-spacing:1px;
+  margin-bottom:.3rem}
+.modal-sub{font-size:.78rem;color:var(--txt2);margin-bottom:1.1rem;line-height:1.5}
+.modal-fee-badge{display:inline-flex;align-items:center;gap:.4rem;
+  background:rgba(245,160,32,.12);border:1px solid rgba(245,160,32,.3);
+  border-radius:8px;padding:.5rem .8rem;margin-bottom:1rem;width:100%}
+.modal-fee-label{font-size:.72rem;color:var(--muted);flex:1}
+.modal-fee-val{font-family:var(--ff);font-size:1.1rem;font-weight:700;color:var(--or)}
+.modal-bal-row{display:flex;justify-content:space-between;font-size:.78rem;
+  color:var(--txt2);margin-bottom:.3rem}
+.modal-bal-row span:last-child{font-family:var(--ff);font-weight:700;color:var(--txt)}
+.modal-divider{border:none;border-top:1px solid var(--bdr);margin:.8rem 0}
+.modal-actions{display:flex;gap:.6rem;margin-top:1rem}
+.mbtn{flex:1;padding:.8rem;border-radius:10px;font-family:var(--fc);font-size:.88rem;
+  font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;
+  border:none;transition:all .15s}
+.mbtn-cancel{background:var(--bg2);border:1px solid var(--bdr);color:var(--txt2)}
+.mbtn-confirm{background:linear-gradient(135deg,var(--or2),var(--or));color:#fff}
+.mbtn-confirm:disabled{opacity:.5;cursor:default}
+
+/* ERROR PAGE */
+.err-page{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:70vh;text-align:center;padding:2rem}
+.err-icon{font-size:3rem;margin-bottom:1rem}
+.err-title{font-family:var(--ff);font-size:1.4rem;font-weight:700;margin-bottom:.4rem}
+.err-msg{font-size:.82rem;color:var(--muted);margin-bottom:1.5rem}
+.err-btn{background:var(--or);color:#000;font-family:var(--fc);font-size:.85rem;
+  font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  padding:.7rem 1.6rem;border-radius:8px;text-decoration:none;cursor:pointer;border:none}
+
+/* RESULTS TABLE */
+.results-card{background:var(--card);border:1px solid var(--bdr);border-radius:12px;
+  overflow:hidden;margin-bottom:1rem}
+.results-head{display:grid;grid-template-columns:40px 1fr 70px 70px;
+  padding:.5rem .8rem;background:var(--bg2);border-bottom:1px solid var(--bdr)}
+.results-head span{font-family:var(--fc);font-size:.62rem;font-weight:700;
+  letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+.results-head span:nth-child(3),.results-head span:nth-child(4){text-align:center}
+.result-row{display:grid;grid-template-columns:40px 1fr 70px 70px;
+  padding:.6rem .8rem;border-bottom:1px solid var(--bdr);align-items:center}
+.result-row:last-child{border-bottom:none}
+.result-row.top1{background:rgba(255,215,0,.05)}
+.result-row.top2{background:rgba(192,192,192,.04)}
+.result-row.top3{background:rgba(205,127,50,.04)}
+.result-rank{font-family:var(--ff);font-size:1rem;font-weight:700}
+.result-rank.r1{color:gold}
+.result-rank.r2{color:silver}
+.result-rank.r3{color:#cd7f32}
+.result-name{font-family:var(--ff);font-size:.9rem;font-weight:700}
+.result-igname{font-size:.65rem;color:var(--muted)}
+.result-kills,.result-prize{text-align:center;font-family:var(--ff);font-size:.9rem;font-weight:700}
+.result-prize{color:var(--or)}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="tb">
+  <button class="back-btn" onclick="goBack()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Back
+  </button>
+  <a href="index.html" class="logo">
+    <img src="logo.jpg" alt="Coded Games" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid var(--or)">
+    <div class="logo-txt"><b>CODED</b> GAMES</div>
+  </a>
+  <div id="tbRight" style="width:60px;display:flex;justify-content:flex-end"><button id="cg-theme-btn" onclick="cgToggleTheme()" title="Toggle theme" style="background:none;border:none;font-size:1.25rem;cursor:pointer;padding:.1rem .2rem;line-height:1;color:var(--txt)">🌙</button>
+    <!-- balance chip loaded dynamically -->
+  </div>
+</div>
+
+<div class="content" id="mainContent">
+  <div class="loading" id="loadingView">
+    <div class="spin"></div>
+    <p>Loading tournament…</p>
+  </div>
+</div>
+
+<!-- REGISTER CONFIRM MODAL -->
+<div class="modal" id="mConfirm" onclick="if(event.target===this)closeModal('mConfirm')">
+  <div class="modal-box">
+    <div class="modal-title">Confirm Registration</div>
+    <div class="modal-sub" id="mConfirmSub">You are about to join this tournament.</div>
+    <div class="modal-fee-badge">
+      <span class="modal-fee-label">Entry Fee</span>
+      <span class="modal-fee-val" id="mConfirmFee">₦0</span>
+    </div>
+    <div class="modal-bal-row"><span>Your Real Balance</span><span id="mConfirmRealBal">₦0</span></div>
+    <div class="modal-bal-row"><span>Your Bonus Coins</span><span id="mConfirmBonusBal">0🪙</span></div>
+    <div class="modal-bal-row"><span>Balance After</span><span id="mConfirmAfter" style="color:var(--or)">₦0</span></div>
+    <hr class="modal-divider">
+    <div style="font-size:.72rem;color:var(--muted);line-height:1.5">
+      By registering, you agree to follow the tournament rules. Fees are non-refundable unless the tournament is cancelled by admin.
+    </div>
+    <div class="modal-actions">
+      <button class="mbtn mbtn-cancel" onclick="closeModal('mConfirm')">Cancel</button>
+      <button class="mbtn mbtn-confirm" id="mConfirmBtn" onclick="doRegister()">Confirm & Pay</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import{getAuth,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import{getDatabase,ref,get,set,update,onValue,push,runTransaction}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+const cfg={
+  apiKey:'AIzaSyClCRS0krUtQuKbhJ3a2VftBx_z2iO6lfA',
+  authDomain:'coded-games.firebaseapp.com',
+  databaseURL:'https://coded-games-default-rtdb.firebaseio.com',
+  projectId:'coded-games',
+  appId:'1:717673651238:web:be30019855d767c4d95ae7'
+};
+const app=initializeApp(cfg);
+const auth=getAuth(app);
+const db=getDatabase(app);
+
+// --- STATE ---
+let currentUser=null;
+let playerData=null;
+let tournamentData=null;
+let tournamentId=null;
+let cdTimer=null;
+
+// --- UTILS ---
+function toast(msg,type='',dur=3000){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='toast '+(type||'');
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),dur);
+}
+function openModal(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
+function closeModal(id){document.getElementById(id).classList.remove('on');document.body.style.overflow='';}
+window.closeModal=closeModal;
+
+function goBack(){
+  if(document.referrer&&document.referrer.includes(location.hostname)){history.back();}
+  else{location.href='index.html';}
+}
+window.goBack=goBack;
+
+// Get tournament ID from URL
+function getTid(){
+  const p=new URLSearchParams(location.search);
+  return p.get('id');
+}
+
+// --- MAIN INIT ---
+onAuthStateChanged(auth,async user=>{
+  currentUser=user;
+  tournamentId=getTid();
+  if(!tournamentId){showError('No tournament specified.','Go Home','index.html');return;}
+
+  // Load tournament
+  const snap=await get(ref(db,'tournaments/'+tournamentId));
+  if(!snap.exists()){showError('Tournament not found.','Go Home','index.html');return;}
+  tournamentData=snap.val();
+
+  // Load player if logged in
+  if(user){
+    const pSnap=await get(ref(db,'players/'+user.uid+'/profile'));
+    if(pSnap.exists())playerData=pSnap.val();
+    // Show balance chip
+    if(playerData){
+      document.getElementById('tbRight').innerHTML=`
+        <div style="font-family:var(--ff);font-size:.8rem;font-weight:700;color:var(--or)">
+          ₦${(playerData.balanceReal||0).toLocaleString()}
+        </div>`;
+    }
+  }
+
+  render();
+
+  // Real-time: listen for changes to registrations + room code
+  onValue(ref(db,'tournaments/'+tournamentId),s=>{
+    if(s.exists()){
+      tournamentData=s.val();
+      render();
+    }
+  });
+});
+
+// --- RENDER ---
+function render(){
+  const t=tournamentData;
+  const el=document.getElementById('mainContent');
+  const now=Date.now();
+  const isRegistered=currentUser&&t.registrations&&t.registrations[currentUser.uid];
+  const regCount=t.registrations?Object.keys(t.registrations).length:0;
+  const isFull=regCount>=(t.maxPlayers||100);
+  const starts=t.startTime||0;
+  const isStarted=now>=starts;
+  const minsToStart=(starts-now)/60000;
+  const roomVisible=isRegistered&&playerData?.verified&&(minsToStart<=15||isStarted||t.roomReleaseOverride==='now');
+  const statusLabel={upcoming:'🕐 Upcoming',live:'🟢 Live',completed:'✅ Completed',
+    cancelled:'❌ Cancelled',postponed:'⏸️ Postponed'}[t.status||'upcoming']||'Upcoming';
+  const statusClass=t.status||'upcoming';
+
+  el.innerHTML=`
+    <!-- STATUS -->
+    <div class="status-banner ${statusClass}">${statusLabel}${t.statusReason?` — ${t.statusReason}`:''}</div>
+
+    <!-- HERO -->
+    <div class="hero-card">
+      <div class="hero-body">
+        <div class="tourn-name">${escHtml(t.name||'Tournament')}</div>
+        <div class="tourn-meta">
+          <span class="tag tag-mode">🎮 ${escHtml(t.mode||'Squad')}</span>
+          <span class="tag tag-map">🗺️ ${escHtml(t.map||'Erangel')}</span>
+          ${t.fee?`<span class="tag tag-paid">💰 ₦${t.fee} Entry</span>`:`<span class="tag tag-free">🆓 Free</span>`}
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">Start Time</div>
+            <div class="info-val">${formatDateTime(starts)}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Players</div>
+            <div class="info-val orange">${regCount} / ${t.maxPlayers||'—'}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Entry Fee</div>
+            <div class="info-val ${t.fee?'orange':'green'}">${t.fee?'₦'+t.fee:'Free'}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Prize Pool</div>
+            <div class="info-val green">${getPrizePoolLabel(t)}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COUNTDOWN -->
+    ${(t.status==='upcoming'||t.status==='live')&&starts?`
+    <div class="countdown-wrap ${isStarted?'started':''}" id="cdWrap">
+      <div class="countdown-label">${isStarted?'🟢 Tournament In Progress':'⏱ Starts In'}</div>
+      <div class="countdown-tiles" id="cdTiles">
+        ${renderCountdownTiles(starts)}
+      </div>
+    </div>`:''}
+
+    <!-- REGISTER BUTTON -->
+    ${renderRegBtn(t,isRegistered,isFull,regCount)}
+
+    <!-- ROOM CODE -->
+    ${renderRoomSection(t,isRegistered,roomVisible,minsToStart,isStarted)}
+
+    <!-- PRIZE STRUCTURE -->
+    ${t.prize?`
+    <div class="sec-title">🏆 Prize Structure</div>
+    <div class="prize-card">${renderPrize(t.prize)}</div>`:''}
+
+    <!-- RESULTS (completed) -->
+    ${t.status==='completed'&&t.results?`
+    <div class="sec-title">📊 Results</div>
+    ${renderResultsTable(t)}`:''}
+
+    <!-- RULES -->
+    ${t.rules?`
+    <div class="sec-title">📋 Rules</div>
+    <div class="rules-card">
+      <div class="rules-txt">${escHtml(t.rules)}</div>
+    </div>`:''}
+
+    <!-- REGISTERED PLAYERS -->
+    <div class="sec-title">👥 Players (${regCount})</div>
+    <div class="players-card">
+      ${renderPlayerList(t)}
+    </div>
+  `;
+
+  // Start countdown interval
+  if(cdTimer)clearInterval(cdTimer);
+  if((t.status==='upcoming')&&starts&&!isStarted){
+    cdTimer=setInterval(()=>{
+      const tiles=document.getElementById('cdTiles');
+      if(tiles)tiles.innerHTML=renderCountdownTiles(starts);
+      if(Date.now()>=starts){clearInterval(cdTimer);}
+    },1000);
+  }
+}
+
+function renderRegBtn(t,isRegistered,isFull,regCount){
+  const s=t.status||'upcoming';
+  if(s==='completed'||s==='cancelled')return'';
+  if(!currentUser)return`
+    <a href="auth.html" class="reg-btn join" style="display:block;text-align:center;text-decoration:none;
+      background:linear-gradient(135deg,var(--or2),var(--or));color:#fff;
+      padding:.85rem;border-radius:10px;font-family:var(--fc);font-size:1rem;
+      font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin-bottom:1rem">
+      🔐 Login to Register
+    </a>`;
+  if(!playerData?.verified)return`
+    <button class="reg-btn locked" disabled>⚠️ Verify Account to Join</button>`;
+  if(isRegistered)return`
+    <button class="reg-btn joined" disabled>✅ You're Registered!</button>`;
+  if(isFull)return`
+    <button class="reg-btn full" disabled>🔴 Tournament Full</button>`;
+  return`
+    <button class="reg-btn join" onclick="openRegModal()">
+      ⚔️ Register — ${t.fee?'₦'+t.fee:'Free'}
+    </button>`;
+}
+
+function renderRoomSection(t,isRegistered,roomVisible,minsToStart,isStarted){
+  if(!isRegistered&&currentUser)return`
+    <div class="room-card" style="margin-bottom:1rem">
+      <div class="room-header">
+        <div class="room-header-icon">🔑</div>
+        <div class="room-header-txt">Room Code</div>
+      </div>
+      <div class="room-locked">
+        <div class="room-locked-icon">🔒</div>
+        <div class="room-locked-txt">Register to view room code</div>
+        <div class="room-locked-sub">Room code is only visible to registered players</div>
+      </div>
+    </div>`;
+
+  if(isRegistered&&!roomVisible&&t.roomId)return`
+    <div class="room-card" style="margin-bottom:1rem">
+      <div class="room-header">
+        <div class="room-header-icon">🔑</div>
+        <div class="room-header-txt">Room Code</div>
+      </div>
+      <div class="room-locked">
+        <div class="room-locked-icon">⏳</div>
+        <div class="room-locked-txt">Available 15 min before start</div>
+        <div class="room-locked-sub">Come back shortly before the tournament begins</div>
+      </div>
+    </div>`;
+
+  if(isRegistered&&roomVisible&&t.roomId)return`
+    <div class="room-card" style="margin-bottom:1rem">
+      <div class="room-header">
+        <div class="room-header-icon">🔑</div>
+        <div class="room-header-txt">Room Code — Verified Players Only</div>
+      </div>
+      <div class="room-row">
+        <div>
+          <div class="room-key">Room ID</div>
+          <div class="room-val">${escHtml(t.roomId)}</div>
+        </div>
+        <button class="room-copy" onclick="copyText('${escHtml(t.roomId)}','Room ID')">Copy</button>
+      </div>
+      ${t.roomPassword?`
+      <div class="room-row">
+        <div>
+          <div class="room-key">Password</div>
+          <div class="room-val">${escHtml(t.roomPassword)}</div>
+        </div>
+        <button class="room-copy" onclick="copyText('${escHtml(t.roomPassword)}','Password')">Copy</button>
+      </div>`:''}
+      <div style="margin-top:.7rem;font-size:.7rem;color:var(--muted);
+        background:rgba(76,175,80,.06);border:1px solid rgba(76,175,80,.15);
+        border-radius:6px;padding:.5rem .7rem;line-height:1.5">
+        ⚠️ Do not share this code. Sharing it may result in disqualification.
+      </div>
+    </div>`;
+
+  return'';// not registered, not logged in — no room section
+}
+
+function renderPrize(prize){
+  if(!prize)return'';
+  if(prize.type==='position'){
+    const p=prize.positions||{};
+    const rows=[
+      {label:'🥇 1st Place',key:'1',medal:'🥇'},
+      {label:'🥈 2nd Place',key:'2',medal:'🥈'},
+      {label:'🥉 3rd – 5th',key:'3-5',medal:'🥉'},
+      {label:'🎯 6th – 10th',key:'6-10',medal:'🎯'},
+    ];
+    let html='';
+    rows.forEach(r=>{
+      const amt=p[r.key];
+      if(!amt)return;
+      html+=`<div class="prize-row">
+        <div class="prize-pos">
+          <div class="prize-medal">${r.medal}</div>
+          <div class="prize-pos-txt">${r.label}</div>
+        </div>
+        <div class="prize-amt">₦${Number(amt).toLocaleString()}</div>
+      </div>`;
+    });
+    if(p.refund)html+=`<div class="prize-row">
+      <div class="prize-pos">
+        <div class="prize-medal">♻️</div>
+        <div class="prize-pos-txt">Positions ${p.refund} — Entry Refunded</div>
+      </div>
+      <div class="prize-amt" style="color:var(--txt2)">Refund</div>
+    </div>`;
+    return html||'<div class="empty"><div class="empty-txt">No prize info</div></div>';
+  }
+  if(prize.type==='kill'){
+    return`<div class="prize-kill-info">
+      <div class="prize-kill-row">
+        <span class="prize-kill-label">Per Kill</span>
+        <span class="prize-kill-val">₦${Number(prize.perKill||0).toLocaleString()}</span>
+      </div>
+      <div class="prize-kill-row">
+        <span class="prize-kill-label">Kill Cap</span>
+        <span class="prize-kill-val">${prize.killCap||10} kills max</span>
+      </div>
+      <div class="prize-kill-row">
+        <span class="prize-kill-label">Max Earnable</span>
+        <span class="prize-kill-val">₦${((prize.perKill||0)*(prize.killCap||10)).toLocaleString()}</span>
+      </div>
+    </div>`;
+  }
+  return'';
+}
+
+function renderResultsTable(t){
+  const results=t.results||{};
+  const regs=t.registrations||{};
+  const prize=t.prize||{};
+  const entries=Object.entries(results).filter(([,r])=>r.rank||r.kills);
+  if(!entries.length)return'<div class="empty" style="margin-bottom:1rem"><div class="empty-icon">📊</div><div class="empty-txt">Results not yet published</div></div>';
+
+  // Sort by rank if position type, else by kills
+  const sorted=entries.sort((a,b)=>{
+    if(prize.type==='kill')return(b[1].kills||0)-(a[1].kills||0);
+    return(a[1].rank||999)-(b[1].rank||999);
+  });
+
+  const rows=sorted.map(([pid,res])=>{
+    const reg=regs[pid]||{};
+    const username=reg.username||pid.slice(0,8);
+    const igname=reg.inGameName||'';
+    const rank=res.rank||'—';
+    const kills=res.kills??'—';
+    const prizeAmt=calcPrize(res,prize,t.fee);
+    const isMe=currentUser&&pid===currentUser.uid;
+    const rClass=rank===1?'top1':rank===2?'top2':rank<=5?'top3':'';
+    const rankClass=rank===1?'r1':rank===2?'r2':rank<=3?'r3':'';
+    return`<div class="result-row ${rClass}${isMe?' result-row-me':''}">
+      <div class="result-rank ${rankClass}">${rank<=3&&typeof rank==='number'?['🥇','🥈','🥉'][rank-1]:rank}</div>
+      <div>
+        <div class="result-name">${escHtml(username)}${isMe?' <span class="player-you">You</span>':''}</div>
+        ${igname?`<div class="result-igname">${escHtml(igname)}</div>`:''}
+      </div>
+      <div class="result-kills">${kills}</div>
+      <div class="result-prize">${prizeAmt?'₦'+prizeAmt.toLocaleString():'—'}</div>
+    </div>`;
+  }).join('');
+
+  return`<div class="results-card" style="margin-bottom:1rem">
+    <div class="results-head">
+      <span>Rank</span><span>Player</span><span>Kills</span><span>Prize</span>
+    </div>
+    ${rows}
+  </div>`;
+}
+
+function calcPrize(res,prize,fee){
+  if(!prize)return 0;
+  if(prize.type==='position'){
+    const p=prize.positions||{};
+    const rank=res.rank;
+    if(rank===1)return p['1']||0;
+    if(rank===2)return p['2']||0;
+    if(rank>=3&&rank<=5)return p['3-5']||0;
+    if(rank>=6&&rank<=10)return p['6-10']||0;
+    if(p.refund){
+      const[a,b]=p.refund.split('-').map(Number);
+      if(rank>=a&&rank<=(b||a))return fee||0;
+    }
+    return 0;
+  }
+  if(prize.type==='kill'){
+    const kills=Math.min(res.kills||0,prize.killCap||10);
+    return kills*(prize.perKill||0);
+  }
+  return 0;
+}
+
+function renderPlayerList(t){
+  const regs=t.registrations;
+  if(!regs||!Object.keys(regs).length)return`
+    <div class="empty">
+      <div class="empty-icon">👾</div>
+      <div class="empty-txt">No players registered yet. Be the first!</div>
+    </div>`;
+  const entries=Object.entries(regs);
+  return entries.map(([pid,reg],i)=>{
+    const isMe=currentUser&&pid===currentUser.uid;
+    const uname=reg.username||'Player';
+    const igname=reg.inGameName||'';
+    const initial=uname[0].toUpperCase();
+    return`<div class="player-row">
+      <div class="player-num">${i+1}</div>
+      <div class="player-ava" style="background:${hashColor(pid)}">${initial}</div>
+      <div style="flex:1">
+        <div class="player-name">${escHtml(uname)}${isMe?' <span class="player-you">You</span>':''}</div>
+        ${igname?`<div class="player-igname">${escHtml(igname)}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCountdownTiles(starts){
+  const diff=Math.max(0,starts-Date.now());
+  const d=Math.floor(diff/86400000);
+  const h=Math.floor((diff%86400000)/3600000);
+  const m=Math.floor((diff%3600000)/60000);
+  const s=Math.floor((diff%60000)/1000);
+  const pad=n=>String(n).padStart(2,'0');
+  if(diff===0)return`<div class="cd-tile"><span class="cd-num">🟢</span><span class="cd-unit">Started</span></div>`;
+  let tiles='';
+  if(d>0)tiles+=`<div class="cd-tile"><span class="cd-num">${d}</span><span class="cd-unit">Days</span></div><span class="cd-sep">:</span>`;
+  tiles+=`<div class="cd-tile"><span class="cd-num">${pad(h)}</span><span class="cd-unit">Hrs</span></div>`;
+  tiles+=`<span class="cd-sep">:</span>`;
+  tiles+=`<div class="cd-tile"><span class="cd-num">${pad(m)}</span><span class="cd-unit">Min</span></div>`;
+  tiles+=`<span class="cd-sep">:</span>`;
+  tiles+=`<div class="cd-tile"><span class="cd-num">${pad(s)}</span><span class="cd-unit">Sec</span></div>`;
+  return tiles;
+}
+
+function getPrizePoolLabel(t){
+  const prize=t.prize;
+  if(!prize)return'TBA';
+  if(prize.type==='kill')return'₦'+((prize.perKill||0)*(prize.killCap||10)).toLocaleString()+' max';
+  if(prize.type==='position'){
+    const p=prize.positions||{};
+    const total=[p['1'],p['2'],p['3-5'],p['6-10']].map(Number).filter(Boolean).reduce((a,b)=>a+b,0);
+    return total?'₦'+total.toLocaleString():'Position';
+  }
+  return'TBA';
+}
+
+function formatDateTime(ts){
+  if(!ts)return'TBA';
+  const d=new Date(ts);
+  return d.toLocaleDateString('en-NG',{day:'numeric',month:'short'})+' · '+
+    d.toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'});
+}
+
+function hashColor(str){
+  const colors=['#f5a020','#3b82f6','#a855f7','#ec4899','#14b8a6','#f43f5e','#84cc16'];
+  let h=0;for(let c of str)h=(h*31+c.charCodeAt(0))%colors.length;
+  return colors[h];
+}
+
+function escHtml(s){
+  if(!s)return'';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showError(msg,btnTxt,url){
+  document.getElementById('mainContent').innerHTML=`
+    <div class="err-page">
+      <div class="err-icon">😕</div>
+      <div class="err-title">Oops!</div>
+      <div class="err-msg">${msg}</div>
+      <a href="${url}" class="err-btn">${btnTxt}</a>
+    </div>`;
+}
+
+// --- REGISTRATION FLOW ---
+window.openRegModal=function(){
+  if(!currentUser){location.href='auth.html';return;}
+  if(!playerData?.verified){toast('Your account must be verified to join.','red');return;}
+  const t=tournamentData;
+  const fee=t.fee||0;
+  const real=playerData.balanceReal||0;
+  const bonus=playerData.balanceBonus||0;
+  document.getElementById('mConfirmSub').textContent=`Join "${t.name}"`;
+  document.getElementById('mConfirmFee').textContent=fee?'₦'+fee.toLocaleString():'FREE';
+  document.getElementById('mConfirmRealBal').textContent='₦'+real.toLocaleString();
+  document.getElementById('mConfirmBonusBal').textContent=bonus.toLocaleString()+'🪙';
+  const canAffordReal=real>=fee;
+  const canAffordBonus=bonus>=fee;
+  const canAfford=fee===0||canAffordReal||canAffordBonus;
+  if(fee&&!canAffordReal&&!canAffordBonus){
+    document.getElementById('mConfirmAfter').textContent='Insufficient balance';
+    document.getElementById('mConfirmAfter').style.color='var(--red)';
+    document.getElementById('mConfirmBtn').disabled=true;
+  } else {
+    // prefer real balance for paid tournaments
+    const useBonus=fee>0&&!canAffordReal&&canAffordBonus;
+    const afterReal=useBonus?real:Math.max(0,real-fee);
+    const afterBonus=useBonus?bonus-fee:bonus;
+    document.getElementById('mConfirmAfter').textContent=
+      useBonus?afterBonus.toLocaleString()+'🪙 (bonus used)':'₦'+afterReal.toLocaleString();
+    document.getElementById('mConfirmAfter').style.color='var(--or)';
+    document.getElementById('mConfirmBtn').disabled=false;
+    document.getElementById('mConfirmBtn').dataset.useBonus=useBonus;
+  }
+  openModal('mConfirm');
+};
+
+window.doRegister=async function(){
+  const btn=document.getElementById('mConfirmBtn');
+  if(btn.disabled)return;
+  btn.disabled=true;btn.textContent='Processing…';
+  const t=tournamentData;
+  const tid=tournamentId;
+  const uid=currentUser.uid;
+  const fee=t.fee||0;
+  const useBonus=btn.dataset.useBonus==='true';
+
+  try{
+    // Check not already registered
+    const snap=await get(ref(db,'tournaments/'+tid+'/registrations/'+uid));
+    if(snap.exists()){toast('Already registered!','green');closeModal('mConfirm');return;}
+
+    // Check slot still available
+    const regsSnap=await get(ref(db,'tournaments/'+tid+'/registrations'));
+    const regCount=regsSnap.exists()?Object.keys(regsSnap.val()).length:0;
+    if(regCount>=(t.maxPlayers||100)){toast('Tournament is now full!','red');closeModal('mConfirm');return;}
+
+    // Deduct fee
+    if(fee>0){
+      const balKey=useBonus?'balanceBonus':'balanceReal';
+      const currentBal=useBonus?(playerData.balanceBonus||0):(playerData.balanceReal||0);
+      if(currentBal<fee){toast('Insufficient balance!','red');closeModal('mConfirm');return;}
+      await set(ref(db,'players/'+uid+'/profile/'+balKey),currentBal-fee);
+    }
+
+    // Register player
+    await set(ref(db,'tournaments/'+tid+'/registrations/'+uid),{
+      username:playerData.username||'Unknown',
+      inGameName:playerData.inGameName||'',
+      pubgUid:playerData.pubgUid||'',
+      registeredAt:Date.now(),
+      feePaid:fee,
+      feeSource:useBonus?'bonus':'real'
+    });
+
+    // Log transaction
+    await push(ref(db,'players/'+uid+'/transactions'),{
+      type:'tournament_entry',amount:fee,
+      tournamentId:tid,tournamentName:t.name,
+      createdAt:Date.now()
+    });
+
+    closeModal('mConfirm');
+    toast('✅ Successfully registered!','green');
+    // Reload player data
+    const pSnap=await get(ref(db,'players/'+uid+'/profile'));
+    if(pSnap.exists())playerData=pSnap.val();
+
+  }catch(e){
+    console.error(e);
+    toast('Registration failed. Please try again.','red');
+    btn.disabled=false;btn.textContent='Confirm & Pay';
+  }
+};
+
+window.copyText=function(text,label){
+  navigator.clipboard.writeText(text).then(()=>toast(`${label} copied!`,'green'));
+};
+
+// ---- LAUNCH GATE ----
+get(ref(db,'settings/launch')).then(snap=>{
+  const s=snap.val()||{};
+  if(s.gateOn===true && s.date>0 && s.date>Date.now()) window.location.href='index.html';
+});
+</script>
+
+<script>
+/* ── THEME TOGGLE ───────────────────────────────── */
+(function(){
+  const saved = localStorage.getItem('cg-theme');
+  const sysDark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+  _cgApplyTheme(saved ? saved === 'dark' : sysDark);
+})();
+function _cgApplyTheme(dark){
+  const r = document.documentElement.style;
+  if(dark){
+    r.setProperty('--bg','#130805'); r.setProperty('--bg2','#1a0d08');
+    r.setProperty('--card','#1f1008'); r.setProperty('--card2','#261508');
+    r.setProperty('--bdr','#3a1f0f'); r.setProperty('--bdr2','#4a2a18');
+    r.setProperty('--txt','#f5f0e8'); r.setProperty('--txt2','#c8a882');
+    r.setProperty('--muted','#8a6a50');
+  } else {
+    r.setProperty('--bg','#f5ede0'); r.setProperty('--bg2','#ede0cf');
+    r.setProperty('--card','#fff8f0'); r.setProperty('--card2','#f5ede0');
+    r.setProperty('--bdr','#dcc8b0'); r.setProperty('--bdr2','#cbb898');
+    r.setProperty('--txt','#1a0e05'); r.setProperty('--txt2','#6a4828');
+    r.setProperty('--muted','#9a7858');
+  }
+  localStorage.setItem('cg-theme', dark ? 'dark' : 'light');
+  const btn = document.getElementById('cg-theme-btn');
+  if(btn) btn.textContent = dark ? '☀️' : '🌙';
+}
+function cgToggleTheme(){
+  const cur = localStorage.getItem('cg-theme') ||
+    (window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
+  _cgApplyTheme(cur !== 'dark');
+}
+</script>
+</body>
+</html>

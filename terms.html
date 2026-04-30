@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>/* instant theme — prevents flash */
+(function(){
+  var t=localStorage.getItem('cg-theme');
+  var d=t?t==='dark':window.matchMedia('(prefers-color-scheme:dark)').matches;
+  var r=document.documentElement.style;
+  if(d){
+    r.setProperty('--bg','#130805');r.setProperty('--bg2','#1a0d08');
+    r.setProperty('--card','#1f1008');r.setProperty('--card2','#261508');
+    r.setProperty('--bdr','#3a1f0f');r.setProperty('--bdr2','#4a2a18');
+    r.setProperty('--txt','#f5f0e8');r.setProperty('--txt2','#c8a882');r.setProperty('--muted','#8a6a50');
+  }else{
+    r.setProperty('--bg','#f5ede0');r.setProperty('--bg2','#ede0cf');
+    r.setProperty('--card','#fff8f0');r.setProperty('--card2','#f5ede0');
+    r.setProperty('--bdr','#dcc8b0');r.setProperty('--bdr2','#cbb898');
+    r.setProperty('--txt','#1a0e05');r.setProperty('--txt2','#6a4828');r.setProperty('--muted','#9a7858');
+  }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coded Games — Terms & Conditions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --or:#f5a020;--or2:#c43a00;
+  --bg:#130805;--bg2:#1a0d08;--card:#1f1008;
+  --bdr:#3a1f0f;--bdr2:#4a2a18;
+  --txt:#f5f0e8;--txt2:#c8a882;--muted:#8a6a50;
+  --red:#ef4444;--green:#4caf50;
+  --ff:'Plus Jakarta Sans',sans-serif;--fc:'Nunito',sans-serif;
+}
+@media(prefers-color-scheme:light){
+  :root{--bg:#f5ede0;--bg2:#ede0cf;--card:#fff8f0;
+    --bdr:#dcc8b0;--bdr2:#cbb898;--txt:#1a0e05;--txt2:#6a4828;--muted:#9a7858;}
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--ff);background:var(--bg);color:var(--txt);min-height:100vh;padding-bottom:60px}
+
+.tb{position:sticky;top:0;z-index:100;height:52px;
+  display:flex;align-items:center;justify-content:space-between;padding:0 1rem;
+  background:rgba(19,8,5,.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--bdr)}
+@media(prefers-color-scheme:light){.tb{background:rgba(245,237,224,.92)}}
+.logo{display:flex;align-items:center;gap:.5rem;text-decoration:none}
+.logo-hex{width:28px;height:28px;background:var(--or);
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display:grid;place-items:center;font-size:.65rem;font-weight:900;color:#000}
+.logo-txt{font-family:var(--ff);font-size:1rem;font-weight:700;letter-spacing:1px;color:var(--txt)}
+.logo-txt b{color:var(--or)}
+.back{font-family:var(--fc);font-size:.75rem;font-weight:700;letter-spacing:1px;
+  color:var(--muted);text-decoration:none;text-transform:uppercase}
+.back:hover{color:var(--or)}
+
+.content{max-width:640px;margin:0 auto;padding:1.5rem 1rem}
+.page-title{font-size:1.5rem;font-weight:800;letter-spacing:1px;margin-bottom:.3rem}
+.page-title span{color:var(--or)}
+.last-updated{font-size:.72rem;color:var(--muted);margin-bottom:2rem}
+
+.section{margin-bottom:1.8rem}
+.section-num{display:inline-flex;align-items:center;justify-content:center;
+  width:28px;height:28px;background:var(--or);border-radius:50%;
+  font-size:.75rem;font-weight:800;color:#000;flex-shrink:0;margin-right:.6rem}
+.section-title{font-size:1rem;font-weight:700;color:var(--or);
+  display:flex;align-items:center;margin-bottom:.8rem}
+.section-body{font-size:.82rem;color:var(--txt2);line-height:1.8}
+.section-body p{margin-bottom:.6rem}
+.rule-item{display:flex;align-items:flex-start;gap:.6rem;
+  padding:.6rem .8rem;margin-bottom:.4rem;
+  background:var(--card);border:1px solid var(--bdr);border-radius:8px}
+.rule-icon{font-size:1rem;flex-shrink:0;margin-top:1px}
+.rule-text{font-size:.8rem;color:var(--txt2);line-height:1.6}
+.rule-text strong{color:var(--txt)}
+.warn-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);
+  border-radius:10px;padding:.9rem 1rem;margin-bottom:1rem}
+.warn-title{font-size:.75rem;font-weight:700;color:var(--red);text-transform:uppercase;
+  letter-spacing:.5px;margin-bottom:.4rem}
+.warn-text{font-size:.78rem;color:var(--txt2);line-height:1.6}
+
+.divider{border:none;border-top:1px solid var(--bdr);margin:1.5rem 0}
+
+footer{text-align:center;padding:1.5rem 1rem;border-top:1px solid var(--bdr);
+  font-size:.72rem;color:var(--muted);line-height:1.8;margin-top:2rem}
+footer a{color:var(--or);text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="tb">
+  <a href="auth.html" class="back">← Back</a>
+  <a href="index.html" class="logo">
+    <div class="logo-hex">CG</div>
+    <div class="logo-txt"><b>CODED</b> GAMES</div>
+  </a>
+  <div style="width:60px;display:flex;justify-content:flex-end"><button id="cg-theme-btn" onclick="cgToggleTheme()" title="Toggle theme" style="background:none;border:none;font-size:1.25rem;cursor:pointer;padding:.1rem .2rem;line-height:1;color:var(--txt)">🌙</button></div>
+</div>
+
+<div class="content">
+  <div class="page-title">Terms & <span>Conditions</span></div>
+  <div class="last-updated">Last updated: April 2026 · Applies to all Coded Games users</div>
+
+  <!-- Dynamic custom terms from admin (shown if set) -->
+  <div id="customTermsBlock" style="display:none">
+    <div style="white-space:pre-wrap;line-height:1.7;font-size:.9rem;color:var(--txt2)" id="customTermsContent"></div>
+    <div class="divider"></div>
+  </div>
+
+  <!-- 1. ACCEPTANCE -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">1</span>Acceptance of Terms
+    </div>
+    <div class="section-body">
+      <p>By creating an account on Coded Games, you confirm that you have read, understood, and agreed to these Terms & Conditions in full. If you do not agree, you must not create an account or participate in any tournament.</p>
+      <p>These terms apply to all users of the Coded Games platform, including players, spectators, and any third parties interacting with the platform.</p>
+    </div>
+  </div>
+
+  <!-- 2. ELIGIBILITY -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">2</span>Eligibility
+    </div>
+    <div class="section-body">
+      <div class="rule-item"><div class="rule-icon">🎂</div><div class="rule-text"><strong>Age:</strong> You must be 18 years or older to register and participate.</div></div>
+      <div class="rule-item"><div class="rule-icon">🇳🇬</div><div class="rule-text"><strong>Location:</strong> Coded Games is currently exclusive to players based in Nigeria.</div></div>
+      <div class="rule-item"><div class="rule-icon">📱</div><div class="rule-text"><strong>Device:</strong> You must have an active PUBG Mobile account with a verifiable UID.</div></div>
+      <div class="rule-item"><div class="rule-icon">✅</div><div class="rule-text"><strong>Verification:</strong> Your account must be verified by an admin before you can join paid tournaments.</div></div>
+    </div>
+  </div>
+
+  <!-- 3. ACCOUNT RULES -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">3</span>Account Rules
+    </div>
+    <div class="warn-box">
+      <div class="warn-title">⚠️ Zero Tolerance: Multiple Accounts</div>
+      <div class="warn-text">Creating two or more accounts on Coded Games is strictly forbidden under any circumstances. If you are found to have multiple accounts — regardless of the reason — <strong>ALL accounts will be permanently banned</strong> without warning and without refund of any balance. This includes cases where a player claims to have "forgotten" their first account. We track accounts by PUBG UID, device, and other identifiers.</div>
+    </div>
+    <div class="section-body">
+      <div class="rule-item"><div class="rule-icon">🔒</div><div class="rule-text"><strong>One account per person.</strong> One PUBG UID = one account. No exceptions.</div></div>
+      <div class="rule-item"><div class="rule-icon">🚫</div><div class="rule-text"><strong>Account sharing is prohibited.</strong> Do not share your login credentials with anyone. You are responsible for all activity on your account.</div></div>
+      <div class="rule-item"><div class="rule-icon">📝</div><div class="rule-text"><strong>Accurate information required.</strong> You must provide your real PUBG UID and valid contact information. Fake or misleading information will result in account suspension.</div></div>
+      <div class="rule-item"><div class="rule-icon">🔄</div><div class="rule-text"><strong>Username is permanent.</strong> Your chosen username is also your referral code and cannot be changed after registration.</div></div>
+    </div>
+  </div>
+
+  <!-- 4. TOURNAMENTS -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">4</span>Tournament Rules
+    </div>
+    <div class="section-body">
+      <div class="rule-item"><div class="rule-icon">💰</div><div class="rule-text"><strong>Entry fees are non-refundable</strong> unless the tournament is cancelled by Coded Games admin.</div></div>
+      <div class="rule-item"><div class="rule-icon">⏰</div><div class="rule-text"><strong>Punctuality is required.</strong> Players must join the room within the time stated. Late entry may result in disqualification without refund.</div></div>
+      <div class="rule-item"><div class="rule-icon">🔑</div><div class="rule-text"><strong>Room codes are confidential.</strong> Sharing the room ID or password with non-registered players will result in immediate disqualification and possible account ban.</div></div>
+      <div class="rule-item"><div class="rule-icon">🎮</div><div class="rule-text"><strong>Fair play only.</strong> Use of cheats, hacks, emulators (on non-emulator lobbies), or any third-party software that gives an unfair advantage is strictly prohibited and will result in permanent ban.</div></div>
+      <div class="rule-item"><div class="rule-icon">📊</div><div class="rule-text"><strong>Results are final.</strong> Once an admin publishes results, they cannot be disputed unless there is clear evidence of a system error.</div></div>
+    </div>
+  </div>
+
+  <!-- 5. PAYMENTS -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">5</span>Payments & Withdrawals
+    </div>
+    <div class="section-body">
+      <div class="rule-item"><div class="rule-icon">💳</div><div class="rule-text">All top-ups must be made via <strong>PalmPay to 8900952292 (CODED INT / HAMMED)</strong>. Payment to any other account is not our responsibility.</div></div>
+      <div class="rule-item"><div class="rule-icon">⏳</div><div class="rule-text">Top-up requests are processed manually. Processing times are typically within 1–24 hours. Transactions made between 8PM–8AM may take longer.</div></div>
+      <div class="rule-item"><div class="rule-icon">🏧</div><div class="rule-text">Withdrawals are subject to admin review. We reserve the right to delay or deny withdrawals if fraud is suspected.</div></div>
+      <div class="rule-item"><div class="rule-icon">🪙</div><div class="rule-text"><strong>Bonus coins</strong> cannot be withdrawn as cash. They can only be used for tournament entry fees.</div></div>
+      <div class="rule-item"><div class="rule-icon">🚨</div><div class="rule-text">Any attempt to dispute or chargeback a legitimate payment through your bank is considered fraud and will result in permanent account ban and legal action.</div></div>
+    </div>
+  </div>
+
+  <!-- 6. CONDUCT -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">6</span>Code of Conduct
+    </div>
+    <div class="section-body">
+      <p>Players are expected to treat all other players, admins, and staff with respect. The following will result in immediate suspension or permanent ban:</p>
+      <div class="rule-item"><div class="rule-icon">🗣️</div><div class="rule-text">Harassment, abuse, or threatening language directed at any player or admin.</div></div>
+      <div class="rule-item"><div class="rule-icon">🤖</div><div class="rule-text">Using bots, scripts, or automation to interact with the platform.</div></div>
+      <div class="rule-item"><div class="rule-icon">🎭</div><div class="rule-text">Impersonating another player, admin, or Coded Games staff.</div></div>
+      <div class="rule-item"><div class="rule-icon">📣</div><div class="rule-text">Deliberately spreading false information about Coded Games on social media or elsewhere.</div></div>
+    </div>
+  </div>
+
+  <!-- 7. PRIVACY -->
+  <div class="section" id="privacy">
+    <div class="section-title">
+      <span class="section-num">7</span>Privacy Policy
+    </div>
+    <div class="section-body">
+      <p>We collect the following information when you register: email address, PUBG UID, in-game name, and contact information. This data is stored securely in Firebase and is used solely for platform operation.</p>
+      <div class="rule-item"><div class="rule-icon">👁️</div><div class="rule-text">Your PUBG UID and in-game name may be publicly visible on leaderboards and tournament pages.</div></div>
+      <div class="rule-item"><div class="rule-icon">🔐</div><div class="rule-text">We do not sell or share your personal information with third parties.</div></div>
+      <div class="rule-item"><div class="rule-icon">📧</div><div class="rule-text">We may contact you via the email or phone number you provided for account-related notifications.</div></div>
+      <div class="rule-item"><div class="rule-icon">🗑️</div><div class="rule-text">To request account deletion, contact admin through the platform.</div></div>
+    </div>
+  </div>
+
+  <!-- 8. LIABILITY -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">8</span>Limitation of Liability
+    </div>
+    <div class="section-body">
+      <p>Coded Games is a privately operated tournament platform. We are not responsible for losses caused by internet connectivity issues, PUBG Mobile server outages, or circumstances outside our control. We reserve the right to modify, suspend, or terminate any tournament or account at our discretion.</p>
+    </div>
+  </div>
+
+  <!-- 9. CHANGES -->
+  <div class="section">
+    <div class="section-title">
+      <span class="section-num">9</span>Changes to These Terms
+    </div>
+    <div class="section-body">
+      <p>We may update these Terms & Conditions at any time. Continued use of the platform after changes are posted constitutes acceptance of the new terms. Major changes will be announced via the platform.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div style="text-align:center;padding:.5rem 0">
+    <a href="auth.html#register" style="display:inline-block;padding:.8rem 2rem;
+      background:var(--or);color:#000;font-family:var(--fc);font-size:.9rem;font-weight:800;
+      letter-spacing:.5px;text-transform:uppercase;border-radius:8px;text-decoration:none">
+      I Agree — Create Account →
+    </a>
+  </div>
+</div>
+
+<footer>
+  © 2026 Coded Games × Coded INT × Prince Web Dev · All Rights Reserved<br>
+  For support: <a href="auth.html">Contact via platform</a> · Nigeria 🇳🇬
+</footer>
+
+
+<script>
+/* ── THEME TOGGLE ───────────────────────────────── */
+(function(){
+  const saved = localStorage.getItem('cg-theme');
+  const sysDark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+  _cgApplyTheme(saved ? saved === 'dark' : sysDark);
+})();
+function _cgApplyTheme(dark){
+  const r = document.documentElement.style;
+  if(dark){
+    r.setProperty('--bg','#130805'); r.setProperty('--bg2','#1a0d08');
+    r.setProperty('--card','#1f1008'); r.setProperty('--card2','#261508');
+    r.setProperty('--bdr','#3a1f0f'); r.setProperty('--bdr2','#4a2a18');
+    r.setProperty('--txt','#f5f0e8'); r.setProperty('--txt2','#c8a882');
+    r.setProperty('--muted','#8a6a50');
+  } else {
+    r.setProperty('--bg','#f5ede0'); r.setProperty('--bg2','#ede0cf');
+    r.setProperty('--card','#fff8f0'); r.setProperty('--card2','#f5ede0');
+    r.setProperty('--bdr','#dcc8b0'); r.setProperty('--bdr2','#cbb898');
+    r.setProperty('--txt','#1a0e05'); r.setProperty('--txt2','#6a4828');
+    r.setProperty('--muted','#9a7858');
+  }
+  localStorage.setItem('cg-theme', dark ? 'dark' : 'light');
+  const btn = document.getElementById('cg-theme-btn');
+  if(btn) btn.textContent = dark ? '☀️' : '🌙';
+}
+function cgToggleTheme(){
+  const cur = localStorage.getItem('cg-theme') ||
+    (window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
+  _cgApplyTheme(cur !== 'dark');
+}
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+const cfg={
+  apiKey:"AIzaSyClCRS0krUtQuKbhJ3a2VftBx_z2iO6lfA",
+  authDomain:"coded-games.firebaseapp.com",
+  projectId:"coded-games",
+  storageBucket:"coded-games.firebasestorage.app",
+  messagingSenderId:"717673651238",
+  appId:"1:717673651238:web:be30019855d767c4d95ae7",
+  databaseURL:"https://coded-games-default-rtdb.firebaseio.com"
+};
+const app=initializeApp(cfg);
+const db=getDatabase(app);
+(async()=>{
+  try{
+    const snap=await get(ref(db,'settings/termsContent'));
+    if(snap.exists()&&snap.val().trim()){
+      document.getElementById('customTermsContent').textContent=snap.val();
+      document.getElementById('customTermsBlock').style.display='block';
+    }
+  }catch(e){console.warn('Could not load custom terms',e);}
+})();
+</script>
+</body>
+</html>

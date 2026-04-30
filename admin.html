@@ -1,0 +1,2434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>/* instant theme — prevents flash */
+(function(){
+  var t=localStorage.getItem('cg-theme');
+  var d=t?t==='dark':window.matchMedia('(prefers-color-scheme:dark)').matches;
+  var r=document.documentElement.style;
+  if(d){
+    r.setProperty('--bg','#130805');r.setProperty('--bg2','#1a0d08');
+    r.setProperty('--card','#1f1008');r.setProperty('--card2','#261508');
+    r.setProperty('--bdr','#3a1f0f');r.setProperty('--bdr2','#4a2a18');
+    r.setProperty('--txt','#f5f0e8');r.setProperty('--txt2','#c8a882');r.setProperty('--muted','#8a6a50');
+  }else{
+    r.setProperty('--bg','#f5ede0');r.setProperty('--bg2','#ede0cf');
+    r.setProperty('--card','#fff8f0');r.setProperty('--card2','#f5ede0');
+    r.setProperty('--bdr','#dcc8b0');r.setProperty('--bdr2','#cbb898');
+    r.setProperty('--txt','#1a0e05');r.setProperty('--txt2','#6a4828');r.setProperty('--muted','#9a7858');
+  }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coded Games — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --or:#f5a020;--or2:#c43a00;--or3:#ffd234;
+  --bg:#130805;--bg2:#1a0d08;--card:#1f1008;--card2:#261508;
+  --bdr:#3a1f0f;--bdr2:#4a2a18;
+  --txt:#f5f0e8;--txt2:#c8a882;--muted:#8a6a50;
+  --green:#4caf50;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;
+  --ff:'Plus Jakarta Sans',sans-serif;--fb:'Plus Jakarta Sans',sans-serif;--fc:'Nunito',sans-serif;
+}
+@media(prefers-color-scheme:light){
+  :root{--bg:#f5ede0;--bg2:#ede0cf;--card:#fff8f0;--card2:#f5ede0;
+    --bdr:#dcc8b0;--bdr2:#cbb898;--txt:#1a0e05;--txt2:#6a4828;--muted:#9a7858;}
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--fb);background:var(--bg);color:var(--txt);min-height:100vh;padding-bottom:80px}
+body::before{content:'';position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse 60% 25% at 50% 0%,rgba(245,160,32,.08) 0%,transparent 60%),var(--bg);
+  pointer-events:none}
+
+/* TOPBAR */
+.tb{position:sticky;top:0;z-index:200;height:52px;
+  display:flex;align-items:center;justify-content:space-between;padding:0 1rem;
+  background:rgba(19,8,5,.95);backdrop-filter:blur(14px);
+  border-bottom:2px solid var(--or2)}
+@media(prefers-color-scheme:light){.tb{background:rgba(245,237,224,.95)}}
+.logo{display:flex;align-items:center;gap:.5rem;text-decoration:none}
+.logo img{width:28px;height:28px;border-radius:5px;object-fit:cover}
+.logo-txt{font-family:var(--ff);font-size:1rem;font-weight:700;letter-spacing:2px;color:var(--txt)}
+.logo-txt b{color:var(--or)}
+.admin-badge{background:var(--or2);color:#fff;font-family:var(--fc);font-size:.6rem;
+  font-weight:800;letter-spacing:1.5px;padding:.15rem .4rem;border-radius:4px;text-transform:uppercase}
+.tb-r{display:flex;align-items:center;gap:.5rem}
+.signout-btn{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);
+  color:var(--red);font-family:var(--fc);font-size:.75rem;font-weight:700;letter-spacing:1px;
+  padding:.35rem .8rem;border-radius:6px;cursor:pointer;text-transform:uppercase}
+
+/* NAV TABS */
+.nav-tabs{display:flex;overflow-x:auto;gap:0;
+  background:var(--card);border-bottom:1px solid var(--bdr);
+  position:sticky;top:52px;z-index:100;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{flex-shrink:0;padding:.65rem 1rem;font-family:var(--fc);font-size:.78rem;
+  font-weight:700;letter-spacing:1px;color:var(--muted);cursor:pointer;
+  border-bottom:2px solid transparent;text-transform:uppercase;white-space:nowrap;
+  transition:all .2s;background:none;border-left:none;border-right:none;border-top:none}
+.nav-tab.active{color:var(--or);border-bottom-color:var(--or)}
+.nav-tab:hover:not(.active){color:var(--txt2)}
+
+/* CONTENT */
+.content{position:relative;z-index:1;padding:1rem}
+.section{display:none}
+.section.active{display:block}
+
+/* SECTION HEADER */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
+.sec-title{font-family:var(--fc);font-size:1.1rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--or)}
+.sec-sub{font-size:.72rem;color:var(--muted);margin-top:.1rem}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:1rem;margin-bottom:.75rem;position:relative;overflow:hidden}
+.card-top-line{position:absolute;top:0;left:0;right:0;height:2px}
+.card-top-line.orange{background:linear-gradient(90deg,var(--or),var(--or2))}
+.card-top-line.green{background:linear-gradient(90deg,#4caf50,#2e7d32)}
+.card-top-line.red{background:linear-gradient(90deg,#ef4444,#b91c1c)}
+.card-top-line.blue{background:linear-gradient(90deg,#3b82f6,#1d4ed8)}
+.card-top-line.purple{background:linear-gradient(90deg,#a855f7,#7c3aed)}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem;margin-bottom:1rem}
+.stat-card{background:var(--card);border:1px solid var(--bdr);border-radius:10px;
+  padding:.8rem;text-align:center}
+.stat-val{font-family:var(--ff);font-size:1.6rem;font-weight:700;color:var(--or)}
+.stat-lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:.15rem}
+
+/* PLAYER ROW */
+.player-row{display:flex;align-items:center;gap:.75rem;padding:.75rem 0;
+  border-bottom:1px solid var(--bdr)}
+.player-row:last-child{border-bottom:none}
+.player-avatar{width:38px;height:38px;border-radius:50%;background:var(--or);
+  display:grid;place-items:center;font-family:var(--ff);font-size:1rem;
+  font-weight:700;color:#000;flex-shrink:0;overflow:hidden}
+.player-avatar img{width:100%;height:100%;object-fit:cover}
+.player-info{flex:1;min-width:0}
+.player-name{font-family:var(--ff);font-size:.95rem;font-weight:700;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-uid{font-size:.65rem;color:var(--muted);margin-top:.1rem;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-meta{font-size:.68rem;color:var(--txt2);margin-top:.1rem}
+.player-actions{display:flex;gap:.4rem;flex-shrink:0}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .9rem;
+  border-radius:8px;font-family:var(--fc);font-size:.75rem;font-weight:700;
+  letter-spacing:.5px;cursor:pointer;border:none;text-transform:uppercase;transition:all .15s}
+.btn-or{background:var(--or);color:#000}
+.btn-or:hover{background:var(--or3)}
+.btn-green{background:rgba(76,175,80,.2);border:1px solid rgba(76,175,80,.4);color:var(--green)}
+.btn-green:hover{background:rgba(76,175,80,.35)}
+.btn-red{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.35);color:var(--red)}
+.btn-red:hover{background:rgba(239,68,68,.3)}
+.btn-blue{background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.35);color:var(--blue)}
+.btn-blue:hover{background:rgba(59,130,246,.3)}
+.btn-ghost{background:var(--card2);border:1px solid var(--bdr2);color:var(--txt2)}
+.btn-ghost:hover{color:var(--txt)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-sm{padding:.3rem .65rem;font-size:.68rem}
+
+/* STATUS BADGE */
+.status{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .55rem;
+  border-radius:20px;font-family:var(--fc);font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.status-pending{background:rgba(245,160,32,.15);color:var(--or)}
+.status-verified{background:rgba(76,175,80,.15);color:var(--green)}
+.status-rejected{background:rgba(239,68,68,.15);color:var(--red)}
+.status-paid{background:rgba(59,130,246,.15);color:var(--blue)}
+.status-processing{background:rgba(168,85,247,.15);color:var(--purple)}
+
+/* FORM ELEMENTS */
+.form-group{margin-bottom:.8rem}
+.form-label{display:block;font-family:var(--fc);font-size:.72rem;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;color:var(--txt2);margin-bottom:.35rem}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--bg2);border:1px solid var(--bdr2);
+  border-radius:8px;padding:.6rem .8rem;color:var(--txt);font-family:var(--fb);font-size:.88rem;outline:none;
+  transition:border-color .15s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--or)}
+.form-textarea{resize:vertical;min-height:90px}
+.form-select option{background:var(--bg2)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.form-hint{font-size:.65rem;color:var(--muted);margin-top:.25rem}
+
+/* SCREENSHOT PREVIEW */
+.screenshot-preview{width:100%;max-height:180px;object-fit:contain;
+  border-radius:8px;border:1px solid var(--bdr);margin-top:.5rem;display:none}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(4px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal-overlay.open{display:flex;align-items:flex-start;justify-content:center;padding:1rem}
+.modal{background:var(--card);border:1px solid var(--bdr);border-radius:16px;
+  width:100%;max-width:480px;overflow:hidden;margin:auto}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 1.1rem;border-bottom:1px solid var(--bdr)}
+.modal-title{font-family:var(--fc);font-size:1rem;font-weight:800;letter-spacing:.5px;
+  text-transform:uppercase;color:var(--or)}
+.modal-close{background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;line-height:1}
+.modal-body{padding:1.1rem;overflow-y:auto;max-height:70vh;-webkit-overflow-scrolling:touch}
+.modal-footer{padding:.8rem 1.1rem;border-top:1px solid var(--bdr);
+  display:flex;gap:.6rem;justify-content:flex-end}
+
+/* TABS INSIDE SECTION */
+.inner-tabs{display:flex;gap:0;margin-bottom:1rem;background:var(--card);
+  border:1px solid var(--bdr);border-radius:10px;overflow:hidden}
+.inner-tab{flex:1;padding:.55rem;font-family:var(--fc);font-size:.72rem;font-weight:700;
+  letter-spacing:.5px;text-align:center;cursor:pointer;color:var(--muted);
+  text-transform:uppercase;border:none;background:none;transition:all .2s}
+.inner-tab.active{background:var(--or);color:#000}
+
+/* TOPUP/WITHDRAW ROW */
+.txn-row{display:flex;align-items:flex-start;gap:.75rem;padding:.75rem 0;border-bottom:1px solid var(--bdr)}
+.txn-row:last-child{border-bottom:none}
+.txn-icon{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;
+  font-size:1rem;flex-shrink:0}
+.txn-info{flex:1;min-width:0}
+.txn-name{font-family:var(--ff);font-size:.9rem;font-weight:700}
+.txn-detail{font-size:.68rem;color:var(--muted);margin-top:.1rem}
+.txn-amt{font-family:var(--ff);font-size:1rem;font-weight:700;text-align:right;flex-shrink:0}
+
+/* TOURNAMENT CARD */
+.tourn-card{background:var(--card);border:1px solid var(--bdr);border-radius:12px;
+  margin-bottom:.75rem;overflow:hidden}
+.tourn-hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:.75rem 1rem;border-bottom:1px solid var(--bdr)}
+.tourn-title{font-family:var(--ff);font-size:1rem;font-weight:700;letter-spacing:.5px}
+.tourn-body{padding:.75rem 1rem}
+.tourn-meta{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.65rem}
+.meta-pill{display:inline-flex;align-items:center;gap:.25rem;background:var(--bg2);
+  border:1px solid var(--bdr);border-radius:20px;padding:.2rem .6rem;
+  font-size:.65rem;color:var(--txt2);font-family:var(--fc);font-weight:600}
+.tourn-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+.tourn-progress{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
+.progress-bar{flex:1;height:5px;background:var(--bdr);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--or),var(--or2));border-radius:3px;transition:width .3s}
+
+/* PROMO/REFERRAL ROW */
+.promo-row{display:flex;align-items:center;gap:.75rem;padding:.65rem 0;border-bottom:1px solid var(--bdr)}
+.promo-row:last-child{border-bottom:none}
+.promo-code{font-family:var(--ff);font-size:.95rem;font-weight:700;color:var(--or);letter-spacing:1px}
+.promo-detail{font-size:.68rem;color:var(--muted);margin-top:.1rem}
+.promo-actions{display:flex;gap:.4rem;flex-shrink:0;margin-left:auto}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:2rem 1rem;color:var(--muted)}
+.empty-icon{font-size:2.5rem;margin-bottom:.5rem}
+.empty-txt{font-family:var(--fc);font-size:.85rem;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.empty-sub{font-size:.72rem;margin-top:.25rem}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--card2);border:1px solid var(--bdr2);border-radius:10px;
+  padding:.65rem 1.1rem;font-size:.82rem;font-family:var(--fc);font-weight:700;
+  letter-spacing:.5px;z-index:999;opacity:0;transition:all .25s;white-space:nowrap;
+  pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.green{border-color:rgba(76,175,80,.5);color:var(--green)}
+.toast.red{border-color:rgba(239,68,68,.5);color:var(--red)}
+
+/* ADMIN ROLE BADGE */
+.role-badge{display:inline-flex;align-items:center;padding:.15rem .5rem;border-radius:4px;
+  font-family:var(--fc);font-size:.6rem;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+.role-master{background:rgba(245,160,32,.2);color:var(--or);border:1px solid rgba(245,160,32,.4)}
+.role-mod{background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
+.role-topup{background:rgba(76,175,80,.15);color:var(--green);border:1px solid rgba(76,175,80,.3)}
+.role-tourn{background:rgba(168,85,247,.15);color:var(--purple);border:1px solid rgba(168,85,247,.3)}
+
+/* SWITCH */
+.switch-row{display:flex;align-items:center;justify-content:space-between;
+  padding:.6rem 0;border-bottom:1px solid var(--bdr)}
+.switch-row:last-child{border-bottom:none}
+.switch-lbl{font-size:.82rem;color:var(--txt2)}
+.switch-lbl b{display:block;font-family:var(--fc);font-size:.72rem;color:var(--txt);text-transform:uppercase;letter-spacing:.5px}
+.switch{position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:var(--bdr2);border-radius:24px;cursor:pointer;transition:.2s}
+.slider:before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;
+  background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked+.slider{background:var(--or)}
+.switch input:checked+.slider:before{transform:translateX(18px)}
+
+/* ROOM CODE BOX */
+.room-box{background:var(--bg2);border:1px solid var(--bdr2);border-radius:10px;
+  padding:.8rem;display:flex;align-items:center;gap:.6rem}
+.room-val{font-family:var(--ff);font-size:1.2rem;font-weight:700;color:var(--or);letter-spacing:3px;flex:1}
+.room-hidden{letter-spacing:3px;color:var(--muted);font-size:1rem}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--bdr);margin:.75rem 0}
+.divider-label{text-align:center;font-family:var(--fc);font-size:.65rem;font-weight:700;
+  letter-spacing:1px;color:var(--muted);text-transform:uppercase;
+  display:flex;align-items:center;gap:.5rem;margin:.75rem 0}
+.divider-label::before,.divider-label::after{content:'';flex:1;height:1px;background:var(--bdr)}
+
+/* LOGIN SCREEN */
+.login-screen{display:none;position:fixed;inset:0;z-index:1000;
+  background:var(--bg);flex-direction:column;align-items:center;justify-content:center;padding:2rem}
+.login-screen.visible{display:flex}
+.login-card{width:100%;max-width:360px;background:var(--card);border:1px solid var(--bdr);
+  border-radius:16px;padding:1.5rem;position:relative;overflow:hidden}
+.login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--or),var(--or2))}
+.login-logo{display:flex;align-items:center;gap:.6rem;margin-bottom:1.2rem;justify-content:center}
+.login-logo img{width:36px;height:36px;border-radius:8px}
+.login-logo-txt{font-family:var(--ff);font-size:1.2rem;font-weight:700;letter-spacing:2px}
+.login-logo-txt b{color:var(--or)}
+.login-title{font-family:var(--fc);font-size:.85rem;font-weight:800;letter-spacing:.5px;
+  text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:1.2rem}
+.login-err{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);
+  color:var(--red);font-size:.78rem;padding:.6rem .8rem;border-radius:8px;
+  margin-bottom:.8rem;display:none;text-align:center}
+.pw-wrap{position:relative}
+.pw-toggle{position:absolute;right:.75rem;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--muted);cursor:pointer;font-size:.85rem;padding:.2rem}
+.blink{animation:blink .6s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+</style>
+</head>
+<body>
+
+<!-- AUTH LOADING OVERLAY - prevents dashboard flash -->
+<div id="authLoading" style="position:fixed;inset:0;z-index:2000;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem">
+  <img src="logo.jpg" style="width:60px;height:60px;border-radius:10px;object-fit:cover">
+  <div style="font-family:var(--fc);font-size:.8rem;font-weight:700;letter-spacing:2px;
+    text-transform:uppercase;color:var(--muted)">Loading...</div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen visible" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="logo.jpg" alt="Coded Games">
+      <div class="login-logo-txt">CODED <b>GAMES</b></div>
+    </div>
+    <div class="login-title">Admin Access</div>
+    <div class="login-err" id="loginErr"></div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-input" id="loginEmail" placeholder="admin@codedgames.com"
+        autocomplete="username"
+        onkeydown="if(event.key==='Enter')window._adminLogin&&window._adminLogin()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <div class="pw-wrap">
+        <input type="password" class="form-input" id="loginPw" placeholder="••••••••"
+          autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')window._adminLogin&&window._adminLogin()">
+        <button class="pw-toggle" id="pwToggleBtn" onclick="var f=document.getElementById('loginPw');f.type=f.type==='password'?'text':'password';this.textContent=f.type==='password'?'👁':'🙈'">👁</button>
+      </div>
+    </div>
+    <button class="btn btn-or" style="width:100%;justify-content:center;padding:.7rem" id="loginBtn" onclick="window._adminLogin&&window._adminLogin()">
+      Sign In to Admin
+    </button>
+    <p style="font-size:.68rem;color:var(--muted);text-align:center;margin-top:.8rem">
+      Forgot password? Contact the master admin.
+    </p>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div class="tb" id="mainTb" style="display:none">
+  <a class="logo">
+    <img src="logo.jpg" alt="CG">
+    <span class="logo-txt">CODED <b>GAMES</b></span>
+    <span class="admin-badge">Admin</span>
+  </a>
+  <div class="tb-r">
+    <a href="index.html" style="font-family:var(--fc);font-size:.7rem;color:var(--muted);text-decoration:none;padding:.3rem .6rem;border:1px solid var(--bdr);border-radius:6px;margin-right:.3rem">← Site</a>
+    <span id="adminRoleBadge" class="role-badge role-master">Master</span>
+    <button class="signout-btn" onclick="window.doSignOut&&window.doSignOut()">Sign Out</button>
+  <button id="cg-theme-btn" onclick="cgToggleTheme()" title="Toggle theme" style="background:none;border:none;font-size:1.25rem;cursor:pointer;padding:.1rem .2rem;line-height:1;color:var(--txt)">🌙</button></div>
+</div>
+
+<!-- NAV TABS -->
+<div class="nav-tabs" id="mainNav" style="display:none">
+  <button class="nav-tab active" onclick="showTab('overview')" id="tab-overview">📊 Overview</button>
+  <button class="nav-tab" onclick="showTab('verify')" id="tab-verify">✅ Verify</button>
+  <button class="nav-tab" onclick="showTab('topup')" id="tab-topup">💰 Top-Ups</button>
+  <button class="nav-tab" onclick="showTab('withdraw')" id="tab-withdraw">🏧 Withdrawals</button>
+  <button class="nav-tab" onclick="showTab('tournaments')" id="tab-tournaments">🎮 Tournaments</button>
+  <button class="nav-tab" onclick="showTab('players')" id="tab-players">👥 Players</button>
+  <button class="nav-tab" onclick="showTab('promos')" id="tab-promos">🎟 Promos</button>
+  <button class="nav-tab" onclick="showTab('support')" id="tab-support">📩 Support</button>
+  <button class="nav-tab" onclick="showTab('terms')" id="tab-terms">📄 Terms</button>
+  <button class="nav-tab" onclick="showTab('settings')" id="tab-settings">⚙️ Settings</button>
+</div>
+<div class="content" id="mainContent" style="display:none">
+
+<!-- ======= OVERVIEW ======= -->
+<div class="section active" id="sec-overview">
+  <div class="sec-hdr">
+    <div><div class="sec-title">Overview</div><div class="sec-sub">Platform at a glance</div></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-val" id="st-players">—</div><div class="stat-lbl">Total Players</div></div>
+    <div class="stat-card"><div class="stat-val" id="st-verified">—</div><div class="stat-lbl">Verified</div></div>
+    <div class="stat-card"><div class="stat-val" id="st-pending">—</div><div class="stat-lbl">Pending Verify</div></div>
+    <div class="stat-card"><div class="stat-val" id="st-tournaments">—</div><div class="stat-lbl">Tournaments</div></div>
+    <div class="stat-card"><div class="stat-val" id="st-topups">—</div><div class="stat-lbl">Pending Top-Ups</div></div>
+    <div class="stat-card"><div class="stat-val" id="st-withdraws">—</div><div class="stat-lbl">Pending Withdrawals</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top-line orange"></div>
+    <div class="sec-title" style="font-size:.85rem;margin-bottom:.75rem">⚡ Quick Actions</div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn btn-or btn-sm" onclick="showTab('verify')">✅ Review Verifications</button>
+      <button class="btn btn-blue btn-sm" onclick="showTab('topup')">💰 Process Top-Ups</button>
+      <button class="btn btn-ghost btn-sm" onclick="showTab('withdraw')">🏧 Withdrawals</button>
+      <button class="btn btn-ghost btn-sm" onclick="showTab('tournaments');openCreateTournament()">➕ New Tournament</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-top-line blue"></div>
+    <div class="sec-title" style="font-size:.85rem;margin-bottom:.75rem">📋 Recent Activity</div>
+    <div id="recentActivity"><div class="empty"><div class="empty-icon">📭</div><div class="empty-txt">No recent activity</div></div></div>
+  </div>
+</div>
+
+<!-- ======= VERIFY PLAYERS ======= -->
+<div class="section" id="sec-verify">
+  <div class="sec-hdr">
+    <div><div class="sec-title">Player Verification</div><div class="sec-sub">Review PUBG UIDs and approve accounts</div></div>
+  </div>
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="switchVerifyTab('pending')">⏳ Pending</button>
+    <button class="inner-tab" onclick="switchVerifyTab('verified')">✅ Verified</button>
+    <button class="inner-tab" onclick="switchVerifyTab('rejected')">❌ Rejected</button>
+  </div>
+  <div id="verifyList"><div class="empty"><div class="empty-icon">⏳</div><div class="empty-txt">Loading...</div></div></div>
+</div>
+
+<!-- ======= TOP-UPS ======= -->
+<div class="section" id="sec-topup">
+  <div class="sec-hdr">
+    <div><div class="sec-title">Top-Up Requests</div><div class="sec-sub">Credit player balances after confirming payment</div></div>
+  </div>
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="switchTopupTab('pending')">⏳ Pending</button>
+    <button class="inner-tab" onclick="switchTopupTab('approved')">✅ Approved</button>
+    <button class="inner-tab" onclick="switchTopupTab('rejected')">❌ Rejected</button>
+  </div>
+  <div id="topupList"><div class="empty"><div class="empty-icon">💰</div><div class="empty-txt">Loading...</div></div></div>
+</div>
+
+<!-- ======= WITHDRAWALS ======= -->
+<div class="section" id="sec-withdraw">
+  <div class="sec-hdr">
+    <div><div class="sec-title">Withdrawal Requests</div><div class="sec-sub">Send money and mark as paid</div></div>
+  </div>
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="switchWithdrawTab('pending')">⏳ Pending</button>
+    <button class="inner-tab" onclick="switchWithdrawTab('paid')">✅ Paid</button>
+    <button class="inner-tab" onclick="switchWithdrawTab('rejected')">❌ Rejected</button>
+  </div>
+  <div id="withdrawList"><div class="empty"><div class="empty-icon">🏧</div><div class="empty-txt">Loading...</div></div></div>
+</div>
+
+<!-- ======= TOURNAMENTS ======= -->
+<div class="section" id="sec-tournaments">
+  <div class="sec-hdr">
+    <div><div class="sec-title">Tournaments</div><div class="sec-sub">Create and manage competitions</div></div>
+    <button class="btn btn-or btn-sm" onclick="window.openCreateTournament&&window.openCreateTournament()">➕ Create</button>
+  </div>
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="switchTournTab('active')">🔴 Active</button>
+    <button class="inner-tab" onclick="switchTournTab('upcoming')">⏰ Upcoming</button>
+    <button class="inner-tab" onclick="switchTournTab('completed')">✅ Done</button>
+    <button class="inner-tab" onclick="switchTournTab('cancelled')">❌ Cancelled</button>
+  </div>
+  <div id="tournList"><div class="empty"><div class="empty-icon">🎮</div><div class="empty-txt">Loading...</div></div></div>
+</div>
+
+<!-- ======= PLAYERS ======= -->
+<div class="section" id="sec-players">
+  <div class="sec-hdr">
+    <div><div class="sec-title">Player Management</div><div class="sec-sub">Search and manage accounts</div></div>
+  </div>
+  <div class="form-group" style="margin-bottom:.75rem">
+    <input type="search" class="form-input" id="playerSearch" placeholder="Search username, UID, phone..." oninput="searchPlayers()">
+  </div>
+  <div id="playerList"><div class="empty"><div class="empty-icon">👥</div><div class="empty-txt">Loading players...</div></div></div>
+</div>
+
+<!-- ======= PROMOS ======= -->
+<div class="section" id="sec-promos">
+  <div class="sec-hdr">
+    <div><div class="sec-title">Promos & Referrals</div><div class="sec-sub">Codes and referral tracking</div></div>
+    <button class="btn btn-or btn-sm" onclick="window.openCreatePromo&&window.openCreatePromo()">➕ New Code</button>
+  </div>
+
+  <div class="card" style="margin-bottom:.75rem">
+    <div class="card-top-line purple"></div>
+    <div class="sec-title" style="font-size:.82rem;margin-bottom:.6rem">🎟 Referral Rules</div>
+
+    <div class="divider-label" style="margin:.4rem 0 .6rem">Referrer Reward</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Referrer Gets (₦)</label>
+        <input type="number" class="form-input" id="refReferrerAmt" placeholder="100">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reward Type</label>
+        <select class="form-select" id="refRewardType">
+          <option value="bonus">Bonus (not withdrawable)</option>
+          <option value="real">Real Money (withdrawable)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="divider-label" style="margin:.4rem 0 .6rem">New Player Reward</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">New Player Gets (₦)</label>
+        <input type="number" class="form-input" id="refNewPlayerAmt" placeholder="50">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reward Type</label>
+        <select class="form-select" id="refNewPlayerRewardType">
+          <option value="bonus">Bonus (not withdrawable)</option>
+          <option value="real">Real Money (withdrawable)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="divider-label" style="margin:.4rem 0 .6rem">Condition to Unlock Referrer Reward</div>
+    <div class="form-group">
+      <label class="form-label">Condition</label>
+      <select class="form-select" id="refCondition" onchange="updateRefConditionUI()">
+        <option value="none">No condition — credit on approval</option>
+        <option value="topup">New player must top up at least ₦X</option>
+        <option value="tournaments">New player must play at least N tournaments</option>
+      </select>
+    </div>
+    <div id="refConditionTopup" style="display:none" class="form-group">
+      <label class="form-label">Minimum Top-Up Amount (₦)</label>
+      <input type="number" class="form-input" id="refMinTopup" placeholder="500">
+    </div>
+    <div id="refConditionTournaments" style="display:none" class="form-group">
+      <label class="form-label">Minimum Tournaments Played</label>
+      <input type="number" class="form-input" id="refMinTournaments" placeholder="1">
+    </div>
+
+    <button class="btn btn-or btn-sm" onclick="window.saveReferralRules&&window.saveReferralRules()">Save Referral Rules</button>
+  </div>
+
+  <div class="divider-label">Promo Codes</div>
+  <div id="promoList"><div class="empty"><div class="empty-icon">🎟</div><div class="empty-txt">No promo codes yet</div></div></div>
+
+  <div class="divider-label">Referral Tracking</div>
+  <div id="referralList"><div class="empty"><div class="empty-icon">🔗</div><div class="empty-txt">No referrals yet</div></div></div>
+</div>
+
+<!-- ======= SUPPORT ======= -->
+<div class="section" id="sec-support">
+  <div class="sec-hdr">
+    <div><div class="sec-title">Player Support</div><div class="sec-sub">Messages from players</div></div>
+  </div>
+  <div class="inner-tab-bar" style="margin-bottom:.8rem">
+    <button class="inner-tab active" onclick="switchSupportTab('pending')">⏳ Pending</button>
+    <button class="inner-tab" onclick="switchSupportTab('resolved')">✅ Resolved</button>
+  </div>
+  <div id="supportList"><div class="empty"><div class="empty-icon">📩</div><div class="empty-txt">Loading...</div></div></div>
+</div>
+
+<!-- ======= SETTINGS ======= -->
+<div class="section" id="sec-terms">
+  <div class="sec-hdr">
+    <div><div class="sec-title">Terms & Conditions</div><div class="sec-sub">Edit your platform T&C</div></div>
+    <button class="btn btn-or btn-sm" onclick="window.saveTerms&&window.saveTerms()">💾 Save Terms</button>
+  </div>
+  <div class="card">
+    <div class="card-top-line purple"></div>
+    <div class="form-group">
+      <label class="form-label">Terms & Conditions Content</label>
+      <textarea id="termsEditor" class="form-input" rows="20" style="font-size:.8rem;line-height:1.6;resize:vertical" placeholder="Write your terms and conditions here..."></textarea>
+    </div>
+    <div style="font-size:.72rem;color:var(--txt2);margin-top:.4rem">This text will be displayed on the Terms & Conditions page. Use plain text or simple line breaks.</div>
+  </div>
+</div>
+
+<div class="section" id="sec-settings">
+  <div class="sec-hdr"><div class="sec-title">Settings</div></div>
+
+  <!-- Launch countdown -->
+  <div class="card">
+    <div class="card-top-line orange"></div>
+    <div class="sec-title" style="font-size:.82rem;margin-bottom:.6rem">🚀 Launch Countdown</div>
+    <div class="form-group">
+      <label class="form-label">Launch Date & Time</label>
+      <input type="datetime-local" class="form-input" id="launchDate">
+    </div>
+    <div class="switch-row">
+      <div class="switch-lbl"><b>Show Countdown Gate</b>Public sees countdown only until launch</div>
+      <label class="switch"><input type="checkbox" id="launchGateOn"><span class="slider"></span></label>
+    </div>
+    <button class="btn btn-or btn-sm" style="margin-top:.75rem" onclick="window.saveLaunchSettings&&window.saveLaunchSettings()">Save Launch Settings</button>
+  </div>
+
+  <!-- Payment details -->
+  <div class="card">
+    <div class="card-top-line green"></div>
+    <div class="sec-title" style="font-size:.82rem;margin-bottom:.6rem">💳 Payment Account</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Bank Name</label>
+        <input type="text" class="form-input" id="bankName" placeholder="PalmPay">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Account Number</label>
+        <input type="text" class="form-input" id="bankAcct" placeholder="8900952292">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Account Name</label>
+      <input type="text" class="form-input" id="bankAcctName" placeholder="CODED INT(HAMMED)">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Working Hours Notice</label>
+      <input type="text" class="form-input" id="bankNotice" placeholder="Transactions made 8PM–8AM may take longer to verify">
+    </div>
+    <button class="btn btn-or btn-sm" onclick="window.savePaymentSettings&&window.savePaymentSettings()">Save Payment Settings</button>
+  </div>
+
+  <!-- Social media -->
+  <div class="card">
+    <div class="card-top-line blue"></div>
+    <div class="sec-title" style="font-size:.82rem;margin-bottom:.6rem">📲 Social Media</div>
+    <div class="form-group"><label class="form-label">WhatsApp Link</label><input type="url" class="form-input" id="socWhatsapp" placeholder="https://wa.me/234..."></div>
+    <div class="form-group"><label class="form-label">Instagram</label><input type="url" class="form-input" id="socInstagram" placeholder="https://instagram.com/..."></div>
+    <div class="form-group"><label class="form-label">Twitter / X</label><input type="url" class="form-input" id="socTwitter" placeholder="https://x.com/..."></div>
+    <div class="form-group"><label class="form-label">TikTok</label><input type="url" class="form-input" id="socTiktok" placeholder="https://tiktok.com/@..."></div>
+    <div class="form-group"><label class="form-label">Support Email</label><input type="email" class="form-input" id="socEmail" placeholder="support@codedgames.com"></div>
+    <button class="btn btn-or btn-sm" onclick="window.saveSocialSettings&&window.saveSocialSettings()">Save Social Links</button>
+  </div>
+
+  <!-- Welcome bonus -->
+  <div class="card">
+    <div class="card-top-line purple"></div>
+    <div class="sec-title" style="font-size:.82rem;margin-bottom:.6rem">🎁 Welcome Bonus</div>
+    <div class="form-group">
+      <label class="form-label">Welcome Bonus Coins (new accounts)</label>
+      <input type="number" class="form-input" id="welcomeBonus" placeholder="500">
+      <div class="form-hint">Bonus coins are not withdrawable — only usable for tournament entry</div>
+    </div>
+    <button class="btn btn-or btn-sm" onclick="window.saveWelcomeBonus&&window.saveWelcomeBonus()">Save</button>
+  </div>
+
+  <!-- Admin management -->
+  <div class="card">
+    <div class="card-top-line red"></div>
+    <div class="sec-title" style="font-size:.82rem;margin-bottom:.6rem">👑 Admin Accounts</div>
+    <div class="form-hint" style="margin-bottom:.75rem">Only Master admins can add or modify admin accounts.</div>
+    <div id="adminList" style="margin-bottom:.75rem"><div class="empty"><div class="empty-txt">Loading...</div></div></div>
+    <div id="addAdminSection">
+      <div class="divider-label">Add Admin</div>
+      <div class="form-group">
+        <label class="form-label">Select Player</label>
+        <select class="form-select" id="newAdminPlayerSelect">
+          <option value="">-- Pick a registered player --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <select class="form-select" id="newAdminRole">
+          <option value="topup">Top-Up Manager (can approve top-ups only)</option>
+          <option value="tourn">Tournament Manager (can manage tournaments only)</option>
+          <option value="mod">Moderator (verify players + top-ups + tournaments)</option>
+          <option value="master">Master Admin (full access)</option>
+        </select>
+      </div>
+      <button class="btn btn-or btn-sm" onclick="window.addAdmin&&window.addAdmin()">Add Admin</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- end content -->
+
+<!-- ======= MODAL: VERIFY PLAYER ======= -->
+<div class="modal-overlay" id="verifyModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Verify Player</div>
+      <button class="modal-close" onclick="closeModal('verifyModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Duplicate UID Warning (shown only when detected) -->
+      <div id="vm-dup-warn" style="display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.35);
+        border-radius:8px;padding:.7rem .9rem;margin-bottom:.8rem">
+        <div style="font-size:.72rem;font-weight:700;color:var(--red);text-transform:uppercase;
+          letter-spacing:.5px;margin-bottom:.4rem">⚠️ Duplicate PUBG UID Detected</div>
+        <div id="vm-dup-info"></div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Username</div>
+        <div id="vm-username" style="font-family:var(--ff);font-size:1.1rem;font-weight:700;color:var(--or)"></div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">PUBG UID</div>
+        <div id="vm-uid" style="font-family:var(--ff);font-size:1rem;font-weight:600;letter-spacing:.5px"></div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Contact</div>
+        <div id="vm-contact" style="font-size:.85rem;color:var(--txt2)"></div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Upload Admin Screenshot (from PUBG game)</div>
+        <input type="file" accept="image/*" class="form-input" id="vm-screenshot-upload" onchange="previewAdminShot(this)" style="padding:.4rem">
+        <img id="vm-screenshot" src="" class="screenshot-preview" style="display:none;width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid var(--bdr);margin-top:.5rem">
+        <img id="vm-admin-shot-preview" src="" class="screenshot-preview">
+        <div id="vm-no-screenshot" style="color:var(--muted);font-size:.75rem;margin-top:.3rem">No screenshot yet — upload from in-game after finding their UID</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">In-Game Name (type after checking PUBG)</label>
+        <input type="text" class="form-input" id="vm-ingame" placeholder="Paste or type the in-game name">
+        <div class="form-hint">Type exactly as it appears in PUBG — special characters are fine</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Rejection Reason (if rejecting)</label>
+        <input type="text" class="form-input" id="vm-reject-reason" placeholder="e.g. UID not found in game">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red btn-sm" onclick="window.rejectPlayer&&window.rejectPlayer()">❌ Reject</button>
+      <button class="btn btn-green btn-sm" onclick="window.approvePlayer&&window.approvePlayer()">✅ Verify & Approve</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= MODAL: TOP-UP DETAIL ======= -->
+<div class="modal-overlay" id="topupModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Top-Up Request</div>
+      <button class="modal-close" onclick="closeModal('topupModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <div class="form-label">Player</div>
+        <div id="tu-player" style="font-family:var(--ff);font-size:1rem;font-weight:700;color:var(--or)"></div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Amount Claimed</div>
+        <div id="tu-amount" style="font-family:var(--ff);font-size:1.3rem;font-weight:700;color:var(--green)"></div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Sender Account Name</div>
+        <div id="tu-sender" style="font-size:.88rem;color:var(--txt2)"></div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Request Time</div>
+        <div id="tu-time" style="font-size:.78rem;color:var(--muted)"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Actual Amount Received (₦)</label>
+        <input type="number" class="form-input" id="tu-actual" placeholder="Enter amount received">
+        <div class="form-hint">Leave same as claimed if correct. Edit if they sent more/less.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Rejection Reason (if rejecting)</label>
+        <input type="text" class="form-input" id="tu-reject-reason" placeholder="e.g. Amount mismatch">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red btn-sm" onclick="window.rejectTopup&&window.rejectTopup()">❌ Reject</button>
+      <button class="btn btn-green btn-sm" onclick="window.approveTopup&&window.approveTopup()">✅ Approve & Credit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= MODAL: WITHDRAWAL DETAIL ======= -->
+<div class="modal-overlay" id="withdrawModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Withdrawal Request</div>
+      <button class="modal-close" onclick="closeModal('withdrawModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <div class="form-label">Player</div>
+        <div id="wd-player" style="font-family:var(--ff);font-size:1rem;font-weight:700;color:var(--or)"></div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Amount Requested</div>
+        <div id="wd-amount" style="font-family:var(--ff);font-size:1.3rem;font-weight:700;color:var(--or)"></div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Player Balance</div>
+        <div id="wd-balance" style="font-family:var(--ff);font-size:.95rem;font-weight:600;color:var(--txt2)"></div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Bank Details</div>
+        <div id="wd-bank" style="font-size:.85rem;color:var(--txt2);line-height:1.6"></div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Request Time</div>
+        <div id="wd-time" style="font-size:.78rem;color:var(--muted)"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Rejection Reason (if rejecting)</label>
+        <input type="text" class="form-input" id="wd-reject-reason" placeholder="e.g. Invalid bank details">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red btn-sm" onclick="window.rejectWithdraw&&window.rejectWithdraw()">❌ Reject</button>
+      <button class="btn btn-green btn-sm" onclick="window.approveWithdraw&&window.approveWithdraw()">✅ Mark as Paid</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= MODAL: CREATE TOURNAMENT ======= -->
+<div class="modal-overlay" id="createTournModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="ctModalTitle">Create Tournament</div>
+      <button class="modal-close" onclick="closeModal('createTournModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Tournament Name</label>
+        <input type="text" class="form-input" id="ct-name" placeholder="e.g. Solo Showdown #1">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Mode</label>
+          <select class="form-select" id="ct-mode">
+            <option>Solo</option>
+            <option>Duo</option>
+            <option>Squad</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Map</label>
+          <select class="form-select" id="ct-map">
+            <option>Erangel</option>
+            <option>Miramar</option>
+            <option>Sanhok</option>
+            <option>Livik</option>
+            <option>Vikendi</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Max Players/Teams</label>
+          <input type="number" class="form-input" id="ct-maxplayers" placeholder="25" min="2">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Entry Fee (₦)</label>
+          <input type="number" class="form-input" id="ct-fee" placeholder="200" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Start Date & Time</label>
+        <input type="datetime-local" class="form-input" id="ct-start">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Room Code Release</label>
+        <select class="form-select" id="ct-release">
+          <option value="15">15 minutes before start</option>
+          <option value="30">30 minutes before start</option>
+          <option value="60">1 hour before start</option>
+          <option value="manual">Manual release only</option>
+        </select>
+      </div>
+
+      <div class="divider-label">Prize Pool</div>
+      <div class="form-group">
+        <label class="form-label">Prize Pool Type</label>
+        <select class="form-select" id="ct-prizeType" onchange="renderPrizeFields()">
+          <option value="position">Position-Based (1st, 2nd, 3rd...)</option>
+          <option value="kill">Kill-Based (₦ per kill)</option>
+          <option value="custom">Custom / Sponsor Prize</option>
+          <option value="free">Free Tournament (no prize)</option>
+        </select>
+      </div>
+      <div id="ct-prize-fields"></div>
+
+      <div class="form-group">
+        <label class="form-label">Rules / Description</label>
+        <textarea class="form-textarea" id="ct-rules" placeholder="Tournament rules, special conditions..."></textarea>
+      </div>
+
+      <div class="divider-label">Saved Templates</div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem" id="prizeTemplates"></div>
+      <button class="btn btn-ghost btn-sm" onclick="window.savePrizeTemplate&&window.savePrizeTemplate()">💾 Save Current Prize as Template</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('createTournModal')">Cancel</button>
+      <button class="btn btn-or btn-sm" onclick="window.saveTournament&&window.saveTournament()">🎮 Create Tournament</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= MODAL: MANAGE TOURNAMENT ======= -->
+<div class="modal-overlay" id="manageTournModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="mt-title">Manage Tournament</div>
+      <button class="modal-close" onclick="closeModal('manageTournModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="inner-tabs" style="margin-bottom:.75rem">
+        <button class="inner-tab active" onclick="switchManageTab('room')">🔑 Room Code</button>
+        <button class="inner-tab" onclick="switchManageTab('results')">📊 Results</button>
+        <button class="inner-tab" onclick="switchManageTab('status')">⚙️ Status</button>
+      </div>
+
+      <!-- Room Code Tab -->
+      <div id="mt-room">
+        <div class="form-group">
+          <label class="form-label">Room ID</label>
+          <input type="text" class="form-input" id="mt-room-id" placeholder="PUBG Room ID">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Room Password</label>
+          <input type="text" class="form-input" id="mt-room-pw" placeholder="Room Password">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Release Room Code</label>
+          <select class="form-select" id="mt-room-release">
+            <option value="auto">Auto (based on tournament setting)</option>
+            <option value="now">Release Now</option>
+            <option value="locked">Keep Locked</option>
+          </select>
+        </div>
+        <button class="btn btn-or btn-sm" onclick="window.saveRoomCode&&window.saveRoomCode()">Save Room Code</button>
+      </div>
+
+      <!-- Results Tab -->
+      <div id="mt-results" style="display:none">
+        <div class="form-hint" style="margin-bottom:.75rem">Enter placement and kills for each registered player. Prize will be auto-calculated.</div>
+        <div id="mt-results-list"></div>
+        <button class="btn btn-or btn-sm" style="margin-top:.5rem" onclick="window.saveResults&&window.saveResults()">💾 Save Results & Award Prizes</button>
+      </div>
+
+      <!-- Status Tab -->
+      <div id="mt-status" style="display:none">
+        <div class="form-group">
+          <label class="form-label">Tournament Status</label>
+          <select class="form-select" id="mt-status-sel">
+            <option value="upcoming">Upcoming</option>
+            <option value="active">Active (Live)</option>
+            <option value="completed">Completed</option>
+            <option value="postponed">Postponed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="form-group" id="mt-reason-wrap">
+          <label class="form-label">Reason (for postpone/cancel)</label>
+          <textarea class="form-textarea" id="mt-status-reason" placeholder="Explain why the tournament is postponed or cancelled..."></textarea>
+        </div>
+        <div class="form-group" id="mt-refund-wrap">
+          <label class="form-label">Refund Registered Players</label>
+          <select class="form-select" id="mt-refund">
+            <option value="yes">Yes — refund entry fee to all registered players</option>
+            <option value="no">No — do not refund</option>
+          </select>
+        </div>
+        <button class="btn btn-or btn-sm" onclick="window.updateTournamentStatus&&window.updateTournamentStatus()">Update Status</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======= MODAL: PLAYER DETAIL ======= -->
+<div class="modal-overlay" id="playerModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Player Details</div>
+      <button class="modal-close" onclick="closeModal('playerModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:1rem">
+        <div style="width:50px;height:50px;border-radius:50%;background:var(--or);display:grid;place-items:center;font-family:var(--ff);font-size:1.2rem;font-weight:700;color:#000;flex-shrink:0" id="pm-avatar"></div>
+        <div>
+          <div id="pm-username" style="font-family:var(--ff);font-size:1.1rem;font-weight:700;color:var(--or)"></div>
+          <div id="pm-ingame" style="font-size:.72rem;color:var(--muted)"></div>
+        </div>
+      </div>
+      <div class="form-group"><div class="form-label">PUBG UID</div><div id="pm-uid" style="font-family:var(--ff);font-size:.95rem;letter-spacing:1px"></div></div>
+      <div class="form-group"><div class="form-label">Contact</div><div id="pm-contact" style="font-size:.85rem;color:var(--txt2)"></div></div>
+      <div class="form-group"><div class="form-label">Status</div><div id="pm-status"></div></div>
+      <div class="form-row">
+        <div class="form-group"><div class="form-label">Real Balance</div><div id="pm-balance" style="font-family:var(--ff);font-size:1.1rem;color:var(--green)"></div></div>
+        <div class="form-group"><div class="form-label">Bonus Coins</div><div id="pm-bonus" style="font-family:var(--ff);font-size:1.1rem;color:var(--or)"></div></div>
+      </div>
+      <div class="form-group"><div class="form-label">Referred By</div><div id="pm-referredby" style="font-size:.82rem;color:var(--txt2)"></div></div>
+      <div class="form-group"><div class="form-label">Referrals Made</div><div id="pm-referrals" style="font-size:.82rem;color:var(--txt2)"></div></div>
+      <div class="divider-label">Manual Balance Adjustment</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Amount (₦)</label>
+          <input type="number" class="form-input" id="pm-adj-amount" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="form-select" id="pm-adj-type">
+            <option value="real">Real Money</option>
+            <option value="bonus">Bonus Coins</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-green btn-sm" style="flex:1" onclick="adjustBalance('add')">➕ Add</button>
+        <button class="btn btn-red btn-sm" style="flex:1" onclick="adjustBalance('deduct')">➖ Deduct</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======= MODAL: CREATE PROMO ======= -->
+<div class="modal-overlay" id="promoModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Create Promo Code</div>
+      <button class="modal-close" onclick="closeModal('promoModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Promo Code</label>
+        <input type="text" class="form-input" id="promo-code" placeholder="e.g. LAUNCH50" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Reward Amount (₦)</label>
+          <input type="number" class="form-input" id="promo-amount" placeholder="200">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reward Type</label>
+          <select class="form-select" id="promo-type">
+            <option value="bonus">Bonus Coins</option>
+            <option value="real">Real Money</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Max Uses (0 = unlimited)</label>
+          <input type="number" class="form-input" id="promo-max" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Expires (leave blank = never)</label>
+          <input type="date" class="form-input" id="promo-expires">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('promoModal')">Cancel</button>
+      <button class="btn btn-or btn-sm" onclick="window.createPromo&&window.createPromo()">Create Code</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged,setPersistence,browserLocalPersistence}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import{getDatabase,ref,onValue,get,set,update,push,remove}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+const firebaseConfig={
+  apiKey:"AIzaSyClCRS0krUtQuKbhJ3a2VftBx_z2iO6lfA",
+  authDomain:"coded-games.firebaseapp.com",
+  projectId:"coded-games",
+  storageBucket:"coded-games.appspot.com",
+  messagingSenderId:"717673651238",
+  appId:"1:717673651238:web:be30019855d767c4d95ae7",
+  databaseURL:"https://coded-games-default-rtdb.firebaseio.com"
+};
+
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getDatabase(app);
+// Keep admin logged in permanently on this device
+setPersistence(auth,browserLocalPersistence).catch(()=>{});
+
+// ---- STATE ----
+let currentAdminUid=null;
+let currentAdminRole='mod';
+let allPlayers={};
+let allTournaments={};
+let activeTournamentId=null;
+let activeVerifyTab='pending';
+let activeTopupTab='pending';
+let activeWithdrawTab='pending';
+let activeSupportTab='pending';
+let activeTournTab='active';
+let currentVerifyPlayerId=null;
+let currentTopupId=null;
+let currentWithdrawId=null;
+
+// ---- AUTH ----
+onAuthStateChanged(auth,async user=>{
+  if(user){
+    currentAdminUid=user.uid;
+    try{
+      // Check if this user is an admin
+      const snap=await get(ref(db,'admins/'+user.uid));
+      if(!snap.exists()){
+        // Not an admin — check if there are ANY admins at all (bootstrap)
+        let anyAdmins=false;
+        try{
+          const allSnap=await get(ref(db,'admins'));
+          anyAdmins=allSnap.exists();
+        }catch(_){}
+        if(!anyAdmins){
+          // First ever login — make them master
+          await set(ref(db,'admins/'+user.uid),{email:user.email,role:'master',createdAt:Date.now()});
+        } else {
+          await signOut(auth);
+          showLoginScreen();
+          showErr('Access denied. This account is not an admin.');
+          // Reset the login button
+          const btn=document.getElementById('loginBtn');
+          if(btn){btn.disabled=false;btn.classList.remove('blink');btn.textContent='Sign In to Admin';}
+          return;
+        }
+      }
+      // Re-fetch to get role
+      const adminSnap=await get(ref(db,'admins/'+user.uid));
+      const adminData=adminSnap.exists()?adminSnap.val():{role:'mod'};
+      currentAdminRole=adminData.role||'mod';
+      document.getElementById('adminRoleBadge').textContent=roleName(currentAdminRole);
+      document.getElementById('adminRoleBadge').className='role-badge role-'+currentAdminRole;
+      showDashboard();
+      initListeners();
+      applyRoleRestrictions();
+    }catch(e){
+      console.error('Admin auth error:',e.code, e.message);
+      const btn=document.getElementById('loginBtn');
+      if(btn){btn.disabled=false;btn.classList.remove('blink');btn.textContent='Sign In to Admin';}
+      if(e.code==='permission-denied'||e.code==='PERMISSION_DENIED'){
+        await signOut(auth).catch(()=>{});
+        showLoginScreen();
+        showErr('Access denied. Check your admin permissions.');
+      } else {
+        showLoginScreen();
+        showErr('Connection error. Check your internet and try again.');
+      }
+    }
+  } else {
+    showLoginScreen();
+  }
+});
+
+function hideAuthLoading(){
+  const el=document.getElementById('authLoading');
+  if(el)el.style.display='none';
+}
+function showLoginScreen(){
+  hideAuthLoading();
+  document.getElementById('loginScreen').classList.add('visible');
+  document.getElementById('mainTb').style.display='none';
+  document.getElementById('mainNav').style.display='none';
+  document.getElementById('mainContent').style.display='none';
+}
+function showDashboard(){
+  hideAuthLoading();
+  document.getElementById('loginScreen').classList.remove('visible');
+  document.getElementById('mainTb').style.display='flex';
+  document.getElementById('mainNav').style.display='flex';
+  document.getElementById('mainContent').style.display='block';
+}
+
+window._adminLogin=window.doLogin=async function(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pw=document.getElementById('loginPw').value;
+  const btn=document.getElementById('loginBtn');
+  const err=document.getElementById('loginErr');
+  if(!email||!pw){err.textContent='Please fill in all fields.';err.style.display='block';return;}
+  btn.disabled=true;btn.classList.add('blink');btn.textContent='Signing in...';
+  err.style.display='none';
+  const resetBtn=()=>{btn.disabled=false;btn.classList.remove('blink');btn.textContent='Sign In to Admin';};
+  const timer=setTimeout(()=>{resetBtn();err.textContent='Request timed out. Check your connection and try again.';err.style.display='block';},15000);
+  try{
+    await signInWithEmailAndPassword(auth,email,pw);
+    clearTimeout(timer);
+    // onAuthStateChanged will fire and show dashboard
+  }catch(e){
+    clearTimeout(timer);
+    resetBtn();
+    const msgs={
+      'auth/invalid-credential':'Wrong email or password.',
+      'auth/user-not-found':'No account found with this email.',
+      'auth/wrong-password':'Incorrect password.',
+      'auth/too-many-requests':'Too many attempts. Wait a minute and try again.',
+      'auth/network-request-failed':'Network error. Check your internet connection.',
+      'auth/user-disabled':'This account has been disabled.',
+      'auth/invalid-email':'Invalid email address.'
+    };
+    err.textContent=msgs[e.code]||('Login failed: '+e.message);
+    err.style.display='block';
+  }
+};
+
+window.doSignOut=async function(){
+  await signOut(auth);
+};
+
+window.togglePw=function(){
+  const f=document.getElementById('loginPw');
+  f.type=f.type==='password'?'text':'password';
+};
+
+// Enter key on login fields
+['loginEmail','loginPw'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter')window._adminLogin&&window._adminLogin();});
+});
+
+function showErr(msg){
+  const err=document.getElementById('loginErr');
+  err.textContent=msg;err.style.display='block';
+}
+
+function roleName(r){return{master:'Master',mod:'Moderator',topup:'Top-Up Mgr',tourn:'Tourn. Mgr'}[r]||r;}
+
+function applyRoleRestrictions(){
+  if(currentAdminRole==='topup'){
+    // Only show topup tab
+    ['overview','verify','withdraw','tournaments','players','promos','settings','terms'].forEach(t=>{
+      const el=document.getElementById('tab-'+t);
+      if(el)el.style.display='none';
+    });
+    showTab('topup');
+  } else if(currentAdminRole==='tourn'){
+    ['topup','withdraw','players','promos','settings','terms'].forEach(t=>{
+      const el=document.getElementById('tab-'+t);
+      if(el)el.style.display='none';
+    });
+  }
+  // Master and mod see everything
+}
+
+// ---- FIREBASE LISTENERS ----
+function initListeners(){
+  // Players
+  onValue(ref(db,'players'),snap=>{
+    const raw=snap.val()||{};
+    // Flatten: merge profile fields to top level so p.username, p.pubgUid etc work
+    allPlayers={};
+    Object.entries(raw).forEach(([uid,data])=>{
+      const profile=data.profile||{};
+      allPlayers[uid]={
+        ...profile,
+        topups:data.topups||null,
+        withdrawals:data.withdrawals||null,
+        tournaments:data.tournaments||null,
+      };
+    });
+    refreshCurrentTab();
+    updateStats();
+    populateAdminPlayerPicker();
+  },(error)=>{
+    console.error('Players read error:',error.code,error.message);
+    toast('Could not load players: '+error.message,'red');
+  });
+  // Tournaments
+  onValue(ref(db,'tournaments'),snap=>{
+    allTournaments=snap.val()||{};
+    refreshCurrentTab();
+    updateStats();
+  });
+  // Settings
+  loadSettings();
+  loadAdminList();
+  loadPromos();
+  loadReferrals();
+}
+
+function refreshCurrentTab(){
+  const active=document.querySelector('.nav-tab.active');
+  if(!active)return;
+  const id=active.getAttribute('onclick').replace("showTab('","").replace("')","");
+  renderTabContent(id);
+}
+
+// ---- TABS ----
+window.showTab=function(id){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  const tab=document.getElementById('tab-'+id);
+  const sec=document.getElementById('sec-'+id);
+  if(tab)tab.classList.add('active');
+  if(sec)sec.classList.add('active');
+  renderTabContent(id);
+};
+
+function renderTabContent(id){
+  if(id==='overview')renderOverview();
+  else if(id==='verify')renderVerify(activeVerifyTab);
+  else if(id==='topup')renderTopup(activeTopupTab);
+  else if(id==='withdraw')renderWithdraw(activeWithdrawTab);
+  else if(id==='tournaments')renderTournaments(activeTournTab);
+  else if(id==='players')renderPlayers();
+  else if(id==='promos'){loadPromos();loadReferrals();}
+  else if(id==='support')renderSupport(activeSupportTab);
+  else if(id==='settings')renderSettings();
+  else if(id==='terms')loadTermsEditor();
+}
+
+// ---- STATS ----
+function updateStats(){
+  const players=Object.values(allPlayers);
+  const tourns=Object.values(allTournaments);
+  document.getElementById('st-players').textContent=players.length;
+  document.getElementById('st-verified').textContent=players.filter(p=>p.verified).length;
+  document.getElementById('st-pending').textContent=players.filter(p=>!p.verified&&!p.rejected).length;
+  document.getElementById('st-tournaments').textContent=tourns.length;
+  // Count pending topups and withdrawals
+  let pendingTopups=0,pendingWithdraws=0;
+  players.forEach(p=>{
+    if(p.topups)pendingTopups+=Object.values(p.topups).filter(t=>t.status==='pending').length;
+    if(p.withdrawals)pendingWithdraws+=Object.values(p.withdrawals).filter(w=>w.status==='pending').length;
+  });
+  document.getElementById('st-topups').textContent=pendingTopups;
+  document.getElementById('st-withdraws').textContent=pendingWithdraws;
+}
+
+// ---- OVERVIEW ----
+function renderOverview(){
+  updateStats();
+  // Recent activity: last 10 events across topups + withdrawals + verifications
+  const events=[];
+  Object.entries(allPlayers).forEach(([pid,p])=>{
+    if(p.topups)Object.entries(p.topups).forEach(([tid,t])=>{
+      events.push({time:t.createdAt||0,text:`💰 ${p.username||'Player'} requested top-up of ₦${t.amount}`,status:t.status});
+    });
+    if(p.withdrawals)Object.entries(p.withdrawals).forEach(([wid,w])=>{
+      events.push({time:w.createdAt||0,text:`🏧 ${p.username||'Player'} requested withdrawal of ₦${w.amount}`,status:w.status});
+    });
+    if(p.verifiedAt)events.push({time:p.verifiedAt,text:`✅ ${p.username||'Player'} was verified`,status:'done'});
+  });
+  events.sort((a,b)=>b.time-a.time);
+  const el=document.getElementById('recentActivity');
+  if(!events.length){el.innerHTML=emptyState('📭','No recent activity','Activity will appear here');return;}
+  el.innerHTML=events.slice(0,10).map(e=>`
+    <div style="display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid var(--bdr)">
+      <div style="flex:1;font-size:.8rem">${e.text}</div>
+      <span class="status status-${e.status==='pending'?'pending':e.status==='approved'||e.status==='done'?'verified':'rejected'}">${e.status}</span>
+    </div>`).join('');
+}
+
+// ---- VERIFY ----
+window.switchVerifyTab=function(tab){
+  activeVerifyTab=tab;
+  document.querySelectorAll('#sec-verify .inner-tab').forEach((t,i)=>{
+    t.classList.toggle('active',['pending','verified','rejected'][i]===tab);
+  });
+  renderVerify(tab);
+};
+
+function renderVerify(tab){
+  const el=document.getElementById('verifyList');
+  // Don't re-render list while verify modal is open (prevents flash/reappear on approve)
+  if(document.getElementById('verifyModal').classList.contains('open')) return;
+  let players=Object.entries(allPlayers).filter(([id,p])=>{
+    if(tab==='pending')return !p.verified&&!p.rejected;
+    if(tab==='verified')return p.verified===true;
+    if(tab==='rejected')return p.rejected===true;
+  });
+  if(!players.length){el.innerHTML=emptyState('✅','No players here','Nothing in this category');return;}
+  el.innerHTML=players.map(([pid,p])=>`
+    <div class="card" style="margin-bottom:.6rem${p.duplicateUidFlag?';border-color:rgba(239,68,68,.4)':''}">
+      ${p.duplicateUidFlag?`
+      <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:6px;
+        padding:.5rem .7rem;margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem">
+        <span style="font-size:1rem">⚠️</span>
+        <div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px">Duplicate UID Detected</div>
+          <div style="font-size:.68rem;color:var(--txt2)">This PUBG UID is already registered by another account. Review carefully before approving.</div>
+        </div>
+      </div>`:''}
+      <div class="player-row" style="border:none;padding:0">
+        <div class="player-avatar">${p.username?p.username[0].toUpperCase():'?'}</div>
+        <div class="player-info">
+          <div class="player-name">${p.username||'Unknown'}</div>
+          <div class="player-uid">UID: ${p.pubgUid||'—'}</div>
+          <div class="player-meta">${p.contact||''} • Joined ${fmtDate(p.createdAt)}</div>
+          ${p.inGameName?`<div class="player-meta" style="color:var(--or)">🎮 ${p.inGameName}</div>`:''}
+          ${p.rejectedReason?`<div class="player-meta" style="color:var(--red)">Reason: ${p.rejectedReason}</div>`:''}
+        </div>
+        <div class="player-actions">
+          ${tab==='pending'?`<button class="btn btn-or btn-sm" onclick="openVerifyModal('${pid}')">Review</button>`:''}
+          ${tab==='rejected'?`<button class="btn btn-blue btn-sm" onclick="openVerifyModal('${pid}')">Re-review</button>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+window.openVerifyModal=async function(pid){
+  currentVerifyPlayerId=pid;
+  const p=allPlayers[pid];
+  document.getElementById('vm-username').textContent=p.username||'Unknown';
+  document.getElementById('vm-uid').textContent=p.pubgUid||'—';
+  document.getElementById('vm-contact').textContent=p.contact||'—';
+  document.getElementById('vm-ingame').value=p.inGameName||'';
+  document.getElementById('vm-reject-reason').value='';
+  document.getElementById('vm-admin-shot-preview').style.display='none';
+  const screenshotEl=document.getElementById('vm-screenshot');
+  const noShot=document.getElementById('vm-no-screenshot');
+  if(p.screenshotUrl){
+    screenshotEl.src=p.screenshotUrl;screenshotEl.style.display='block';noShot.style.display='none';
+  } else {
+    screenshotEl.style.display='none';noShot.style.display='block';
+  }
+  // Show/hide duplicate UID warning
+  const dupWarn=document.getElementById('vm-dup-warn');
+  const dupInfo=document.getElementById('vm-dup-info');
+  if(p.duplicateUidFlag&&p.duplicateUidOwner){
+    dupWarn.style.display='block';
+    const otherSnap=await get(ref(db,'players/'+p.duplicateUidOwner+'/profile'));
+    const other=otherSnap.exists()?otherSnap.val():{};
+    dupInfo.innerHTML=`
+      <div style="font-size:.72rem;color:var(--txt2);margin-bottom:.5rem">
+        UID <strong style="color:var(--or)">${p.pubgUid}</strong> is also used by:
+      </div>
+      <div style="font-size:.82rem;font-weight:700">${other.username||'Unknown'}</div>
+      <div style="font-size:.68rem;color:var(--muted)">${other.contact||''}${other.verified?' · ✅ Verified':' · ⏳ Pending'}</div>
+      <div style="display:flex;gap:.5rem;margin-top:.6rem">
+        <button class="btn btn-red btn-sm" onclick="banDuplicateAccount('${pid}')">Ban This Account</button>
+        <button class="btn btn-red btn-sm" onclick="banDuplicateAccount('${p.duplicateUidOwner}')">Ban Other Account</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('vm-dup-warn').style.display='none'">Dismiss</button>
+      </div>`;
+  } else {
+    dupWarn.style.display='none';
+  }
+  openModal('verifyModal');
+};
+
+window.previewAdminShot=function(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=document.getElementById('vm-admin-shot-preview');
+    img.src=e.target.result;img.style.display='block';
+  };
+  reader.readAsDataURL(file);
+};
+
+window.approvePlayer=async function(){
+  const pid=currentVerifyPlayerId;
+  const ingame=document.getElementById('vm-ingame').value.trim();
+  if(!ingame){toast('Enter the in-game name first','red');return;}
+  const btn=document.querySelector('#verifyModal .btn-green');
+  if(btn){btn.textContent='Saving...';btn.disabled=true;}
+  try{
+    // Get welcome bonus amount from settings (default 500)
+    const settingsSnap=await get(ref(db,'settings/welcomeBonus'));
+    const welcomeBonus=settingsSnap.exists()?parseInt(settingsSnap.val())||500:500;
+    // Get current bonus balance to add to it
+    const playerSnap=await get(ref(db,'players/'+pid+'/profile'));
+    const pData=playerSnap.val()||{};
+    const currentBonus=parseInt(pData.balanceBonus)||0;
+    // Guard against double-credit
+    if(pData.verified){toast('Player already verified','red');return;}
+    await update(ref(db,'players/'+pid+'/profile'),{
+      verified:true,
+      rejected:false,
+      rejectedReason:null,
+      inGameName:ingame,
+      verifiedAt:Date.now(),
+      verifiedBy:currentAdminUid,
+      balanceBonus:currentBonus+welcomeBonus
+    });
+
+    // Credit referral rewards if applicable
+    const refSnap=await get(ref(db,'settings/referral'));
+    const refRules=refSnap.val()||{};
+    const referredBy=pData.referredBy||null;
+    if(referredBy&&refRules.referrerAmt>0){
+      const condition=refRules.condition||'none';
+      if(condition==='none'){
+        // Find referrer by username
+        const referrerEntry=Object.entries(allPlayers).find(([,p])=>p.username===referredBy);
+        if(referrerEntry){
+          const [refId,refP]=referrerEntry;
+          const balKey=refRules.rewardType==='real'?'balanceReal':'balanceBonus';
+          const curBal=parseInt(refP[balKey])||0;
+          await update(ref(db,'players/'+refId+'/profile'),{
+            [balKey]:curBal+refRules.referrerAmt,
+            referralCount:(parseInt(refP.referralCount)||0)+1
+          });
+          await push(ref(db,'players/'+refId+'/transactions'),{
+            type:'referral',amount:refRules.referrerAmt,
+            note:'Referral bonus — '+pData.username+' verified',
+            createdAt:Date.now()
+          });
+        }
+        // Credit new player referral reward
+        if(refRules.newPlayerAmt>0){
+          const npKey=refRules.newPlayerRewardType==='real'?'balanceReal':'balanceBonus';
+          const npBal=parseInt(pData[npKey])||0;
+          await update(ref(db,'players/'+pid+'/profile'),{[npKey]:npBal+refRules.newPlayerAmt});
+          await push(ref(db,'players/'+pid+'/transactions'),{
+            type:'referral',amount:refRules.newPlayerAmt,
+            note:'Welcome referral bonus',
+            createdAt:Date.now()
+          });
+        }
+      } else {
+        // Mark pending referral to be credited when condition is met
+        await update(ref(db,'players/'+pid+'/profile'),{
+          pendingReferralReward:true,
+          referralCondition:condition
+        });
+      }
+    }
+
+    closeModal('verifyModal');
+    toast(`Player verified ✅ — ${welcomeBonus}🪙 bonus credited`,'green');
+  }catch(e){
+    toast('Failed to verify: '+e.message,'red');
+    console.error('approvePlayer error:',e);
+  }finally{
+    if(btn){btn.textContent='✅ Verify & Approve';btn.disabled=false;}
+  }
+};
+
+window.rejectPlayer=async function(){
+  const pid=currentVerifyPlayerId;
+  const reason=document.getElementById('vm-reject-reason').value.trim();
+  try{
+    await update(ref(db,'players/'+pid+'/profile'),{
+      verified:false,
+      rejected:true,
+      rejectedReason:reason||'UID not verifiable',
+      verifiedAt:null
+    });
+    closeModal('verifyModal');
+    toast('Player rejected','red');
+  }catch(e){
+    toast('Failed to reject: '+e.message,'red');
+    console.error('rejectPlayer error:',e);
+  }
+};
+
+window.banDuplicateAccount=async function(pid){
+  if(!confirm('Ban this account? This will mark it as banned and rejected.'))return;
+  await update(ref(db,'players/'+pid+'/profile'),{
+    verified:false,rejected:true,banned:true,
+    rejectedReason:'Account banned: Duplicate PUBG UID detected. Multiple accounts are not allowed.',
+    verifiedAt:null,bannedAt:Date.now(),bannedBy:currentAdminUid
+  });
+  toast('Account banned ✅','green');
+  closeModal('verifyModal');
+};
+
+// ---- TOP-UPS ----
+window.switchTopupTab=function(tab){
+  activeTopupTab=tab;
+  document.querySelectorAll('#sec-topup .inner-tab').forEach((t,i)=>{
+    t.classList.toggle('active',['pending','approved','rejected'][i]===tab);
+  });
+  renderTopup(tab);
+};
+
+function renderTopup(tab){
+  const el=document.getElementById('topupList');
+  const rows=[];
+  Object.entries(allPlayers).forEach(([pid,p])=>{
+    if(!p.topups)return;
+    Object.entries(p.topups).forEach(([tid,t])=>{
+      if(t.status===tab)rows.push({pid,tid,p,t});
+    });
+  });
+  rows.sort((a,b)=>(b.t.createdAt||0)-(a.t.createdAt||0));
+  if(!rows.length){el.innerHTML=emptyState('💰','No requests here','Nothing in this category');return;}
+  el.innerHTML=rows.map(({pid,tid,p,t})=>`
+    <div class="txn-row" style="cursor:pointer" onclick="openTopupModal('${pid}','${tid}')">
+      <div class="txn-icon" style="background:rgba(76,175,80,.15)">💰</div>
+      <div class="txn-info">
+        <div class="txn-name">${p.username||'Player'}</div>
+        <div class="txn-detail">Sender: ${t.senderName||'—'} • ${fmtDate(t.createdAt)}</div>
+        ${t.rejectReason?`<div class="txn-detail" style="color:var(--red)">Reason: ${t.rejectReason}</div>`:''}
+      </div>
+      <div>
+        <div class="txn-amt" style="color:var(--green)">₦${t.amount}</div>
+        <span class="status status-${tab==='pending'?'pending':tab==='approved'?'verified':'rejected'}">${tab}</span>
+      </div>
+    </div>`).join('');
+}
+
+window.openTopupModal=function(pid,tid){
+  currentTopupId={pid,tid};
+  const p=allPlayers[pid];const t=p.topups[tid];
+  document.getElementById('tu-player').textContent=`${p.username||'Player'} (${p.contact||''})`;
+  document.getElementById('tu-amount').textContent=`₦${t.amount}`;
+  document.getElementById('tu-sender').textContent=t.senderName||'—';
+  document.getElementById('tu-time').textContent=fmtDate(t.createdAt);
+  document.getElementById('tu-actual').value=t.amount;
+  document.getElementById('tu-reject-reason').value='';
+  openModal('topupModal');
+};
+
+window.approveTopup=async function(){
+  const {pid,tid}=currentTopupId;
+  const actual=parseFloat(document.getElementById('tu-actual').value)||0;
+  if(!actual){toast('Enter the amount received','red');return;}
+  const p=allPlayers[pid];
+  const newBal=(p.balanceReal||0)+actual;
+  try{
+    await update(ref(db,'players/'+pid+'/profile'),{balanceReal:newBal});
+    await update(ref(db,`players/${pid}/topups/${tid}`),{status:'approved',approvedAt:Date.now(),actualAmount:actual});
+    closeModal('topupModal');
+    toast(`₦${actual} credited to ${p.username} ✅`,'green');
+  }catch(e){
+    toast('Failed to approve topup: '+e.message,'red');
+  }
+};
+
+window.rejectTopup=async function(){
+  const {pid,tid}=currentTopupId;
+  const reason=document.getElementById('tu-reject-reason').value.trim();
+  try{
+    await update(ref(db,`players/${pid}/topups/${tid}`),{status:'rejected',rejectedAt:Date.now(),rejectReason:reason||'Unverified payment'});
+    closeModal('topupModal');
+    toast('Top-up rejected','red');
+  }catch(e){
+    toast('Failed to reject: '+e.message,'red');
+  }
+};
+
+// ---- WITHDRAWALS ----
+window.switchWithdrawTab=function(tab){
+  activeWithdrawTab=tab;
+  document.querySelectorAll('#sec-withdraw .inner-tab').forEach((t,i)=>{
+    t.classList.toggle('active',['pending','paid','rejected'][i]===tab);
+  });
+  renderWithdraw(tab);
+};
+
+function renderWithdraw(tab){
+  const el=document.getElementById('withdrawList');
+  const rows=[];
+  Object.entries(allPlayers).forEach(([pid,p])=>{
+    if(!p.withdrawals)return;
+    Object.entries(p.withdrawals).forEach(([wid,w])=>{
+      if(w.status===tab)rows.push({pid,wid,p,w});
+    });
+  });
+  rows.sort((a,b)=>(b.w.createdAt||0)-(a.w.createdAt||0));
+  if(!rows.length){el.innerHTML=emptyState('🏧','No requests here','Nothing in this category');return;}
+  el.innerHTML=rows.map(({pid,wid,p,w})=>`
+    <div class="txn-row" style="cursor:pointer" onclick="openWithdrawModal('${pid}','${wid}')">
+      <div class="txn-icon" style="background:rgba(245,160,32,.12)">🏧</div>
+      <div class="txn-info">
+        <div class="txn-name">${p.username||'Player'}</div>
+        <div class="txn-detail">${w.bankName||''} • ${w.accountName||''} • ${fmtDate(w.createdAt)}</div>
+        ${w.rejectReason?`<div class="txn-detail" style="color:var(--red)">Reason: ${w.rejectReason}</div>`:''}
+      </div>
+      <div>
+        <div class="txn-amt" style="color:var(--or)">₦${w.amount}</div>
+        <span class="status status-${tab==='pending'?'pending':tab==='paid'?'verified':'rejected'}">${tab}</span>
+      </div>
+    </div>`).join('');
+}
+
+window.openWithdrawModal=function(pid,wid){
+  currentWithdrawId={pid,wid};
+  const p=allPlayers[pid];const w=p.withdrawals[wid];
+  document.getElementById('wd-player').textContent=`${p.username||'Player'} (${p.contact||''})`;
+  document.getElementById('wd-amount').textContent=`₦${w.amount}`;
+  document.getElementById('wd-balance').textContent=`Current balance: ₦${(p.balanceReal||0).toLocaleString()}`;
+  document.getElementById('wd-bank').innerHTML=`Bank: ${w.bankName||'—'}<br>Account: ${w.accountNumber||'—'}<br>Name: ${w.accountName||'—'}`;
+  document.getElementById('wd-time').textContent=fmtDate(w.createdAt);
+  document.getElementById('wd-reject-reason').value='';
+  openModal('withdrawModal');
+};
+
+window.approveWithdraw=async function(){
+  const {pid,wid}=currentWithdrawId;
+  const p=allPlayers[pid];const w=p.withdrawals[wid];
+  const newBal=(p.balanceReal||0)-(w.amount||0);
+  try{
+    await update(ref(db,'players/'+pid+'/profile'),{balanceReal:Math.max(0,newBal)});
+    await update(ref(db,`players/${pid}/withdrawals/${wid}`),{status:'paid',paidAt:Date.now(),paidBy:currentAdminUid});
+    closeModal('withdrawModal');
+    toast('Withdrawal marked as paid — balance deducted ✅','green');
+  }catch(e){
+    toast('Failed: '+e.message,'red');
+  }
+};
+
+window.rejectWithdraw=async function(){
+  const {pid,wid}=currentWithdrawId;
+  const reason=document.getElementById('wd-reject-reason').value.trim();
+  const p=allPlayers[pid];const w=p.withdrawals[wid];
+  const newBal=(p.balanceReal||0)+(w.amount||0);
+  try{
+    await update(ref(db,'players/'+pid+'/profile'),{balanceReal:newBal});
+    await update(ref(db,`players/${pid}/withdrawals/${wid}`),{status:'rejected',rejectedAt:Date.now(),rejectReason:reason||'Admin rejected'});
+    closeModal('withdrawModal');
+    toast('Withdrawal rejected — ₦'+w.amount+' refunded to player ✅','red');
+  }catch(e){
+    toast('Failed: '+e.message,'red');
+  }
+};
+
+// ---- TOURNAMENTS ----
+window.switchTournTab=function(tab){
+  activeTournTab=tab;
+  document.querySelectorAll('#sec-tournaments .inner-tab').forEach((t,i)=>{
+    t.classList.toggle('active',['active','upcoming','completed','cancelled'][i]===tab);
+  });
+  renderTournaments(tab);
+};
+
+function renderTournaments(tab){
+  const el=document.getElementById('tournList');
+  let tourns=Object.entries(allTournaments).filter(([id,t])=>{
+    if(tab==='active')return t.status==='active';
+    if(tab==='upcoming')return t.status==='upcoming'||!t.status;
+    if(tab==='completed')return t.status==='completed';
+    if(tab==='cancelled')return t.status==='cancelled'||t.status==='postponed';
+  });
+  if(!tourns.length){el.innerHTML=emptyState('🎮','No tournaments here','Create one using the ➕ button above');return;}
+  el.innerHTML=tourns.map(([tid,t])=>{
+    const regCount=t.registrations?Object.keys(t.registrations).length:0;
+    const maxP=t.maxPlayers||0;
+    const pct=maxP?Math.round(regCount/maxP*100):0;
+    return `<div class="tourn-card">
+      <div class="tourn-hdr">
+        <div class="tourn-title">${t.name||'Tournament'}</div>
+        <span class="status status-${t.status==='active'?'paid':t.status==='completed'?'verified':t.status==='cancelled'||t.status==='postponed'?'rejected':'pending'}">${t.status||'upcoming'}</span>
+      </div>
+      <div class="tourn-body">
+        <div class="tourn-meta">
+          <span class="meta-pill">🎮 ${t.mode||'Solo'}</span>
+          <span class="meta-pill">🗺 ${t.map||'Erangel'}</span>
+          <span class="meta-pill">💰 ₦${t.fee||0}</span>
+          <span class="meta-pill">📅 ${fmtDate(t.startTime)}</span>
+        </div>
+        <div class="tourn-progress">
+          <span style="font-size:.7rem;color:var(--muted)">${regCount}/${maxP} players</span>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <span style="font-size:.7rem;color:var(--muted)">${pct}%</span>
+        </div>
+        ${t.status==='postponed'||t.status==='cancelled'?`<div style="font-size:.72rem;color:var(--red);margin-bottom:.4rem">📢 ${t.statusReason||''}</div>`:''}
+        <div class="tourn-actions">
+          <button class="btn btn-or btn-sm" onclick="openManageTournament('${tid}')">⚙️ Manage</button>
+          <button class="btn btn-ghost btn-sm" onclick="viewRegistrations('${tid}')">👥 ${regCount} Registered</button>
+          <a href="tournament.html?id=${tid}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">👁️ View</a>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.openCreateTournament=function(tid){
+  activeTournamentId=tid||null;
+  document.getElementById('ctModalTitle').textContent=tid?'Edit Tournament':'Create Tournament';
+  if(tid){
+    const t=allTournaments[tid];
+    document.getElementById('ct-name').value=t.name||'';
+    document.getElementById('ct-mode').value=t.mode||'Solo';
+    document.getElementById('ct-map').value=t.map||'Erangel';
+    document.getElementById('ct-maxplayers').value=t.maxPlayers||'';
+    document.getElementById('ct-fee').value=t.fee||'';
+    document.getElementById('ct-rules').value=t.rules||'';
+    document.getElementById('ct-prizeType').value=t.prizeType||'position';
+  } else {
+    document.getElementById('ct-name').value='';
+    document.getElementById('ct-maxplayers').value='';
+    document.getElementById('ct-fee').value='';
+    document.getElementById('ct-rules').value='';
+    document.getElementById('ct-prizeType').value='position';
+  }
+  renderPrizeFields();
+  loadPrizeTemplates();
+  openModal('createTournModal');
+};
+
+window.renderPrizeFields=function(){
+  const type=document.getElementById('ct-prizeType').value;
+  const el=document.getElementById('ct-prize-fields');
+  if(type==='position'){
+    el.innerHTML=`
+      <div class="form-hint" style="margin-bottom:.5rem">Set prize amount per position. Leave 0 for refund-only positions.</div>
+      ${[['1st','1'],['2nd','2'],['3rd-5th','3-5'],['6th-10th','6-10']].map(([lbl,key])=>`
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">${lbl} Place (₦)</label>
+          <input type="number" class="form-input" id="prize-${key}" placeholder="0" min="0"></div>
+        </div>`).join('')}
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Refund Positions (e.g. 6-10)</label>
+        <input type="text" class="form-input" id="prize-refund" placeholder="e.g. 6-10"></div>
+      </div>`;
+  } else if(type==='kill'){
+    el.innerHTML=`
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">₦ Per Kill</label>
+        <input type="number" class="form-input" id="prize-perkill" placeholder="50"></div>
+        <div class="form-group"><label class="form-label">Kill Cap (max kills counted)</label>
+        <input type="number" class="form-input" id="prize-killcap" placeholder="10"></div>
+      </div>`;
+  } else if(type==='custom'){
+    el.innerHTML=`
+      <div class="form-group"><label class="form-label">Prize Description</label>
+      <textarea class="form-textarea" id="prize-custom" placeholder="e.g. 1st place wins a gaming headset sponsored by XYZ"></textarea></div>`;
+  } else {
+    el.innerHTML=`<div class="form-hint" style="margin-bottom:.5rem">No prize — free entry tournament.</div>`;
+  }
+};
+
+function getPrizeData(){
+  const type=document.getElementById('ct-prizeType').value;
+  if(type==='position'){
+    return{type,positions:{
+      '1':parseFloat(document.getElementById('prize-1')?.value)||0,
+      '2':parseFloat(document.getElementById('prize-2')?.value)||0,
+      '3-5':parseFloat(document.getElementById('prize-3-5')?.value)||0,
+      '6-10':parseFloat(document.getElementById('prize-6-10')?.value)||0,
+      refund:document.getElementById('prize-refund')?.value||''
+    }};
+  } else if(type==='kill'){
+    return{type,perKill:parseFloat(document.getElementById('prize-perkill')?.value)||0,
+      killCap:parseInt(document.getElementById('prize-killcap')?.value)||10};
+  } else if(type==='custom'){
+    return{type,description:document.getElementById('prize-custom')?.value||''};
+  }
+  return{type:'free'};
+}
+
+window.saveTournament=async function(){
+  const name=document.getElementById('ct-name').value.trim();
+  const startVal=document.getElementById('ct-start').value;
+  if(!name||!startVal){toast('Fill in name and start time','red');return;}
+  try{
+  const tid=activeTournamentId||'t_'+Date.now();
+  const data={
+    name,
+    mode:document.getElementById('ct-mode').value,
+    map:document.getElementById('ct-map').value,
+    maxPlayers:parseInt(document.getElementById('ct-maxplayers').value)||25,
+    fee:parseFloat(document.getElementById('ct-fee').value)||0,
+    startTime:new Date(startVal).getTime(),
+    roomRelease:document.getElementById('ct-release').value,
+    rules:document.getElementById('ct-rules').value.trim(),
+    prize:getPrizeData(),
+    status:activeTournamentId?allTournaments[activeTournamentId]?.status:'upcoming',
+    createdAt:activeTournamentId?allTournaments[activeTournamentId]?.createdAt:Date.now(),
+    updatedAt:Date.now()
+  };
+  await set(ref(db,'tournaments/'+tid),data);
+  closeModal('createTournModal');
+  toast(activeTournamentId?'Tournament updated ✅':'Tournament created ✅','green');
+  showTab('tournaments');
+  }catch(e){toast('Save failed: '+e.message,'red');console.error(e);}
+};
+
+window.openManageTournament=function(tid){
+  activeTournamentId=tid;
+  const t=allTournaments[tid];
+  document.getElementById('mt-title').textContent=t.name||'Tournament';
+  document.getElementById('mt-room-id').value=t.roomId||'';
+  document.getElementById('mt-room-pw').value=t.roomPassword||'';
+  document.getElementById('mt-room-release').value=t.roomReleaseOverride||'auto';
+  document.getElementById('mt-status-sel').value=t.status||'upcoming';
+  document.getElementById('mt-status-reason').value=t.statusReason||'';
+  switchManageTab('room');
+  openModal('manageTournModal');
+  renderResultsInputs(tid);
+};
+
+window.switchManageTab=function(tab){
+  ['room','results','status'].forEach(t=>{
+    document.getElementById('mt-'+t).style.display=t===tab?'block':'none';
+  });
+  document.querySelectorAll('#manageTournModal .inner-tab').forEach((t,i)=>{
+    t.classList.toggle('active',['room','results','status'][i]===tab);
+  });
+};
+
+window.saveRoomCode=async function(){
+  const tid=activeTournamentId;
+  await update(ref(db,'tournaments/'+tid),{
+    roomId:document.getElementById('mt-room-id').value.trim(),
+    roomPassword:document.getElementById('mt-room-pw').value.trim(),
+    roomReleaseOverride:document.getElementById('mt-room-release').value,
+    updatedAt:Date.now()
+  });
+  toast('Room code saved ✅','green');
+};
+
+function renderResultsInputs(tid){
+  const t=allTournaments[tid];
+  const regs=t?.registrations?Object.entries(t.registrations):[];
+  const el=document.getElementById('mt-results-list');
+  if(!regs.length){el.innerHTML=`<div class="empty"><div class="empty-txt">No registrations yet</div></div>`;return;}
+  el.innerHTML=regs.map(([pid,reg])=>{
+    const p=allPlayers[pid];
+    const username=p?.username||pid;
+    const existing=t.results?.[pid]||{};
+    return `<div style="display:flex;align-items:center;gap:.5rem;padding:.5rem 0;border-bottom:1px solid var(--bdr)">
+      <div style="flex:1;font-family:var(--ff);font-size:.88rem;font-weight:700">${username}</div>
+      <input type="number" placeholder="Rank" min="1" style="width:60px" class="form-input" id="res-rank-${pid}" value="${existing.rank||''}">
+      <input type="number" placeholder="Kills" min="0" style="width:60px" class="form-input" id="res-kills-${pid}" value="${existing.kills||''}">
+    </div>`;
+  }).join('');
+}
+
+window.saveResults=async function(){
+  const tid=activeTournamentId;
+  try{
+    const t=allTournaments[tid];
+    const regs=t?.registrations?Object.keys(t.registrations):[];
+    const results={};
+    regs.forEach(pid=>{
+      const rank=parseInt(document.getElementById('res-rank-'+pid)?.value)||0;
+      const kills=parseInt(document.getElementById('res-kills-'+pid)?.value)||0;
+      results[pid]={rank,kills};
+    });
+    await update(ref(db,'tournaments/'+tid),{results,status:'completed',updatedAt:Date.now()});
+    // Award prizes
+    await awardPrizes(tid,results,t);
+    toast('Results saved & prizes awarded ✅','green');
+  }catch(e){
+    toast('Failed to save results: '+e.message,'red');
+    console.error('saveResults error:',e);
+  }
+};
+
+async function awardPrizes(tid,results,t){
+  const prize=t.prize||{};
+  for(const [pid,res] of Object.entries(results)){
+    let award=0;
+    if(prize.type==='position'){
+      const rank=res.rank;
+      if(rank===1)award=prize.positions?.['1']||0;
+      else if(rank===2)award=prize.positions?.['2']||0;
+      else if(rank>=3&&rank<=5)award=prize.positions?.['3-5']||0;
+      else if(rank>=6&&rank<=10)award=prize.positions?.['6-10']||0;
+      // Refund check
+      const refundRange=prize.positions?.refund||'';
+      if(award===0&&refundRange){
+        const[a,b]=refundRange.split('-').map(Number);
+        if(rank>=a&&rank<=(b||a))award=t.fee||0;
+      }
+    } else if(prize.type==='kill'){
+      const kills=Math.min(res.kills,prize.killCap||10);
+      award=kills*(prize.perKill||0);
+    }
+    if(award>0){
+      const p=allPlayers[pid];
+      const newBal=(p?.balance||0)+award;
+      await update(ref(db,'players/'+pid),{balance:newBal});
+      // Log prize transaction
+      await push(ref(db,'players/'+pid+'/transactions'),{type:'prize',amount:award,tournament:t.name,tid,createdAt:Date.now()});
+    }
+  }
+}
+
+window.updateTournamentStatus=async function(){
+  const tid=activeTournamentId;
+  try{
+  const status=document.getElementById('mt-status-sel').value;
+  const reason=document.getElementById('mt-status-reason').value.trim();
+  const refundChoice=document.getElementById('mt-refund').value;
+  await update(ref(db,'tournaments/'+tid),{status,statusReason:reason,updatedAt:Date.now()});
+  // Refund if cancelled/postponed
+  if((status==='cancelled'||status==='postponed')&&refundChoice==='yes'){
+    const t=allTournaments[tid];
+    const regs=t?.registrations?Object.keys(t.registrations):[];
+    for(const pid of regs){
+      const p=allPlayers[pid];
+      if(p){
+        const newBal=(p.balance||0)+(t.fee||0);
+        await update(ref(db,'players/'+pid),{balance:newBal});
+      }
+    }
+    toast(`Status updated. ₦${allTournaments[tid]?.fee||0} refunded to ${Object.keys(allTournaments[tid]?.registrations||{}).length} players ✅`,'green');
+  } else {
+    toast('Tournament status updated ✅','green');
+  }
+  closeModal('manageTournModal');
+  }catch(e){toast('Failed: '+e.message,'red');console.error(e);}
+};
+
+window.viewRegistrations=function(tid){
+  const t=allTournaments[tid];
+  const regs=t?.registrations?Object.entries(t.registrations):[];
+  toast(`${regs.length} player(s) registered`,'green');
+  // Could open a detail modal — keeping it simple for now
+};
+
+// ---- PRIZE TEMPLATES ----
+window.savePrizeTemplate=async function(){
+  const prize=getPrizeData();
+  const name=prompt('Template name (e.g. "Standard 25-player"):');
+  if(!name)return;
+  await push(ref(db,'prizeTemplates'),{name,prize,createdAt:Date.now()});
+  toast('Template saved ✅','green');
+  loadPrizeTemplates();
+};
+
+async function loadPrizeTemplates(){
+  const el=document.getElementById('prizeTemplates');
+  if(!el)return;
+  const snap=await get(ref(db,'prizeTemplates'));
+  const templates=snap.val()||{};
+  el.innerHTML=Object.entries(templates).map(([tid,t])=>`
+    <button class="btn btn-ghost btn-sm" onclick="applyTemplate('${tid}')">${t.name}</button>`).join('');
+}
+
+window.applyTemplate=async function(tid){
+  const snap=await get(ref(db,'prizeTemplates/'+tid));
+  const t=snap.val();
+  if(!t)return;
+  document.getElementById('ct-prizeType').value=t.prize?.type||'position';
+  renderPrizeFields();
+  // Fill in values after render
+  setTimeout(()=>{
+    if(t.prize?.type==='position'){
+      Object.entries(t.prize.positions||{}).forEach(([key,val])=>{
+        const el=document.getElementById('prize-'+key);
+        if(el)el.value=val;
+      });
+    } else if(t.prize?.type==='kill'){
+      if(document.getElementById('prize-perkill'))document.getElementById('prize-perkill').value=t.prize.perKill||0;
+      if(document.getElementById('prize-killcap'))document.getElementById('prize-killcap').value=t.prize.killCap||10;
+    }
+  },100);
+  toast('Template applied ✅','green');
+};
+
+// ---- PLAYERS ----
+function renderPlayers(filter=''){
+  const el=document.getElementById('playerList');
+  let entries=Object.entries(allPlayers);
+  if(filter){
+    const q=filter.toLowerCase();
+    entries=entries.filter(([id,p])=>
+      (p.username||'').toLowerCase().includes(q)||
+      (p.pubgUid||'').includes(q)||
+      (p.contact||'').includes(q)
+    );
+  }
+  if(!entries.length){el.innerHTML=emptyState('👥','No players found','Try a different search');return;}
+  el.innerHTML=entries.map(([pid,p])=>`
+    <div class="player-row" style="cursor:pointer" onclick="openPlayerModal('${pid}')">
+      <div class="player-avatar">${p.username?p.username[0].toUpperCase():'?'}</div>
+      <div class="player-info">
+        <div class="player-name">${p.username||'Unknown'}</div>
+        <div class="player-uid">UID: ${p.pubgUid||'—'} ${p.inGameName?'• 🎮 '+p.inGameName:''}</div>
+        <div class="player-meta">${p.contact||''} • ₦${p.balance||0} real • ${p.bonusBalance||0}🪙 bonus</div>
+      </div>
+      <div>
+        <span class="status ${p.verified?'status-verified':p.rejected?'status-rejected':'status-pending'}">${p.verified?'✅':p.rejected?'❌':'⏳'}</span>
+      </div>
+    </div>`).join('');
+}
+
+window.searchPlayers=function(){
+  renderPlayers(document.getElementById('playerSearch').value);
+};
+
+window.openPlayerModal=function(pid){
+  const p=allPlayers[pid];
+  document.getElementById('pm-avatar').textContent=p.username?p.username[0].toUpperCase():'?';
+  document.getElementById('pm-username').textContent=p.username||'Unknown';
+  document.getElementById('pm-ingame').textContent=p.inGameName?'🎮 '+p.inGameName:'Not verified yet';
+  document.getElementById('pm-uid').textContent=p.pubgUid||'—';
+  document.getElementById('pm-contact').textContent=p.contact||'—';
+  document.getElementById('pm-status').innerHTML=`<span class="status ${p.verified?'status-verified':p.rejected?'status-rejected':'status-pending'}">${p.verified?'✅ Verified':p.rejected?'❌ Rejected':'⏳ Pending'}</span>`;
+  document.getElementById('pm-balance').textContent='₦'+(p.balance||0);
+  document.getElementById('pm-bonus').textContent=(p.bonusBalance||0)+'🪙';
+  document.getElementById('pm-referredby').textContent=p.referredBy||'None';
+  document.getElementById('pm-referrals').textContent=p.referralCount||0;
+  document.getElementById('pm-adj-amount').value='';
+  // Store pid for balance adjustment
+  document.getElementById('playerModal').dataset.pid=pid;
+  openModal('playerModal');
+};
+
+window.adjustBalance=async function(action){
+  const pid=document.getElementById('playerModal').dataset.pid;
+  const amount=parseFloat(document.getElementById('pm-adj-amount').value)||0;
+  const type=document.getElementById('pm-adj-type').value;
+  if(!amount||amount<=0){toast('Enter a valid amount','red');return;}
+  const p=allPlayers[pid];
+  const field=type==='real'?'balance':'bonusBalance';
+  const current=p[field]||0;
+  const newVal=action==='add'?current+amount:Math.max(0,current-amount);
+  await update(ref(db,'players/'+pid),{[field]:newVal});
+  toast(`Balance ${action==='add'?'added':'deducted'} ✅`,'green');
+  closeModal('playerModal');
+};
+
+// ---- PROMOS & REFERRALS ----
+window.openCreatePromo=function(){openModal('promoModal');};
+
+window.createPromo=async function(){
+  const code=document.getElementById('promo-code').value.trim().toUpperCase();
+  const amount=parseFloat(document.getElementById('promo-amount').value)||0;
+  const type=document.getElementById('promo-type').value;
+  const maxUses=parseInt(document.getElementById('promo-max').value)||0;
+  const expires=document.getElementById('promo-expires').value;
+  if(!code||!amount){toast('Fill in code and amount','red');return;}
+  await set(ref(db,'promoCodes/'+code),{code,amount,type,maxUses,expires:expires||null,usedCount:0,createdAt:Date.now()});
+  closeModal('promoModal');
+  toast('Promo code created ✅','green');
+  loadPromos();
+};
+
+async function loadPromos(){
+  const el=document.getElementById('promoList');
+  if(!el)return;
+  const snap=await get(ref(db,'promoCodes'));
+  const promos=snap.val()||{};
+  const entries=Object.entries(promos);
+  if(!entries.length){el.innerHTML=emptyState('🎟','No promo codes','Create one above');return;}
+  el.innerHTML=entries.map(([code,p])=>`
+    <div class="promo-row">
+      <div>
+        <div class="promo-code">${code}</div>
+        <div class="promo-detail">${p.type==='real'?'Real':'Bonus'} ₦${p.amount} • Used ${p.usedCount||0}/${p.maxUses||'∞'} ${p.expires?'• Expires '+p.expires:''}</div>
+      </div>
+      <div class="promo-actions">
+        <button class="btn btn-red btn-sm" onclick="deletePromo('${code}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+window.deletePromo=async function(code){
+  if(!confirm('Delete promo code '+code+'?'))return;
+  await remove(ref(db,'promoCodes/'+code));
+  toast('Promo deleted','red');
+  loadPromos();
+};
+
+async function loadReferrals(){
+  const el=document.getElementById('referralList');
+  if(!el)return;
+  const entries=Object.entries(allPlayers).filter(([id,p])=>p.referralCount>0);
+  if(!entries.length){el.innerHTML=emptyState('🔗','No referrals yet','');return;}
+  el.innerHTML=entries.sort((a,b)=>(b[1].referralCount||0)-(a[1].referralCount||0)).map(([pid,p])=>`
+    <div class="promo-row">
+      <div>
+        <div class="promo-code" style="font-size:.85rem">${p.username||pid}</div>
+        <div class="promo-detail">Referral code: ${p.username} • ${p.referralCount||0} referral(s)</div>
+      </div>
+      <span class="status status-verified">${p.referralCount||0} refs</span>
+    </div>`).join('');
+}
+
+window.saveReferralRules=async function(){
+  const condition=document.getElementById('refCondition').value;
+  const data={
+    rewardType:document.getElementById('refRewardType').value,
+    referrerAmt:parseFloat(document.getElementById('refReferrerAmt').value)||0,
+    newPlayerAmt:parseFloat(document.getElementById('refNewPlayerAmt').value)||0,
+    newPlayerRewardType:document.getElementById('refNewPlayerRewardType').value,
+    condition,
+    minTopup:condition==='topup'?parseFloat(document.getElementById('refMinTopup').value)||0:0,
+    minTournaments:condition==='tournaments'?parseInt(document.getElementById('refMinTournaments').value)||0:0,
+    updatedAt:Date.now()
+  };
+  await set(ref(db,'settings/referral'),data);
+  toast('Referral rules saved ✅','green');
+};
+
+window.updateRefConditionUI=function(){
+  const v=document.getElementById('refCondition').value;
+  document.getElementById('refConditionTopup').style.display=v==='topup'?'block':'none';
+  document.getElementById('refConditionTournaments').style.display=v==='tournaments'?'block':'none';
+};
+
+// ---- TERMS EDITOR ----
+async function loadTermsEditor(){
+  const snap=await get(ref(db,'settings/termsContent'));
+  const content=snap.exists()?snap.val():'';
+  document.getElementById('termsEditor').value=content;
+}
+
+window.saveTerms=async function(){
+  const content=document.getElementById('termsEditor').value.trim();
+  await set(ref(db,'settings/termsContent'),content);
+  toast('Terms & Conditions saved ✅','green');
+};
+
+// ---- SETTINGS ----
+async function renderSettings(){
+  loadSettings();
+  loadAdminList();
+  populateAdminPlayerPicker();
+}
+
+async function loadSettings(){
+  const snap=await get(ref(db,'settings'));
+  const s=snap.val()||{};
+  if(s.launch){
+    if(s.launch.date)document.getElementById('launchDate').value=new Date(s.launch.date).toISOString().slice(0,16);
+    document.getElementById('launchGateOn').checked=!!s.launch.gateOn;
+  }
+  if(s.payment){
+    document.getElementById('bankName').value=s.payment.bankName||'PalmPay';
+    document.getElementById('bankAcct').value=s.payment.accountNumber||'8900952292';
+    document.getElementById('bankAcctName').value=s.payment.accountName||'CODED INT(HAMMED)';
+    document.getElementById('bankNotice').value=s.payment.notice||'Transactions made between 8PM – 8AM may take longer to verify';
+  }
+  if(s.social){
+    document.getElementById('socWhatsapp').value=s.social.whatsapp||'';
+    document.getElementById('socInstagram').value=s.social.instagram||'';
+    document.getElementById('socTwitter').value=s.social.twitter||'';
+    document.getElementById('socTiktok').value=s.social.tiktok||'';
+    document.getElementById('socEmail').value=s.social.email||'';
+  }
+  if(s.referral){
+    document.getElementById('refRewardType').value=s.referral.rewardType||'bonus';
+    document.getElementById('refReferrerAmt').value=s.referral.referrerAmt||0;
+    document.getElementById('refNewPlayerAmt').value=s.referral.newPlayerAmt||0;
+    document.getElementById('refNewPlayerRewardType').value=s.referral.newPlayerRewardType||'bonus';
+    const cond=s.referral.condition||'none';
+    document.getElementById('refCondition').value=cond;
+    document.getElementById('refMinTopup').value=s.referral.minTopup||0;
+    document.getElementById('refMinTournaments').value=s.referral.minTournaments||0;
+    updateRefConditionUI();
+  }
+  document.getElementById('welcomeBonus').value=s.welcomeBonus||500;
+}
+
+window.saveLaunchSettings=async function(){
+  const dateVal=document.getElementById('launchDate').value;
+  const gateOn=document.getElementById('launchGateOn').checked;
+  const btn=document.querySelector('#sec-settings .card .btn-or');
+  // Use set so gateOn:false is actually stored (update can skip falsy values in some SDKs)
+  await set(ref(db,'settings/launch'),{
+    date:dateVal?new Date(dateVal).getTime():0,
+    gateOn:gateOn
+  });
+  toast(gateOn?'Countdown gate ACTIVE ✅ — players see countdown':'Countdown gate OFF — site is open','green');
+};
+
+window.savePaymentSettings=async function(){
+  await update(ref(db,'settings/payment'),{
+    bankName:document.getElementById('bankName').value.trim(),
+    accountNumber:document.getElementById('bankAcct').value.trim(),
+    accountName:document.getElementById('bankAcctName').value.trim(),
+    notice:document.getElementById('bankNotice').value.trim()
+  });
+  toast('Payment settings saved ✅','green');
+};
+
+window.saveSocialSettings=async function(){
+  await update(ref(db,'settings/social'),{
+    whatsapp:document.getElementById('socWhatsapp').value.trim(),
+    instagram:document.getElementById('socInstagram').value.trim(),
+    twitter:document.getElementById('socTwitter').value.trim(),
+    tiktok:document.getElementById('socTiktok').value.trim(),
+    email:document.getElementById('socEmail').value.trim()
+  });
+  toast('Social links saved ✅','green');
+};
+
+window.saveWelcomeBonus=async function(){
+  await set(ref(db,'settings/welcomeBonus'),parseInt(document.getElementById('welcomeBonus').value)||500);
+  toast('Welcome bonus saved ✅','green');
+};
+
+// ---- ADMIN MANAGEMENT ----
+async function loadAdminList(){
+  const el=document.getElementById('adminList');
+  if(!el)return;
+  const snap=await get(ref(db,'admins'));
+  const admins=snap.val()||{};
+  // Only master can see add section
+  const addSec=document.getElementById('addAdminSection');
+  if(addSec)addSec.style.display=currentAdminRole==='master'?'block':'none';
+  if(!Object.keys(admins).length){el.innerHTML=`<div class="empty-txt" style="font-size:.78rem;color:var(--muted)">No admins found</div>`;return;}
+  el.innerHTML=Object.entries(admins).map(([uid,a])=>`
+    <div style="display:flex;align-items:center;gap:.6rem;padding:.55rem 0;border-bottom:1px solid var(--bdr)">
+      <div style="flex:1">
+        <div style="font-family:var(--ff);font-size:.9rem;font-weight:700">${a.email||uid}</div>
+        <div style="font-size:.65rem;color:var(--muted)">UID: ${uid.slice(0,12)}...</div>
+      </div>
+      <span class="role-badge role-${a.role}">${roleName(a.role)}</span>
+      ${currentAdminRole==='master'&&uid!==currentAdminUid?`<button class="btn btn-red btn-sm" onclick="removeAdmin('${uid}')">Remove</button>`:''}
+    </div>`).join('');
+}
+
+// Populate the player picker in Add Admin section
+function populateAdminPlayerPicker(){
+  const sel=document.getElementById('newAdminPlayerSelect');
+  if(!sel)return;
+  // Get current admins to exclude them
+  get(ref(db,'admins')).then(snap=>{
+    const admins=snap.val()||{};
+    sel.innerHTML='<option value="">-- Pick a registered player --</option>';
+    Object.entries(allPlayers).forEach(([uid,p])=>{
+      if(admins[uid])return; // skip already admins
+      const opt=document.createElement('option');
+      opt.value=uid;
+      opt.textContent=`${p.username||p.email} (${p.email})`;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+window.addAdmin=async function(){
+  if(currentAdminRole!=='master'){toast('Only master admins can add admins','red');return;}
+  const uid=document.getElementById('newAdminPlayerSelect').value;
+  const role=document.getElementById('newAdminRole').value;
+  if(!uid){toast('Select a player first','red');return;}
+  const player=allPlayers[uid];
+  if(!player){toast('Player not found','red');return;}
+  const btn=document.querySelector('#addAdminSection .btn-or');
+  if(btn){btn.textContent='Adding...';btn.disabled=true;}
+  try{
+    // Fetch full player profile directly to get email
+    const snap=await get(ref(db,'players/'+uid+'/profile'));
+    const profile=snap.val()||{};
+    const email=profile.email||player.email||player.contact||uid;
+    await set(ref(db,'admins/'+uid),{
+      email,
+      username:profile.username||player.username||'',
+      role,
+      addedBy:currentAdminUid,
+      addedAt:Date.now()
+    });
+    toast(`${profile.username||email} is now an admin ✅`,'green');
+    document.getElementById('newAdminPlayerSelect').value='';
+    loadAdminList();
+  }catch(e){
+    toast('Failed to add admin: '+e.message,'red');
+  }finally{
+    if(btn){btn.textContent='Add Admin';btn.disabled=false;}
+  }
+};
+
+window.removeAdmin=async function(uid){
+  if(!confirm('Remove this admin?'))return;
+  await remove(ref(db,'admins/'+uid));
+  toast('Admin removed','red');
+  loadAdminList();
+};
+
+// ---- UTILITIES ----
+function openModal(id){document.getElementById(id).classList.add('open');}
+window.closeModal=function(id){document.getElementById(id).classList.remove('open');};
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
+});
+
+function toast(msg,type='green'){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='toast '+type+' show';
+  setTimeout(()=>el.classList.remove('show'),2500);
+}
+window.toast=toast;
+
+function fmtDate(ts){
+  if(!ts)return '—';
+  return new Date(ts).toLocaleDateString('en-NG',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+
+function emptyState(icon,txt,sub){
+  return `<div class="empty"><div class="empty-icon">${icon}</div><div class="empty-txt">${txt}</div>${sub?`<div class="empty-sub">${sub}</div>`:''}</div>`;
+}
+
+function fileToBase64(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=e=>res(e.target.result);
+    r.onerror=rej;
+    r.readAsDataURL(file);
+  });
+}
+
+// mt-status show/hide reason field
+document.getElementById('mt-status-sel')?.addEventListener('change',function(){
+  const show=this.value==='postponed'||this.value==='cancelled';
+  document.getElementById('mt-reason-wrap').style.display=show?'block':'none';
+  document.getElementById('mt-refund-wrap').style.display=show?'block':'none';
+});
+
+// ---- END ----
+</script>
+
+<script>
+/* ── THEME TOGGLE ───────────────────────────────── */
+(function(){
+  const saved = localStorage.getItem('cg-theme');
+  const sysDark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+  _cgApplyTheme(saved ? saved === 'dark' : sysDark);
+})();
+function _cgApplyTheme(dark){
+  const r = document.documentElement.style;
+  if(dark){
+    r.setProperty('--bg','#130805'); r.setProperty('--bg2','#1a0d08');
+    r.setProperty('--card','#1f1008'); r.setProperty('--card2','#261508');
+    r.setProperty('--bdr','#3a1f0f'); r.setProperty('--bdr2','#4a2a18');
+    r.setProperty('--txt','#f5f0e8'); r.setProperty('--txt2','#c8a882');
+    r.setProperty('--muted','#8a6a50');
+  } else {
+    r.setProperty('--bg','#f5ede0'); r.setProperty('--bg2','#ede0cf');
+    r.setProperty('--card','#fff8f0'); r.setProperty('--card2','#f5ede0');
+    r.setProperty('--bdr','#dcc8b0'); r.setProperty('--bdr2','#cbb898');
+    r.setProperty('--txt','#1a0e05'); r.setProperty('--txt2','#6a4828');
+    r.setProperty('--muted','#9a7858');
+  }
+  localStorage.setItem('cg-theme', dark ? 'dark' : 'light');
+  const btn = document.getElementById('cg-theme-btn');
+  if(btn) btn.textContent = dark ? '☀️' : '🌙';
+}
+function cgToggleTheme(){
+  const cur = localStorage.getItem('cg-theme') ||
+    (window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
+  _cgApplyTheme(cur !== 'dark');
+}
+
+// ---- SUPPORT ----
+window.switchSupportTab=function(tab){
+  activeSupportTab=tab;
+  document.querySelectorAll('#sec-support .inner-tab').forEach((t,i)=>{
+    t.classList.toggle('active',['pending','resolved'][i]===tab);
+  });
+  renderSupport(tab);
+};
+
+function renderSupport(tab){
+  const el=document.getElementById('supportList');
+  if(!el)return;
+  onValue(ref(db,'adminContactRequests'),snap=>{
+    const raw=snap.val()||{};
+    const rows=Object.entries(raw).filter(([,r])=>r.status===(tab==='pending'?'pending':'resolved'));
+    rows.sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
+    if(!rows.length){el.innerHTML=emptyState('📩','No messages','Nothing here');return;}
+    el.innerHTML=rows.map(([rid,r])=>`
+      <div class="card" style="margin-bottom:.6rem">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.4rem">
+          <div>
+            <div style="font-weight:700;font-size:.88rem">${r.username||'Player'}</div>
+            <div style="font-size:.72rem;color:var(--txt2)">${r.contact||''}</div>
+          </div>
+          <span class="status status-${r.status==='pending'?'pending':'verified'}">${r.status}</span>
+        </div>
+        <div style="font-size:.78rem;color:var(--or);margin-bottom:.25rem;text-transform:capitalize">📂 ${r.type||'other'}</div>
+        ${r.txnId?`<div style="font-size:.72rem;color:var(--muted);margin-bottom:.25rem">Txn ID: ${r.txnId}</div>`:''}
+        <div style="font-size:.82rem;color:var(--txt);line-height:1.5;margin-bottom:.5rem">${r.message||'—'}</div>
+        <div style="font-size:.68rem;color:var(--muted);margin-bottom:.5rem">${fmtDate(r.createdAt)}</div>
+        ${r.status==='pending'?`<button class="btn btn-green btn-sm" onclick="resolveSupport('${rid}')">✅ Mark Resolved</button>`:''}
+      </div>`).join('');
+  },{onlyOnce:true});
+}
+
+window.resolveSupport=async function(rid){
+  try{
+    await update(ref(db,'adminContactRequests/'+rid),{status:'resolved',resolvedAt:Date.now(),resolvedBy:currentAdminUid});
+    toast('Marked as resolved ✅','green');
+    renderSupport(activeSupportTab);
+  }catch(e){toast('Failed: '+e.message,'red');}
+};
+</script>
+</body>
+</html>

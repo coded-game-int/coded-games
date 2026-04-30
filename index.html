@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>/* instant theme — prevents flash */
+(function(){
+  var t=localStorage.getItem('cg-theme');
+  var d=t?t==='dark':window.matchMedia('(prefers-color-scheme:dark)').matches;
+  var r=document.documentElement.style;
+  if(d){
+    r.setProperty('--bg','#130805');r.setProperty('--bg2','#1a0d08');
+    r.setProperty('--card','#1f1008');r.setProperty('--card2','#261508');
+    r.setProperty('--bdr','#3a1f0f');r.setProperty('--bdr2','#4a2a18');
+    r.setProperty('--txt','#f5f0e8');r.setProperty('--txt2','#c8a882');r.setProperty('--muted','#8a6a50');
+  }else{
+    r.setProperty('--bg','#f5ede0');r.setProperty('--bg2','#ede0cf');
+    r.setProperty('--card','#fff8f0');r.setProperty('--card2','#f5ede0');
+    r.setProperty('--bdr','#dcc8b0');r.setProperty('--bdr2','#cbb898');
+    r.setProperty('--txt','#1a0e05');r.setProperty('--txt2','#6a4828');r.setProperty('--muted','#9a7858');
+  }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CODED GAMES — PUBG Mobile Tournaments Nigeria</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --or:#f5a623;--or2:#ff7b00;--orG:rgba(245,166,35,.15);
+  --bg:#130805;--bg2:#1a0d08;--card:#1f1008;--card2:#261508;
+  --bdr:#3a1f0f;--bdr2:#4a2a18;
+  --txt:#f5f0e8;--txt2:#c8a882;--muted:#8a6a50;
+  --green:#4caf50;--red:#ef4444;
+  --ff:'Plus Jakarta Sans',sans-serif;--fb:'Plus Jakarta Sans',sans-serif;--fc:'Nunito',sans-serif;
+  --r:10px;--sh:0 4px 24px rgba(0,0,0,.5);
+}
+@media(prefers-color-scheme:light){
+  :root{
+    --bg:#f5ede0;--bg2:#ede0cf;--card:#fff8f0;--card2:#f5ede0;
+    --bdr:#dcc8b0;--bdr2:#cbb898;
+    --txt:#1a0e05;--txt2:#6a4828;--muted:#9a7858;
+    --sh:0 4px 24px rgba(0,0,0,.12);
+  }
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--bg);color:var(--txt);overflow-x:hidden}
+
+/* TOPBAR */
+.tb{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;
+  display:flex;align-items:center;justify-content:space-between;padding:0 1.2rem;
+  background:rgba(9,16,10,.9);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--bdr);}
+@media(prefers-color-scheme:light){.tb{background:rgba(234,230,216,.9);}}
+.logo{display:flex;align-items:center;gap:.55rem;text-decoration:none}
+.logo-hex{width:30px;height:30px;background:var(--or);
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display:grid;place-items:center;font-size:.75rem;font-weight:900;color:#000}
+.logo-txt{font-family:var(--ff);font-size:1.25rem;font-weight:700;letter-spacing:1.5px;color:var(--txt);line-height:1}
+.logo-txt b{color:var(--or)}
+.tb-r{display:flex;gap:.5rem;align-items:center}
+.bs{padding:.4rem .85rem;border-radius:6px;font-family:var(--fc);font-size:.82rem;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:none;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center}
+.bg{background:transparent;border:1.5px solid var(--bdr2);color:var(--txt2)}
+.bg:hover{border-color:var(--or);color:var(--or)}
+.bo{background:var(--or);color:#000;font-weight:800}
+.bo:hover{background:var(--or2);transform:translateY(-1px)}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;
+  padding:70px 1.2rem 2rem;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;z-index:0;
+  background:radial-gradient(ellipse 90% 55% at 50% 0%,rgba(245,166,35,.11) 0%,transparent 65%),
+  radial-gradient(ellipse 50% 40% at 85% 60%,rgba(255,123,0,.07) 0%,transparent 50%),var(--bg)}
+.hero-bg::after{content:'';position:absolute;inset:0;
+  background-image:linear-gradient(var(--bdr) 1px,transparent 1px),linear-gradient(90deg,var(--bdr) 1px,transparent 1px);
+  background-size:44px 44px;opacity:.25;
+  mask-image:radial-gradient(ellipse 85% 55% at 50% 0%,black 0%,transparent 70%)}
+.hero-c{position:relative;z-index:1;max-width:580px;width:100%;margin:0 auto;text-align:center}
+.badge{display:inline-flex;align-items:center;gap:.45rem;
+  background:var(--orG);border:1px solid rgba(245,166,35,.28);
+  color:var(--or);padding:.28rem .85rem;border-radius:20px;
+  font-family:var(--fc);font-size:.75rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  margin-bottom:1.4rem;animation:fD .6s ease both}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--or);animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
+@keyframes fD{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fU{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.hero h1{font-family:var(--ff);font-size:clamp(2.8rem,9vw,4.8rem);font-weight:700;
+  line-height:.98;letter-spacing:-1px;text-transform:none;margin-bottom:1rem;
+  animation:fU .7s .1s ease both}
+.hero h1 .ac{color:var(--or);text-shadow:0 0 40px rgba(245,166,35,.45)}
+.hero h1 .ol{-webkit-text-stroke:1.5px var(--or);color:transparent}
+.hero-sub{font-size:.95rem;color:var(--txt2);line-height:1.6;margin-bottom:2rem;animation:fU .7s .2s ease both}
+.hero-cta{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-bottom:2.5rem;animation:fU .7s .3s ease both}
+.bl{padding:.78rem 1.9rem;border-radius:8px;font-family:var(--fc);font-size:.98rem;font-weight:800;
+  letter-spacing:.5px;text-transform:uppercase;cursor:pointer;border:none;transition:all .2s;
+  text-decoration:none;display:inline-flex;align-items:center;gap:.4rem}
+.bp{background:var(--or);color:#000;box-shadow:0 4px 20px rgba(245,166,35,.38)}
+.bp:hover{background:var(--or2);transform:translateY(-2px);box-shadow:0 6px 28px rgba(245,166,35,.5)}
+.bse{background:transparent;border:1.5px solid var(--bdr2);color:var(--txt)}
+.bse:hover{border-color:var(--or);color:var(--or)}
+.stats{display:flex;gap:0;border:1px solid var(--bdr);border-radius:var(--r);
+  overflow:hidden;background:var(--card);animation:fU .7s .4s ease both}
+.si{flex:1;padding:.9rem .6rem;text-align:center;border-right:1px solid var(--bdr)}
+.si:last-child{border-right:none}
+.sn{font-family:var(--ff);font-size:1.45rem;font-weight:700;color:var(--or);line-height:1}
+.sl{font-size:.63rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:.15rem}
+
+/* TOPUP BANNER */
+.tup-bar{margin:0 1.2rem 1.5rem;background:var(--card);
+  border:1px solid var(--bdr);border-left:3px solid var(--or);
+  border-radius:var(--r);padding:1rem 1.1rem;
+  display:flex;align-items:center;gap:.9rem}
+.tup-ico{font-size:1.6rem;flex-shrink:0}
+.tup-txt h3{font-family:var(--ff);font-size:.95rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:.15rem}
+.tup-txt p{font-size:.76rem;color:var(--txt2);line-height:1.4}
+.tup-act{margin-left:auto;flex-shrink:0}
+
+/* SECTION */
+.sec{padding:3.5rem 1.2rem}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem}
+.sl2{display:flex;align-items:center;gap:.55rem}
+.sl2::before{content:'';width:3px;height:1.3rem;background:var(--or);border-radius:2px}
+.stitle{font-family:var(--ff);font-size:1.5rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.stitle span{color:var(--or)}
+.sa{font-family:var(--fc);font-size:.78rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--or);text-decoration:none;border:1px solid rgba(245,166,35,.28);
+  padding:.28rem .75rem;border-radius:6px;transition:all .2s}
+.sa:hover{background:var(--orG)}
+
+/* FILTER TABS */
+.ftabs{display:flex;gap:.4rem;overflow-x:auto;padding-bottom:.3rem;margin-bottom:1.1rem;scrollbar-width:none}
+.ftabs::-webkit-scrollbar{display:none}
+.ftab{flex-shrink:0;padding:.38rem .85rem;border-radius:20px;font-family:var(--fc);
+  font-size:.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  cursor:pointer;border:1.5px solid var(--bdr);background:transparent;color:var(--txt2);transition:all .2s}
+.ftab.on{background:var(--or);border-color:var(--or);color:#000}
+.ftab:hover:not(.on){border-color:var(--or);color:var(--or)}
+
+/* TOURNAMENT GRID */
+.tgrid{display:grid;grid-template-columns:1fr;gap:.9rem}
+@media(min-width:480px){.tgrid{grid-template-columns:1fr 1fr}}
+
+/* TOURNAMENT CARD */
+.tc{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);
+  overflow:hidden;transition:border-color .2s,transform .2s;position:relative}
+.tc:hover{border-color:var(--or);transform:translateY(-2px)}
+.tc-hd{padding:.8rem .95rem;background:var(--card2);border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:space-between;gap:.4rem}
+.fmt{font-family:var(--fc);font-size:.68rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  padding:.18rem .55rem;border-radius:4px;background:var(--orG);color:var(--or);
+  border:1px solid rgba(245,166,35,.22)}
+.sts{font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  display:flex;align-items:center;gap:.3rem}
+.sd{width:6px;height:6px;border-radius:50%}
+.s-open{color:var(--green)}.s-open .sd{background:var(--green);box-shadow:0 0 5px var(--green)}
+.s-soon{color:var(--or)}.s-soon .sd{background:var(--or);animation:pulse 1.4s infinite}
+.s-live{color:var(--red)}.s-live .sd{background:var(--red);animation:pulse .8s infinite}
+.s-ended{color:var(--muted)}.s-ended .sd{background:var(--muted)}
+.tc-bd{padding:.95rem}
+.tn{font-family:var(--ff);font-size:1.1rem;font-weight:700;letter-spacing:1px;margin-bottom:.25rem}
+.td{font-size:.78rem;color:var(--txt2);margin-bottom:.8rem;line-height:1.5}
+.tmeta{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.85rem}
+.tmi{background:var(--bg2);border:1px solid var(--bdr);border-radius:6px;padding:.45rem .65rem}
+.tml{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.1rem}
+.tmv{font-family:var(--fc);font-size:.92rem;font-weight:700;color:var(--txt)}
+.tmv.pr{color:var(--or)}
+.tcd{background:var(--bg2);border:1px solid var(--bdr);border-radius:6px;
+  padding:.55rem .75rem;margin-bottom:.85rem;display:flex;align-items:center;gap:.7rem}
+.cdl{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;flex-shrink:0}
+.cdt{display:flex;gap:.35rem;flex:1}
+.cdb{flex:1;text-align:center;background:var(--card2);border:1px solid var(--bdr);border-radius:4px;padding:.22rem .05rem}
+.cdn{font-family:var(--ff);font-size:.98rem;font-weight:700;color:var(--or);line-height:1}
+.cdu{font-size:.52rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.tc-ft{padding:.75rem .95rem;border-top:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:space-between;gap:.7rem}
+.tslt{font-size:.75rem;color:var(--txt2);display:flex;align-items:center;gap:.35rem}
+.slb{width:55px;height:4px;background:var(--bdr);border-radius:2px;overflow:hidden}
+.slf{height:100%;background:var(--or);border-radius:2px}
+.bjoin{padding:.5rem 1.3rem;border-radius:6px;font-family:var(--fc);font-size:.82rem;font-weight:800;
+  letter-spacing:.5px;text-transform:uppercase;cursor:pointer;border:none;
+  background:var(--or);color:#000;transition:all .2s}
+.bjoin:hover{background:var(--or2)}
+.bjoin:disabled{background:var(--bdr);color:var(--muted);cursor:not-allowed}
+.bview{padding:.5rem 1.3rem;border-radius:6px;font-family:var(--fc);font-size:.82rem;font-weight:800;
+  letter-spacing:.5px;text-transform:uppercase;cursor:pointer;
+  background:transparent;border:1.5px solid var(--bdr2);color:var(--txt);transition:all .2s}
+.bview:hover{border-color:var(--or);color:var(--or)}
+.ribbon{position:absolute;top:0;right:0;background:var(--or);color:#000;
+  font-family:var(--fc);font-size:.62rem;font-weight:800;letter-spacing:1px;
+  text-transform:uppercase;padding:.18rem .55rem;border-bottom-left-radius:6px}
+
+/* HOW IT WORKS */
+.how{padding:3.5rem 1.2rem;background:var(--bg2);border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-top:1.3rem}
+.sc{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);
+  padding:1.1rem;position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--or),transparent)}
+.snum{font-family:var(--ff);font-size:2.2rem;font-weight:700;color:var(--bdr2);line-height:1;margin-bottom:.4rem}
+.sico{font-size:1.3rem;margin-bottom:.4rem}
+.stit{font-family:var(--fc);font-size:.95rem;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;color:var(--txt);margin-bottom:.25rem}
+.sdsc{font-size:.76rem;color:var(--txt2);line-height:1.5}
+
+/* PRIZES */
+.psec{padding:3.5rem 1.2rem}
+.ptbl{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;margin-top:1.3rem}
+.pr{display:flex;align-items:center;padding:.78rem .95rem;border-bottom:1px solid var(--bdr);
+  gap:.75rem;transition:background .15s}
+.pr:last-child{border-bottom:none}
+.pr:hover{background:var(--card2)}
+.pr.gold{background:rgba(245,166,35,.07);border-left:3px solid var(--or)}
+.pr.silver{background:rgba(192,192,192,.04);border-left:3px solid #b0b0b0}
+.pr.bronze{background:rgba(180,100,30,.05);border-left:3px solid #cd7f32}
+.ppos{font-family:var(--ff);font-size:1.05rem;font-weight:700;width:2.2rem;text-align:center;flex-shrink:0}
+.pmed{font-size:1rem;flex-shrink:0}
+.pdesc{flex:1;font-size:.82rem;color:var(--txt2)}
+.pamt{font-family:var(--fc);font-size:.95rem;font-weight:700;color:var(--or)}
+.pnote{padding:.75rem .95rem;font-size:.72rem;color:var(--muted);
+  border-top:1px solid var(--bdr);background:var(--card2)}
+
+/* FOOTER */
+footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:2rem 1.2rem 1.5rem}
+.ft{display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.fb p{font-size:.73rem;color:var(--muted);margin-top:.45rem;line-height:1.5;max-width:210px}
+.fl h4{font-family:var(--fc);font-size:.75rem;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:.6rem}
+.fl a{display:block;font-size:.78rem;color:var(--txt2);text-decoration:none;margin-bottom:.35rem;transition:color .15s}
+.fl a:hover{color:var(--or)}
+.fwarn{background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.18);
+  border-radius:6px;padding:.6rem .85rem;font-size:.7rem;color:var(--txt2);
+  margin-top:1rem;line-height:1.55}
+.fwarn strong{color:var(--or)}
+.fbot{border-top:1px solid var(--bdr);padding-top:.9rem;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+.fbot p{font-size:.7rem;color:var(--muted)}
+
+/* MODAL */
+.mover{position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);
+  z-index:200;display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .28s}
+.mover.on{opacity:1;pointer-events:all}
+.modal{background:var(--card);border:1px solid var(--bdr);border-radius:16px 16px 0 0;
+  width:100%;max-width:500px;padding:1.4rem;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);
+  max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative}
+.mover.on .modal{transform:translateY(0)}
+.mhndl{width:34px;height:3.5px;background:var(--bdr2);border-radius:2px;margin:0 auto 1.1rem}
+.mtitle{font-family:var(--ff);font-size:1.25rem;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:1.1rem}
+.mclose{position:absolute;top:.9rem;right:.9rem;background:var(--card2);
+  border:1px solid var(--bdr);color:var(--txt2);width:28px;height:28px;
+  border-radius:50%;cursor:pointer;font-size:.9rem;display:grid;place-items:center}
+.fg{margin-bottom:1rem}
+.fl2{display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.5px;color:var(--muted);margin-bottom:.35rem}
+.fi{width:100%;background:var(--bg2);border:1.5px solid var(--bdr);color:var(--txt);
+  padding:.78rem .95rem;border-radius:8px;font-family:var(--fb);font-size:.92rem;
+  transition:border-color .2s}
+.fi:focus{outline:none;border-color:var(--or)}
+.wbox{background:rgba(245,166,35,.09);border:1px solid rgba(245,166,35,.28);
+  border-radius:8px;padding:.78rem .95rem;margin-bottom:1rem}
+.wbox p{font-size:.76rem;color:var(--txt2);line-height:1.6}
+.wbox strong{color:var(--or)}
+.nbox{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.22);
+  border-radius:8px;padding:.78rem .95rem;margin-bottom:1rem}
+.nbox p{font-size:.76rem;color:var(--txt2);line-height:1.6}
+.acd{background:var(--bg2);border:1.5px solid var(--or);border-radius:8px;padding:.95rem;margin-bottom:1rem}
+.ar{display:flex;justify-content:space-between;align-items:center;margin-bottom:.45rem}
+.ar:last-child{margin-bottom:0}
+.al{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.av{font-family:var(--ff);font-size:.98rem;font-weight:700;color:var(--txt)}
+.av.hi{color:var(--or);font-size:1.18rem}
+.bfull{width:100%;padding:.88rem;border-radius:8px;font-family:var(--fc);font-size:.98rem;
+  font-weight:800;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;border:none;
+  background:var(--or);color:#000;transition:all .2s}
+.bfull:hover{background:var(--or2)}
+.bfull.out{background:transparent;border:1.5px solid var(--bdr2);color:var(--txt);margin-top:.55rem}
+.bfull.out:hover{border-color:var(--or);color:var(--or)}
+.step{display:none}.step.on{display:block}
+@media(max-width:360px){.sgrid{grid-template-columns:1fr}.stats{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+
+<!-- LAUNCH COUNTDOWN OVERLAY -->
+<div id="countdownOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#0d0600;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem">
+  <img src="logo.jpg" alt="Coded Games" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid #f90;margin-bottom:1.2rem">
+  <div style="font-family:'Rajdhani',sans-serif;font-size:1.6rem;font-weight:800;color:#f90;letter-spacing:.08em;margin-bottom:.3rem">CODED GAMES</div>
+  <div style="color:#fff;font-size:1rem;margin-bottom:.5rem">🇳🇬 Nigeria's #1 PUBG Mobile Tournament Platform</div>
+  <div style="color:#aaa;font-size:.85rem;margin-bottom:2rem">ENTER THE BATTLEGROUND · WIN REAL MONEY</div>
+  <div style="color:#f90;font-size:.8rem;font-weight:700;letter-spacing:.15em;margin-bottom:1rem;text-transform:uppercase">Launching In</div>
+  <div style="display:flex;gap:1.2rem;margin-bottom:2rem">
+    <div style="text-align:center"><div id="cdD" style="font-size:3rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1">00</div><div style="font-size:.65rem;color:#aaa;text-transform:uppercase;letter-spacing:.1em">Days</div></div>
+    <div style="font-size:3rem;font-weight:900;color:#f90;line-height:1">:</div>
+    <div style="text-align:center"><div id="cdH" style="font-size:3rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1">00</div><div style="font-size:.65rem;color:#aaa;text-transform:uppercase;letter-spacing:.1em">Hours</div></div>
+    <div style="font-size:3rem;font-weight:900;color:#f90;line-height:1">:</div>
+    <div style="text-align:center"><div id="cdM" style="font-size:3rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1">00</div><div style="font-size:.65rem;color:#aaa;text-transform:uppercase;letter-spacing:.1em">Mins</div></div>
+    <div style="font-size:3rem;font-weight:900;color:#f90;line-height:1">:</div>
+    <div style="text-align:center"><div id="cdS" style="font-size:3rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1">00</div><div style="font-size:.65rem;color:#aaa;text-transform:uppercase;letter-spacing:.1em">Secs</div></div>
+  </div>
+  <a href="auth.html" style="color:#f90;font-size:.8rem;text-decoration:underline">Login / Register</a>
+</div>
+
+<div id="mainContent">
+
+<nav class="tb">
+  <a class="logo" href="#">
+    <img src="logo.jpg" alt="Coded Games" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid var(--or)">
+    <div class="logo-txt">CODED <b>GAMES</b></div>
+  </a>
+  <div class="tb-r">
+    <a href="auth.html" class="bs bg" id="navLogin">Login</a>
+    <a href="auth.html#register" class="bs bo" id="navRegister">Register</a>
+    <a href="dashboard.html" class="bs bo" id="navDash" style="display:none">Dashboard</a>
+  <button id="cg-theme-btn" onclick="cgToggleTheme()" title="Toggle theme" style="background:none;border:none;font-size:1.25rem;cursor:pointer;padding:.1rem .2rem;line-height:1;color:var(--txt)">🌙</button></div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-c">
+    <div class="badge">🇳🇬 Nigeria's #1 PUBG Mobile Tournament Platform</div>
+    <h1>ENTER THE<br><span class="ac">BATTLEGROUND</span><br><span class="ol">WIN REAL MONEY</span></h1>
+    <p class="hero-sub">Compete in PUBG Mobile tournaments, climb the leaderboard,<br>and cash out real Naira — Nigeria only.</p>
+    <div class="hero-cta">
+      <a href="#tournaments" class="bl bp">🎮 Browse Tournaments</a>
+      <a href="#how" class="bl bse">How It Works</a>
+    </div>
+    <div class="stats">
+      <div class="si"><div class="sn" id="stP">0</div><div class="sl">Players</div></div>
+      <div class="si"><div class="sn" id="stT">0</div><div class="sl">Tournaments</div></div>
+      <div class="si"><div class="sn" id="stM">₦0</div><div class="sl">Paid Out</div></div>
+      <div class="si"><div class="sn" id="stL">0</div><div class="sl">Live Now</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TOP-UP BANNER -->
+<div class="tup-bar">
+  <div class="tup-ico">💳</div>
+  <div class="tup-txt">
+    <h3>Top Up Your Balance</h3>
+    <p>Fund via PalmPay bank transfer to join tournaments</p>
+  </div>
+  <div class="tup-act">
+    <button class="bs bo" onclick="openTopupOrLogin()">Top Up</button>
+  </div>
+</div>
+
+<!-- TOURNAMENTS -->
+<section class="sec" id="tournaments">
+  <div class="sh">
+    <div class="sl2"><span class="stitle">🎯 <span>Active</span> Tournaments</span></div>
+    <a href="leaderboard.html" class="sa">Leaderboard →</a>
+  </div>
+  <div class="ftabs">
+    <button class="ftab on" onclick="filt('all',this)">All</button>
+    <button class="ftab" onclick="filt('solo',this)">Solo</button>
+    <button class="ftab" onclick="filt('squad',this)">Squad</button>
+    <button class="ftab" onclick="filt('duo',this)">Duo</button>
+    <button class="ftab" onclick="filt('open',this)">Open</button>
+    <button class="ftab" onclick="filt('upcoming',this)">Upcoming</button>
+  </div>
+  <div class="tgrid" id="tgrid"></div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="sl2"><span class="stitle">⚙️ How It <span>Works</span></span></div>
+  <div class="sgrid">
+    <div class="sc"><div class="snum">01</div><div class="sico">📝</div><div class="stit">Register</div><div class="sdsc">Create your account with email and PUBG Mobile UID.</div></div>
+    <div class="sc"><div class="snum">02</div><div class="sico">💳</div><div class="stit">Top Up</div><div class="sdsc">Fund your balance via PalmPay bank transfer. Fast and simple.</div></div>
+    <div class="sc"><div class="snum">03</div><div class="sico">🎮</div><div class="stit">Join & Play</div><div class="sdsc">Register for a tournament. Room code unlocks 15 mins before start.</div></div>
+    <div class="sc"><div class="snum">04</div><div class="sico">🏆</div><div class="stit">Win & Cash Out</div><div class="sdsc">Finish top, get prize credited, withdraw to your Nigerian bank account.</div></div>
+  </div>
+</section>
+
+<!-- PRIZE STRUCTURE -->
+<section class="psec" id="prizes">
+  <div class="sl2"><span class="stitle">🏆 Prize <span>Structure</span></span></div>
+  <p style="font-size:.78rem;color:var(--txt2);margin:.4rem 0 .2rem">Example: ₦200 entry × 25 players = ₦5,000 pool</p>
+  <div class="ptbl">
+    <div class="pr gold"><div class="ppos">1</div><div class="pmed">🥇</div><div class="pdesc">1st Place</div><div class="pamt">₦500</div></div>
+    <div class="pr silver"><div class="ppos">2</div><div class="pmed">🥈</div><div class="pdesc">2nd Place</div><div class="pamt">₦400</div></div>
+    <div class="pr bronze"><div class="ppos">3–5</div><div class="pmed">🥉</div><div class="pdesc">3rd – 5th Place</div><div class="pamt">₦300 each</div></div>
+    <div class="pr"><div class="ppos">6–10</div><div class="pmed">🔄</div><div class="pdesc">6th – 10th Place</div><div class="pamt" style="color:var(--green)">Entry Refund</div></div>
+    <div class="pr"><div class="ppos">11+</div><div class="pmed">❌</div><div class="pdesc">11th and below</div><div class="pamt" style="color:var(--muted)">No prize</div></div>
+    <div class="pnote">⚠️ Prize structure varies per tournament. Always check details before joining.</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="ft">
+    <div class="fb">
+      <div class="logo"><img src="logo.jpg" alt="Coded Games" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1.5px solid var(--or)"><div class="logo-txt">CODED <b>GAMES</b></div></div>
+      <p>Nigeria's competitive PUBG Mobile tournament platform. Skill-based. Real prizes.</p>
+    </div>
+    <div class="fl">
+      <h4>Platform</h4>
+      <a href="index.html#tournaments">Tournaments</a><a href="leaderboard.html">Leaderboard</a><a href="index.html#how">How It Works</a><a href="index.html#prizes">Prizes</a>
+    </div>
+    <div class="fl">
+      <h4>Account</h4>
+      <a href="auth.html#register">Register</a>
+      <a href="auth.html">Login</a>
+      <a href="#" onclick="openTopupOrLogin();return false">Top Up</a>
+      <a href="dashboard.html">Dashboard</a>
+    </div>
+  </div>
+  <div class="fwarn"><strong>⚠️ Important:</strong> Coded Games is a skill-based tournament platform. Entry fees are non-refundable except where stated. Players must be <strong>18 years or older</strong>. Nigeria only.</div>
+  <div class="fbot"><p>© 2026 Coded Games × Coded INT × Prince Web Dev · All Rights Reserved</p><p>Made for Nigerian PUBG players 🇳🇬</p></div>
+</footer>
+
+<!-- TOP-UP MODAL -->
+<div class="mover" id="mTopup" onclick="ovClick(event,'mTopup')">
+  <div class="modal">
+    <div class="mhndl"></div>
+    <button class="mclose" onclick="closeM('mTopup')">✕</button>
+    <div class="step on" id="ts1">
+      <div class="mtitle">💳 Top Up Balance</div>
+      <div class="fg"><label class="fl2">Amount to Send (₦)</label><input type="number" class="fi" id="taAmt" placeholder="e.g. 1000" min="100"></div>
+      <div class="fg"><label class="fl2">Your Account Name (as on your bank)</label><input type="text" class="fi" id="taName" placeholder="e.g. JOHN DOE IBRAHIM"></div>
+      <div class="wbox"><p>⚠️ <strong>Important Warning:</strong> Ensure your name and amount match exactly what you send. Wrong name or amount = <strong>account will not be topped up</strong>. We are not responsible for any errors made.</p></div>
+      <button class="bfull" onclick="ts2()">Continue →</button>
+    </div>
+    <div class="step" id="ts2">
+      <div class="mtitle">💳 Send Payment</div>
+      <p style="font-size:.8rem;color:var(--txt2);margin-bottom:.9rem">Send exactly <strong id="taD1" style="color:var(--or)"></strong> to the account below:</p>
+      <div class="acd">
+        <div class="ar"><span class="al">Bank</span><span class="av">PalmPay</span></div>
+        <div class="ar"><span class="al">Account Number</span><span class="av hi">8900952292</span></div>
+        <div class="ar"><span class="al">Account Name</span><span class="av">CODED INT(HAMMED)</span></div>
+        <div class="ar"><span class="al">Amount</span><span class="av hi" id="taD2"></span></div>
+      </div>
+      <div class="nbox"><p>ℹ️ Your balance will be credited once payment is confirmed. <strong>Transactions made between 8PM – 8AM may take longer to verify as they exceed our working hours.</strong></p></div>
+      <button class="bfull" onclick="closeM('mTopup');rTopup()">✅ Done — I've Sent the Money</button>
+      <button class="bfull out" onclick="tsBack()">← Go Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="mover" id="mLogin" onclick="ovClick(event,'mLogin')">
+  <div class="modal">
+    <div class="mhndl"></div>
+    <button class="mclose" onclick="closeM('mLogin')">✕</button>
+    <div class="mtitle">🔐 Login</div>
+    <div class="fg"><label class="fl2">Email</label><input type="email" class="fi" placeholder="your@email.com"></div>
+    <div class="fg"><label class="fl2">Password</label><input type="password" class="fi" placeholder="••••••••"></div>
+    <button class="bfull">Login</button>
+    <button class="bfull out" style="display:flex;align-items:center;justify-content:center;gap:.5rem"><span>G</span> Continue with Google</button>
+    <p style="text-align:center;font-size:.76rem;color:var(--muted);margin-top:.9rem">No account? <a href="#" onclick="swM('mLogin','mReg');return false" style="color:var(--or);text-decoration:none">Register here</a></p>
+  </div>
+</div>
+
+<!-- REGISTER MODAL -->
+<div class="mover" id="mReg" onclick="ovClick(event,'mReg')">
+  <div class="modal">
+    <div class="mhndl"></div>
+    <button class="mclose" onclick="closeM('mReg')">✕</button>
+    <div class="mtitle">🎮 Create Account</div>
+    <div class="fg"><label class="fl2">Username</label><input type="text" class="fi" placeholder="Your in-game name"></div>
+    <div class="fg"><label class="fl2">Email</label><input type="email" class="fi" placeholder="your@email.com"></div>
+    <div class="fg"><label class="fl2">PUBG Mobile UID</label><input type="text" class="fi" placeholder="e.g. 5123456789"></div>
+    <div class="fg"><label class="fl2">Phone Number</label><input type="tel" class="fi" placeholder="e.g. 08012345678"></div>
+    <div class="fg"><label class="fl2">Password</label><input type="password" class="fi" placeholder="Min. 8 characters"></div>
+    <button class="bfull">Create Account</button>
+    <button class="bfull out" style="display:flex;align-items:center;justify-content:center;gap:.5rem"><span>G</span> Register with Google</button>
+    <p style="text-align:center;font-size:.76rem;color:var(--muted);margin-top:.9rem">Have account? <a href="#" onclick="swM('mReg','mLogin');return false" style="color:var(--or);text-decoration:none">Login here</a></p>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const cfg={
+  apiKey:"AIzaSyClCRS0krUtQuKbhJ3a2VftBx_z2iO6lfA",
+  authDomain:"coded-games.firebaseapp.com",
+  projectId:"coded-games",
+  storageBucket:"coded-games.firebasestorage.app",
+  messagingSenderId:"717673651238",
+  appId:"1:717673651238:web:be30019855d767c4d95ae7",
+  databaseURL:"https://coded-games-default-rtdb.firebaseio.com"
+};
+const app=initializeApp(cfg);
+const db=getDatabase(app);
+const auth=getAuth(app);
+
+// Track login state — update topbar buttons
+onAuthStateChanged(auth, user=>{
+  window._loggedIn=!!user;
+  const loginBtn=document.getElementById('navLogin');
+  const regBtn=document.getElementById('navRegister');
+  const dashBtn=document.getElementById('navDash');
+  if(user){
+    if(loginBtn) loginBtn.style.display='none';
+    if(regBtn) regBtn.style.display='none';
+    if(dashBtn) dashBtn.style.display='inline-flex';
+  } else {
+    if(loginBtn) loginBtn.style.display='inline-flex';
+    if(regBtn) regBtn.style.display='inline-flex';
+    if(dashBtn) dashBtn.style.display='none';
+  }
+});
+
+// Load tournaments from Firebase in real-time
+onValue(ref(db,'tournaments'), snap=>{
+  const data=snap.val();
+  if(data){
+    // Map Firebase tournament keys to what the card renderer expects
+    window._TOURS=Object.entries(data).map(([id,t])=>({
+      id,
+      name:t.name||'Tournament',
+      desc:t.rules?t.rules.split('\n')[0].slice(0,80):'',
+      fmt:t.mode||'Open',
+      sts:t.status==='upcoming'?'open':t.status==='live'?'live':t.status==='completed'?'ended':t.status||'open',
+      fee:t.fee||0,
+      prize:t.prize?(t.prize.type==='kill'?'₦'+(t.prize.perKill||0)+'/kill':t.prize.positions?'₦'+((t.prize.positions['1']||0)).toLocaleString()+' top':'TBD'):'TBD',
+      slots:t.maxPlayers||25,
+      filled:t.registrations?Object.keys(t.registrations).length:0,
+      start:t.startTime||0,
+      hot:t.featured||false,
+      _tid:id
+    }));
+  } else {
+    window._TOURS=[];
+  }
+  render(window._currentFilter||'all');
+  // Update live counter
+  const live=window._TOURS.filter(t=>t.sts==='live').length;
+  const stL=document.getElementById('stL');
+  if(stL) stL.textContent=live;
+});
+
+// Load player count
+onValue(ref(db,'players'), snap=>{
+  const data=snap.val();
+  const count=data?Object.keys(data).length:0;
+  const stP=document.getElementById('stP');
+  if(stP) stP.textContent=count;
+});
+
+// ---- LAUNCH COUNTDOWN GATE ----
+onValue(ref(db,'settings/launch'), snap=>{
+  const s=snap.val()||{};
+  const gateOn=s.gateOn===true; // explicit true check — false/undefined/null all = OFF
+  const launchTs=s.date||0;
+  const overlay=document.getElementById('countdownOverlay');
+  const main=document.getElementById('mainContent');
+  if(!overlay||!main)return;
+  clearInterval(window._cdTimer);
+  if(gateOn && launchTs>0 && launchTs>Date.now()){
+    overlay.style.display='flex';
+    main.style.display='none';
+    window._cdTimer=setInterval(()=>{
+      const diff=launchTs-Date.now();
+      if(diff<=0){clearInterval(window._cdTimer);location.reload();return;}
+      const d=Math.floor(diff/86400000);
+      const h=Math.floor((diff%86400000)/3600000);
+      const m=Math.floor((diff%3600000)/60000);
+      const sec=Math.floor((diff%60000)/1000);
+      document.getElementById('cdD').textContent=String(d).padStart(2,'0');
+      document.getElementById('cdH').textContent=String(h).padStart(2,'0');
+      document.getElementById('cdM').textContent=String(m).padStart(2,'0');
+      document.getElementById('cdS').textContent=String(sec).padStart(2,'0');
+    },1000);
+  } else {
+    // Gate is OFF or launch time passed — always show site
+    overlay.style.display='none';
+    main.style.display='';
+  }
+});
+</script>
+
+<script>
+window._TOURS=[];
+window._currentFilter='all';
+
+// ── RENDER ──
+function render(f='all'){
+  window._currentFilter=f;
+  let list=window._TOURS||[];
+  if(f!=='all'){
+    if(['solo','squad','duo'].includes(f)) list=list.filter(t=>t.fmt&&t.fmt.toLowerCase()===f);
+    else if(f==='open') list=list.filter(t=>t.sts==='open');
+    else if(f==='upcoming') list=list.filter(t=>t.sts==='soon'||t.sts==='open');
+  }
+  // Only show active tournaments (not cancelled/ended) on public page
+  list=list.filter(t=>t.sts!=='cancelled'&&t.sts!=='deleted');
+  const g=document.getElementById('tgrid');
+  if(!g) return;
+  if(!list.length){
+    g.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:3rem 1rem">
+      <div style="font-size:2.5rem;margin-bottom:.8rem">🎮</div>
+      <div style="font-family:var(--ff);font-size:1.1rem;font-weight:700;letter-spacing:1px;color:var(--muted);margin-bottom:.4rem">NO TOURNAMENTS YET</div>
+      <p style="font-size:.78rem;color:var(--muted);line-height:1.5">Check back soon — tournaments are coming! Follow our socials for updates.</p>
+    </div>`;
+    return;
+  }
+  g.innerHTML=list.map(card).join('');
+  list.forEach(t=>{if(t.sts!=='live'&&t.sts!=='ended')tick(t);});
+}
+
+function card(t){
+  const pct=Math.round((t.filled||0)/(t.slots||1)*100);
+  const full=(t.filled||0)>=(t.slots||1);
+  const sMap={open:{c:'s-open',l:'Open'},soon:{c:'s-soon',l:'Starting Soon'},live:{c:'s-live',l:'🔴 Live'},ended:{c:'s-ended',l:'Ended'}};
+  const s=sMap[t.sts]||sMap.ended;
+  let btn='';
+  if(t.sts==='open'&&!full) btn=`<button class="bjoin" onclick="location.href='tournament.html?id=${t._tid||t.id}'">Join ₦${(t.fee||0).toLocaleString()}</button>`;
+  else if(t.sts==='soon') btn=`<button class="bjoin" onclick="location.href='tournament.html?id=${t._tid||t.id}'">Register</button>`;
+  else if(t.sts==='live') btn=`<button class="bview" onclick="location.href='tournament.html?id=${t._tid||t.id}'">View Live</button>`;
+  else if(t.sts==='ended') btn=`<button class="bview" onclick="location.href='tournament.html?id=${t._tid||t.id}'">Results</button>`;
+  else btn=`<button class="bjoin" disabled>Full</button>`;
+  const cd=t.sts!=='live'&&t.sts!=='ended'?`<div class="tcd"><span class="cdl">${t.sts==='soon'?'⚡ Starts in':'Starts in'}</span><div class="cdt" id="cd${t.id}">${['HRS','MIN','SEC'].map(u=>`<div class="cdb"><div class="cdn">--</div><div class="cdu">${u}</div></div>`).join('')}</div></div>`
+    :t.sts==='live'?`<div class="tcd"><span class="cdl" style="color:var(--red)">🔴 MATCH LIVE</span><span style="font-size:.76rem;color:var(--txt2)">Results updating soon</span></div>`:'';
+  return`<div class="tc" data-f="${(t.fmt||'').toLowerCase()}" data-s="${t.sts}" style="cursor:pointer" onclick="location.href='tournament.html?id=${t._tid||t.id}'">${t.hot?'<div class="ribbon">Featured</div>':''}
+  <div class="tc-hd"><span class="fmt">${t.fmt||'Open'}</span><span class="sts ${s.c}"><span class="sd"></span>${s.l}</span></div>
+  <div class="tc-bd"><div class="tn">${t.name||'Tournament'}</div><div class="td">${t.desc||''}</div>
+  <div class="tmeta"><div class="tmi"><div class="tml">Entry Fee</div><div class="tmv">₦${(t.fee||0).toLocaleString()}</div></div><div class="tmi"><div class="tml">Prize Pool</div><div class="tmv pr">${t.prize||'TBD'}</div></div></div>
+  ${cd}</div>
+  <div class="tc-ft"><div class="tslt"><span>${t.filled||0}/${t.slots||0}</span><div class="slb"><div class="slf" style="width:${pct}%"></div></div><span>${full?'<span style="color:var(--red)">Full</span>':(t.slots||0)-(t.filled||0)+' left'}</span></div>${btn}</div>
+  </div>`;
+}
+
+function tick(t){
+  const el=document.getElementById('cd'+t.id);
+  if(!el)return;
+  const bs=el.querySelectorAll('.cdb');
+  const diff=(t.start||0)-Date.now();
+  if(diff<=0){bs.forEach(b=>b.querySelector('.cdn').textContent='00');return;}
+  const h=Math.floor(diff/36e5),m=Math.floor(diff%36e5/6e4),s=Math.floor(diff%6e4/1e3);
+  [h,m,s].forEach((v,i)=>bs[i].querySelector('.cdn').textContent=String(v).padStart(2,'0'));
+  if(diff<=15*6e4){
+    el.querySelectorAll('.cdn').forEach(n=>n.style.color='var(--or)');
+    el.closest('.tcd').style.borderColor='rgba(245,160,32,.35)';
+    el.closest('.tcd').style.background='rgba(245,160,32,.06)';
+  }
+  setTimeout(()=>tick(t),1000);
+}
+
+function filt(f,btn){
+  document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');render(f);
+}
+
+// ── MODALS ──
+function openM(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
+function closeM(id){document.getElementById(id).classList.remove('on');document.body.style.overflow='';}
+// Topup requires login — redirect to auth if not logged in
+function openTopupOrLogin(){
+  if(window._loggedIn){openM('mTopup');}
+  else{location.href='auth.html';}
+}
+function ovClick(e,id){if(e.target===document.getElementById(id))closeM(id);}
+function swM(a,b){closeM(a);setTimeout(()=>openM(b),200);}
+
+// ── TOP-UP FLOW ──
+function ts2(){
+  const amt=document.getElementById('taAmt').value;
+  const nm=document.getElementById('taName').value.trim();
+  if(!amt||amt<100){alert('Minimum top-up is ₦100');return;}
+  if(!nm){alert('Please enter your account name');return;}
+  const f='₦'+Number(amt).toLocaleString();
+  document.getElementById('taD1').textContent=f;
+  document.getElementById('taD2').textContent=f;
+  document.getElementById('ts1').classList.remove('on');
+  document.getElementById('ts2').classList.add('on');
+}
+function tsBack(){
+  document.getElementById('ts2').classList.remove('on');
+  document.getElementById('ts1').classList.add('on');
+}
+function rTopup(){
+  document.getElementById('taAmt').value='';
+  document.getElementById('taName').value='';
+  document.getElementById('ts2').classList.remove('on');
+  document.getElementById('ts1').classList.add('on');
+}
+
+// ── ANIMATED STATS ──
+function countUp(id,target,pre=''){
+  const el=document.getElementById(id);if(!el)return;let c=0;
+  const step=Math.ceil(target/40);
+  const t=setInterval(()=>{c=Math.min(c+step,target);el.textContent=pre+c.toLocaleString();if(c>=target)clearInterval(t);},28);
+}
+
+// ── INIT ──
+render(); // show empty state immediately while Firebase loads
+setTimeout(()=>{countUp('stT',38);countUp('stM',125000,'₦');},500);
+</script>
+
+<script>
+/* ── THEME TOGGLE ───────────────────────────────── */
+(function(){
+  const saved = localStorage.getItem('cg-theme');
+  const sysDark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+  _cgApplyTheme(saved ? saved === 'dark' : sysDark);
+})();
+function _cgApplyTheme(dark){
+  const r = document.documentElement.style;
+  if(dark){
+    r.setProperty('--bg','#130805'); r.setProperty('--bg2','#1a0d08');
+    r.setProperty('--card','#1f1008'); r.setProperty('--card2','#261508');
+    r.setProperty('--bdr','#3a1f0f'); r.setProperty('--bdr2','#4a2a18');
+    r.setProperty('--txt','#f5f0e8'); r.setProperty('--txt2','#c8a882');
+    r.setProperty('--muted','#8a6a50');
+  } else {
+    r.setProperty('--bg','#f5ede0'); r.setProperty('--bg2','#ede0cf');
+    r.setProperty('--card','#fff8f0'); r.setProperty('--card2','#f5ede0');
+    r.setProperty('--bdr','#dcc8b0'); r.setProperty('--bdr2','#cbb898');
+    r.setProperty('--txt','#1a0e05'); r.setProperty('--txt2','#6a4828');
+    r.setProperty('--muted','#9a7858');
+  }
+  localStorage.setItem('cg-theme', dark ? 'dark' : 'light');
+  const btn = document.getElementById('cg-theme-btn');
+  if(btn) btn.textContent = dark ? '☀️' : '🌙';
+}
+function cgToggleTheme(){
+  const cur = localStorage.getItem('cg-theme') ||
+    (window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
+  _cgApplyTheme(cur !== 'dark');
+}
+</script>
+</div><!-- end mainContent -->
+</body>
+</html>

@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>/* instant theme — prevents flash */
+(function(){
+  var t=localStorage.getItem('cg-theme');
+  var d=t?t==='dark':window.matchMedia('(prefers-color-scheme:dark)').matches;
+  var r=document.documentElement.style;
+  if(d){
+    r.setProperty('--bg','#130805');r.setProperty('--bg2','#1a0d08');
+    r.setProperty('--card','#1f1008');r.setProperty('--card2','#261508');
+    r.setProperty('--bdr','#3a1f0f');r.setProperty('--bdr2','#4a2a18');
+    r.setProperty('--txt','#f5f0e8');r.setProperty('--txt2','#c8a882');r.setProperty('--muted','#8a6a50');
+  }else{
+    r.setProperty('--bg','#f5ede0');r.setProperty('--bg2','#ede0cf');
+    r.setProperty('--card','#fff8f0');r.setProperty('--card2','#f5ede0');
+    r.setProperty('--bdr','#dcc8b0');r.setProperty('--bdr2','#cbb898');
+    r.setProperty('--txt','#1a0e05');r.setProperty('--txt2','#6a4828');r.setProperty('--muted','#9a7858');
+  }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coded Games — Complete Your Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --or:#f5a020;--or2:#c43a00;--or3:#ffd234;
+  --bg:#130805;--bg2:#1a0d08;--card:#1f1008;--card2:#261508;
+  --bdr:#3a1f0f;--bdr2:#4a2a18;
+  --txt:#f5f0e8;--txt2:#c8a882;--muted:#8a6a50;
+  --green:#4caf50;--red:#ef4444;
+  --ff:'Plus Jakarta Sans',sans-serif;--fb:'Plus Jakarta Sans',sans-serif;--fc:'Nunito',sans-serif;
+}
+@media(prefers-color-scheme:light){
+  :root{--bg:#f5ede0;--bg2:#ede0cf;--card:#fff8f0;--card2:#f5ede0;
+    --bdr:#dcc8b0;--bdr2:#cbb898;--txt:#1a0e05;--txt2:#6a4828;--muted:#9a7858;}
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--fb);background:var(--bg);color:var(--txt);min-height:100vh;
+  padding:1.5rem 1rem;position:relative;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(245,160,32,.12) 0%,transparent 60%),var(--bg)}
+
+.wrap{position:relative;z-index:1;width:100%;max-width:480px;margin:0 auto}
+
+/* HEADER */
+.hdr{text-align:center;padding:1rem 0 1.8rem}
+.logo{display:inline-flex;align-items:center;gap:.6rem;text-decoration:none;margin-bottom:1.2rem}
+.logo-fb{width:40px;height:40px;background:var(--or);
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display:grid;place-items:center;font-size:.85rem;font-weight:900;color:#000}
+.logo-name{font-family:var(--ff);font-size:1.4rem;font-weight:700;letter-spacing:3px;color:var(--txt)}
+.logo-name span{color:var(--or)}
+.setup-title{font-family:var(--ff);font-size:1.8rem;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:.4rem}
+.setup-title span{color:var(--or)}
+.setup-sub{font-size:.82rem;color:var(--txt2);line-height:1.5}
+
+/* STEPS INDICATOR */
+.steps{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:2rem}
+.step-dot{width:32px;height:32px;border-radius:50%;border:2px solid var(--bdr2);
+  display:grid;place-items:center;font-family:var(--ff);font-size:.9rem;font-weight:700;
+  color:var(--muted);background:var(--bg2);transition:all .3s;flex-shrink:0}
+.step-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+.step-dot.active{background:var(--or);border-color:var(--or);color:#000}
+.step-line{flex:1;height:2px;background:var(--bdr);max-width:50px;transition:background .3s}
+.step-line.done{background:var(--green)}
+.step-label{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:.3rem;text-align:center}
+.steps-wrap{display:flex;flex-direction:column;align-items:center;gap:0;flex:0 0 auto}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;
+  padding:1.6rem 1.4rem;box-shadow:0 8px 40px rgba(0,0,0,.35)}
+
+/* FORM */
+.fg{margin-bottom:1.1rem;position:relative}
+.fl{display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.5px;color:var(--muted);margin-bottom:.38rem}
+.fl-hint{font-size:.65rem;color:var(--muted);margin-left:.4rem;font-weight:400;
+  text-transform:none;letter-spacing:0}
+.fi{width:100%;background:var(--bg2);border:1.5px solid var(--bdr);
+  color:var(--txt);padding:.78rem 1rem;border-radius:8px;
+  font-family:var(--fb);font-size:.92rem;transition:border-color .2s}
+.fi:focus{outline:none;border-color:var(--or)}
+.fi.err{border-color:var(--red)}
+.fi.ok{border-color:var(--green)}
+.fi-suffix{display:flex}
+.fi-suffix .fi{border-radius:8px 0 0 8px;flex:1}
+.fi-sfx-btn{background:var(--bg2);border:1.5px solid var(--bdr);border-left:none;
+  color:var(--txt2);padding:.78rem .9rem;border-radius:0 8px 8px 0;
+  font-family:var(--fc);font-size:.75rem;font-weight:700;letter-spacing:.5px;
+  cursor:pointer;transition:all .2s;white-space:nowrap}
+.fi-sfx-btn:hover{background:var(--bdr2)}
+.fmsg{font-size:.72rem;margin-top:.3rem;display:none}
+.fmsg.show{display:block}
+.fmsg.err{color:var(--red)}
+.fmsg.ok{color:var(--green)}
+.fmsg.checking{color:var(--or)}
+
+/* USERNAME RULES */
+.u-rules{background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;
+  padding:.7rem .9rem;margin-top:.5rem}
+.u-rules p{font-size:.72rem;color:var(--txt2);margin-bottom:.25rem;line-height:1.4}
+.u-rules p:last-child{margin-bottom:0}
+.u-rule{display:flex;align-items:center;gap:.4rem;font-size:.7rem;color:var(--muted)}
+.u-rule.pass{color:var(--green)}
+.u-rule.fail{color:var(--red)}
+
+/* CONTACT TOGGLE */
+.contact-type{display:flex;gap:.4rem;margin-bottom:.6rem}
+.ctype-btn{flex:1;padding:.5rem;border-radius:6px;font-family:var(--fc);
+  font-size:.8rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  cursor:pointer;border:1.5px solid var(--bdr);background:transparent;
+  color:var(--muted);transition:all .2s}
+.ctype-btn.on{background:var(--orG,rgba(245,160,32,.15));border-color:var(--or);color:var(--or)}
+
+/* SCREENSHOT UPLOAD */
+.upload-area{border:2px dashed var(--bdr2);border-radius:10px;padding:1.5rem;
+  text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.upload-area:hover{border-color:var(--or);background:rgba(245,160,32,.04)}
+.upload-area.has-file{border-color:var(--green);border-style:solid}
+.upload-icon{font-size:2rem;margin-bottom:.5rem}
+.upload-title{font-family:var(--fc);font-size:.9rem;font-weight:700;
+  letter-spacing:1px;margin-bottom:.25rem}
+.upload-sub{font-size:.72rem;color:var(--muted)}
+.upload-input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-preview{max-width:100%;border-radius:8px;margin-top:.8rem;display:none}
+
+/* REFERRAL */
+.ref-box{background:rgba(245,160,32,.07);border:1px solid rgba(245,160,32,.2);
+  border-radius:8px;padding:.8rem .95rem;margin-bottom:1rem}
+.ref-box p{font-size:.76rem;color:var(--txt2);line-height:1.5}
+.ref-box strong{color:var(--or)}
+
+/* BONUS PREVIEW */
+.bonus-preview{background:linear-gradient(135deg,rgba(245,160,32,.12),rgba(196,58,0,.08));
+  border:1px solid rgba(245,160,32,.3);border-radius:10px;
+  padding:1rem 1.1rem;margin-bottom:1.1rem;display:flex;align-items:center;gap:.9rem}
+.bonus-icon{font-size:1.8rem;flex-shrink:0}
+.bonus-txt h3{font-family:var(--ff);font-size:1rem;font-weight:700;letter-spacing:1px;margin-bottom:.15rem}
+.bonus-txt p{font-size:.75rem;color:var(--txt2);line-height:1.4}
+.bonus-amt{font-family:var(--ff);font-size:1.3rem;font-weight:700;color:var(--or3);
+  margin-left:auto;flex-shrink:0}
+
+/* BTN */
+.btn{width:100%;padding:.88rem;border-radius:8px;font-family:var(--fc);
+  font-size:1rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+  cursor:pointer;border:none;background:var(--or);color:#000;
+  transition:all .2s;display:flex;align-items:center;justify-content:center;gap:.5rem}
+.btn:hover{background:var(--or2);color:#fff}
+.btn:disabled{background:var(--bdr);color:var(--muted);cursor:not-allowed}
+.btn.blinking{animation:blink .8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ALERT */
+.alert{border-radius:8px;padding:.75rem 1rem;margin-bottom:1rem;
+  font-size:.8rem;line-height:1.5;display:none}
+.alert.show{display:block}
+.alert.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--red)}
+.alert.suc{background:rgba(76,175,80,.1);border:1px solid rgba(76,175,80,.3);color:var(--green)}
+
+/* PAGE SECTIONS */
+.pg{display:none}.pg.on{display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <a class="logo" href="index.html">
+      <img src="logo.jpg" alt="Coded Games" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--or)">
+      <div class="logo-name">CODED <span>GAMES</span></div>
+    </a>
+    <div class="setup-title">Complete Your <span>Profile</span></div>
+    <p class="setup-sub">Set up your player profile to start competing</p>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps" style="gap:.3rem;margin-bottom:1.8rem">
+    <div style="text-align:center">
+      <div class="step-dot active" id="sd1">1</div>
+      <div class="step-label">Username</div>
+    </div>
+    <div class="step-line" id="sl1"></div>
+    <div style="text-align:center">
+      <div class="step-dot" id="sd2">2</div>
+      <div class="step-label">PUBG Info</div>
+    </div>
+    <div class="step-line" id="sl2"></div>
+    <div style="text-align:center">
+      <div class="step-dot" id="sd3">3</div>
+      <div class="step-label">Contact</div>
+    </div>
+    <div class="step-line" id="sl3"></div>
+    <div style="text-align:center">
+      <div class="step-dot" id="sd4">4</div>
+      <div class="step-label">Referral</div>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <!-- ── STEP 1: USERNAME ── -->
+    <div class="pg on" id="pg1">
+      <div class="alert" id="alert1"></div>
+      <div style="font-family:var(--ff);font-size:1.1rem;font-weight:700;
+        letter-spacing:1px;text-transform:uppercase;margin-bottom:1rem;color:var(--or)">
+        Choose Your Username
+      </div>
+      <div class="fg">
+        <label class="fl">Username <span class="fl-hint">(5–15 characters)</span></label>
+        <input type="text" class="fi" id="username" placeholder="e.g. SniperKing99"
+          maxlength="15" oninput="checkUsername(this.value)">
+        <div class="fmsg" id="uname-msg"></div>
+        <div class="u-rules" style="margin-top:.6rem">
+          <div class="u-rule" id="rule-len">⚪ 5 to 15 characters</div>
+          <div class="u-rule" id="rule-chars">⚪ Letters, numbers, underscores only</div>
+          <div class="u-rule" id="rule-avail">⚪ Username available</div>
+        </div>
+      </div>
+      <p style="font-size:.72rem;color:var(--muted);margin-bottom:1rem;line-height:1.5">
+        ⚠️ Choose carefully — your username is also your <strong style="color:var(--or)">referral code</strong> and cannot be changed later.
+      </p>
+      <button class="btn" id="btn1" onclick="step1Next()" disabled>Continue →</button>
+    </div>
+
+    <!-- ── STEP 2: PUBG INFO ── -->
+    <div class="pg" id="pg2">
+      <div class="alert" id="alert2"></div>
+      <div style="font-family:var(--ff);font-size:1.1rem;font-weight:700;
+        letter-spacing:1px;text-transform:uppercase;margin-bottom:1rem;color:var(--or)">
+        Your PUBG Info
+      </div>
+      <div class="fg">
+        <label class="fl">PUBG Mobile UID</label>
+        <input type="text" class="fi" id="pubg-uid" placeholder="e.g. 5123456789"
+          style="font-family:var(--ff);letter-spacing:1px;font-size:1.05rem">
+        <div class="fmsg show" style="color:var(--muted);font-size:.7rem;margin-top:.3rem">
+          📍 Find your UID: PUBG Mobile → Profile → tap your avatar → your ID is below your name
+        </div>
+      </div>
+      <div style="background:rgba(245,160,32,.07);border:1px solid rgba(245,160,32,.2);
+        border-radius:8px;padding:.75rem .9rem;margin-bottom:1rem">
+        <p style="font-size:.75rem;color:var(--txt2);line-height:1.6">
+          ℹ️ An admin will verify your UID in-game. Your account will show as
+          <strong style="color:var(--or)">⏳ Pending Verification</strong> until approved.
+          You cannot join paid tournaments until verified.
+        </p>
+      </div>
+      <div style="display:flex;gap:.6rem">
+        <button class="btn" style="background:var(--bdr2);color:var(--txt2);flex:0 0 auto;width:auto;padding:.88rem 1.2rem"
+          onclick="goStep(1)">←</button>
+        <button class="btn" id="btn2" onclick="step2Next()" style="flex:1">Continue →</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: CONTACT ── -->
+    <div class="pg" id="pg3">
+      <div class="alert" id="alert3"></div>
+      <div style="font-family:var(--ff);font-size:1.1rem;font-weight:700;
+        letter-spacing:1px;text-transform:uppercase;margin-bottom:1rem;color:var(--or)">
+        Contact Info
+      </div>
+      <p style="font-size:.78rem;color:var(--txt2);margin-bottom:.9rem;line-height:1.5">
+        Provide either your email or phone number for account recovery and notifications.
+      </p>
+      <div class="contact-type">
+        <button class="ctype-btn on" id="ct-email" onclick="setContactType('email')">📧 Email</button>
+        <button class="ctype-btn" id="ct-phone" onclick="setContactType('phone')">📱 Phone</button>
+      </div>
+      <div class="fg" id="contact-email-fg">
+        <label class="fl">Email Address</label>
+        <input type="email" class="fi" id="c-email" placeholder="your@email.com">
+      </div>
+      <div class="fg" id="contact-phone-fg" style="display:none">
+        <label class="fl">Phone Number</label>
+        <input type="tel" class="fi" id="c-phone" placeholder="e.g. 08012345678">
+      </div>
+      <div style="display:flex;gap:.6rem">
+        <button class="btn" style="background:var(--bdr2);color:var(--txt2);flex:0 0 auto;width:auto;padding:.88rem 1.2rem"
+          onclick="goStep(2)">←</button>
+        <button class="btn" id="btn3" onclick="step3Next()" style="flex:1">Continue →</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 4: REFERRAL ── -->
+    <div class="pg" id="pg4">
+      <div class="alert" id="alert4"></div>
+      <div style="font-family:var(--ff);font-size:1.1rem;font-weight:700;
+        letter-spacing:1px;text-transform:uppercase;margin-bottom:1rem;color:var(--or)">
+        Referral Code
+      </div>
+      <div class="ref-box">
+        <p>Were you referred by another player? Enter their <strong>username</strong> as the referral code. Both you and the referrer will receive a bonus once your account is verified!</p>
+      </div>
+      <div class="fg">
+        <label class="fl">Referral Code <span class="fl-hint">(optional)</span></label>
+        <input type="text" class="fi" id="ref-code" placeholder="Enter referrer's username"
+          oninput="checkRef(this.value)">
+        <div class="fmsg" id="ref-msg"></div>
+      </div>
+
+      <!-- WELCOME BONUS PREVIEW -->
+      <div class="bonus-preview">
+        <div class="bonus-icon">🎁</div>
+        <div class="bonus-txt">
+          <h3>Welcome Bonus</h3>
+          <p>Free bonus coins on signup.<br>Use to join tournaments (not withdrawable)</p>
+        </div>
+        <div class="bonus-amt">500🪙</div>
+      </div>
+
+      <div style="display:flex;gap:.6rem">
+        <button class="btn" style="background:var(--bdr2);color:var(--txt2);flex:0 0 auto;width:auto;padding:.88rem 1.2rem"
+          onclick="goStep(3)">←</button>
+        <button class="btn" id="btn4" onclick="submitProfile()">🚀 Complete Setup</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 5: SUCCESS ── -->
+    <div class="pg" id="pg5" style="text-align:center;padding:1rem 0">
+      <div style="font-size:3.5rem;margin-bottom:1rem">🎮</div>
+      <div style="font-family:var(--ff);font-size:1.6rem;font-weight:700;
+        letter-spacing:2px;text-transform:uppercase;margin-bottom:.5rem">
+        You're In The <span style="color:var(--or)">Game!</span>
+      </div>
+      <p style="font-size:.85rem;color:var(--txt2);line-height:1.6;margin-bottom:1.5rem">
+        Your profile is submitted! An admin will verify your PUBG account soon.<br>
+        You'll receive <strong style="color:var(--or3)">500 bonus coins 🪙</strong> once verified.
+      </p>
+      <div style="background:rgba(245,160,32,.08);border:1px solid rgba(245,160,32,.22);
+        border-radius:10px;padding:1rem;margin-bottom:1.2rem;text-align:left">
+        <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.4rem">Your Referral Code</div>
+        <div style="font-family:var(--ff);font-size:1.4rem;font-weight:700;color:var(--or)" id="final-username"></div>
+        <div style="font-size:.72rem;color:var(--txt2);margin-top:.2rem">Share this with friends to earn referral bonuses!</div>
+      </div>
+      <button class="btn" onclick="location.href='dashboard.html'">Go to Dashboard →</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getDatabase, ref, get, set, query, orderByChild, equalTo }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+const cfg={
+  apiKey:"AIzaSyClCRS0krUtQuKbhJ3a2VftBx_z2iO6lfA",
+  authDomain:"coded-games.firebaseapp.com",
+  projectId:"coded-games",
+  storageBucket:"coded-games.firebasestorage.app",
+  messagingSenderId:"717673651238",
+  appId:"1:717673651238:web:be30019855d767c4d95ae7",
+  databaseURL:"https://coded-games-default-rtdb.firebaseio.com"
+};
+const app=initializeApp(cfg);
+const auth=getAuth(app);
+const db=getDatabase(app);
+
+let currentUser=null;
+window.usernameValid=false;
+let usernameChecking=false;
+let screenshotFile=null;
+let screenshotB64=null;
+
+onAuthStateChanged(auth, async user=>{
+  if(!user){location.href='auth.html';return;}
+  currentUser=user;
+  // If already has profile, redirect to dashboard
+  const snap=await get(ref(db,`players/${user.uid}/profile`));
+  if(snap.exists()&&snap.val().username){
+    location.href='dashboard.html';return;
+  }
+  // Pre-fill email if from email auth
+  if(user.email) document.getElementById('c-email').value=user.email;
+});
+
+// USERNAME CHECK — uses usernames/ index (fast, no special DB rules needed)
+let unameTimer=null;
+window.checkUsername=function(val){
+  const msg=document.getElementById('uname-msg');
+  const btn=document.getElementById('btn1');
+  const r1=document.getElementById('rule-len');
+  const r2=document.getElementById('rule-chars');
+  const r3=document.getElementById('rule-avail');
+  const clean=val.trim();
+  const lenOk=clean.length>=5&&clean.length<=15;
+  const charsOk=/^[a-zA-Z0-9_]+$/.test(clean);
+  r1.className='u-rule'+(lenOk?' pass':clean.length>0?' fail':'');
+  r1.textContent=(lenOk?'✅':'❌')+' 5 to 15 characters';
+  r2.className='u-rule'+(charsOk&&clean.length>0?' pass':clean.length>0?' fail':'');
+  r2.textContent=(charsOk&&clean.length>0?'✅':'❌')+' Letters, numbers, underscores only';
+  r3.className='u-rule';r3.textContent='⚪ Username available';
+  btn.disabled=true;window.usernameValid=false;
+  if(!lenOk||!charsOk){clearTimeout(unameTimer);return;}
+  r3.textContent='🔄 Checking...';r3.className='u-rule';
+  clearTimeout(unameTimer);
+  unameTimer=setTimeout(async()=>{
+    // Check usernames/ index — set on registration, no DB rules indexing needed
+    const snap=await get(ref(db,'usernames/'+clean.toLowerCase()));
+    if(snap.exists()){
+      r3.className='u-rule fail';r3.textContent='❌ Username already taken';
+      msg.className='fmsg err show';msg.textContent='This username is taken. Try another.';
+      window.usernameValid=false;btn.disabled=true;
+    } else {
+      r3.className='u-rule pass';r3.textContent='✅ Username available!';
+      msg.className='fmsg ok show';msg.textContent='✅ This username is available!';
+      window.usernameValid=true;btn.disabled=false;
+    }
+  },600);
+};
+
+// REFERRAL CHECK
+let refTimer=null;
+window.checkRef=function(val){
+  const msg=document.getElementById('ref-msg');
+  if(!val.trim()){msg.className='fmsg';return;}
+  msg.className='fmsg checking show';msg.textContent='Checking referral code...';
+  clearTimeout(refTimer);
+  refTimer=setTimeout(async()=>{
+    try{
+      // Use usernames/ index — same fast lookup as username checker
+      const snap=await get(ref(db,'usernames/'+val.trim().toLowerCase()));
+      if(snap.exists()){
+        msg.className='fmsg ok show';msg.textContent='✅ Valid referral code!';
+      } else {
+        msg.className='fmsg err show';msg.textContent='❌ No player found with this username.';
+      }
+    }catch(err){
+      msg.className='fmsg err show';msg.textContent='Could not verify. Check your connection.';
+    }
+  },600);
+};
+
+// SUBMIT PROFILE
+window.submitProfile=async function(){
+  if(!currentUser)return;
+  const btn=document.getElementById('btn4');
+  const username=document.getElementById('username').value.trim();
+  const uid=document.getElementById('pubg-uid').value.trim();
+  const refCode=document.getElementById('ref-code').value.trim();
+  const contactType=window._contactType||'email';
+  const contact=contactType==='email'
+    ?document.getElementById('c-email').value.trim()
+    :document.getElementById('c-phone').value.trim();
+
+  btn.textContent='Saving...';btn.classList.add('blinking');btn.disabled=true;
+
+  try{
+    // Silent duplicate UID check — player sees nothing, admin sees warning
+    let duplicateUid=false;
+    let duplicateUidOwner=null;
+    const uidSnap=await get(ref(db,'pubgUids/'+uid));
+    if(uidSnap.exists()&&uidSnap.val()!==currentUser.uid){
+      duplicateUid=true;
+      duplicateUidOwner=uidSnap.val();
+      // Also flag the ORIGINAL account so admin sees both sides
+      try{
+        await update(ref(db,'players/'+duplicateUidOwner+'/profile'),{
+          duplicateUidFlag:true,
+          duplicateUidOwner:currentUser.uid
+        });
+      }catch(_){}
+    }
+
+    const profile={
+      username,
+      pubgUid:uid,
+      contactType,
+      contact,
+      referredBy:refCode||null,
+      verified:false,
+      rejected:false,
+      verifiedBy:null,
+      inGameName:null,
+      betaTester:true,
+      balanceReal:0,
+      balanceBonus:0,
+      duplicateUidFlag:duplicateUid,
+      duplicateUidOwner:duplicateUidOwner||null,
+      createdAt:Date.now(),
+      updatedAt:Date.now()
+    };
+    await set(ref(db,`players/${currentUser.uid}/profile`),profile);
+    // Save username index for quick lookup
+    await set(ref(db,`usernames/${username.toLowerCase()}`),currentUser.uid);
+    // Save pubgUid index (used for duplicate detection)
+    await set(ref(db,`pubgUids/${uid}`),currentUser.uid);
+    // Show success
+    document.getElementById('final-username').textContent=username;
+    goStep(5);
+  }catch(e){
+    btn.textContent='🚀 Complete Setup';btn.classList.remove('blinking');btn.disabled=false;
+    showAlert('alert4','Failed to save profile. Try again.','err');
+  }
+};
+
+// Export to window for inline handlers
+window._db=db;
+window._auth=auth;
+</script>
+
+<script>
+let currentStep=1;
+window._contactType='email';
+let screenshotB64=null;
+
+function goStep(n){
+  document.getElementById('pg'+currentStep).classList.remove('on');
+  document.getElementById('pg'+n).classList.add('on');
+  // Update step indicators
+  for(let i=1;i<=4;i++){
+    const dot=document.getElementById('sd'+i);
+    dot.className='step-dot'+(i<n?' done':i===n?' active':'');
+  }
+  for(let i=1;i<=3;i++){
+    const line=document.getElementById('sl'+i);
+    if(line) line.className='step-line'+(i<n?' done':'');
+  }
+  currentStep=n;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function step1Next(){
+  const val=document.getElementById('username').value.trim();
+  if(!window.usernameValid){
+    showAlert('alert1','Please choose a valid available username.','err');return;
+  }
+  goStep(2);
+}
+
+function step2Next(){
+  const uid=document.getElementById('pubg-uid').value.trim();
+  if(!uid){showAlert('alert2','Please enter your PUBG Mobile UID.','err');return;}
+  if(!/^\d{6,15}$/.test(uid)){showAlert('alert2','UID should be numbers only (6–15 digits).','err');return;}
+  goStep(3);
+}
+
+function step3Next(){
+  const type=window._contactType;
+  const val=type==='email'
+    ?document.getElementById('c-email').value.trim()
+    :document.getElementById('c-phone').value.trim();
+  if(!val){showAlert('alert3','Please provide your '+(type==='email'?'email address':'phone number')+'.','err');return;}
+  if(type==='email'&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)){
+    showAlert('alert3','Please enter a valid email address.','err');return;
+  }
+  if(type==='phone'&&!/^0[789][01]\d{8}$/.test(val)){
+    showAlert('alert3','Please enter a valid Nigerian phone number.','err');return;
+  }
+  goStep(4);
+}
+
+function setContactType(type){
+  window._contactType=type;
+  document.getElementById('ct-email').classList.toggle('on',type==='email');
+  document.getElementById('ct-phone').classList.toggle('on',type==='phone');
+  document.getElementById('contact-email-fg').style.display=type==='email'?'block':'none';
+  document.getElementById('contact-phone-fg').style.display=type==='phone'?'block':'none';
+}
+
+function handleUpload(input){
+  const file=input.files[0];
+  if(!file)return;
+  if(file.size>5*1024*1024){alert('File too large. Max 5MB.');return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    screenshotB64=e.target.result;
+    window.screenshotB64=screenshotB64;
+    const preview=document.getElementById('upload-preview');
+    preview.src=screenshotB64;preview.style.display='block';
+    document.getElementById('upload-area').classList.add('has-file');
+    document.querySelector('#upload-area .upload-title').textContent='✅ Screenshot uploaded!';
+    document.querySelector('#upload-area .upload-sub').textContent='Tap to change';
+  };
+  reader.readAsDataURL(file);
+}
+
+function showAlert(id,msg,type){
+  const el=document.getElementById(id);
+  el.textContent=msg;el.className='alert'+(type?' '+type:'');
+  if(msg)el.classList.add('show');
+}
+</script>
+
+<script>
+/* ── THEME TOGGLE ───────────────────────────────── */
+(function(){
+  const saved = localStorage.getItem('cg-theme');
+  const sysDark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+  _cgApplyTheme(saved ? saved === 'dark' : sysDark);
+})();
+function _cgApplyTheme(dark){
+  const r = document.documentElement.style;
+  if(dark){
+    r.setProperty('--bg','#130805'); r.setProperty('--bg2','#1a0d08');
+    r.setProperty('--card','#1f1008'); r.setProperty('--card2','#261508');
+    r.setProperty('--bdr','#3a1f0f'); r.setProperty('--bdr2','#4a2a18');
+    r.setProperty('--txt','#f5f0e8'); r.setProperty('--txt2','#c8a882');
+    r.setProperty('--muted','#8a6a50');
+  } else {
+    r.setProperty('--bg','#f5ede0'); r.setProperty('--bg2','#ede0cf');
+    r.setProperty('--card','#fff8f0'); r.setProperty('--card2','#f5ede0');
+    r.setProperty('--bdr','#dcc8b0'); r.setProperty('--bdr2','#cbb898');
+    r.setProperty('--txt','#1a0e05'); r.setProperty('--txt2','#6a4828');
+    r.setProperty('--muted','#9a7858');
+  }
+  localStorage.setItem('cg-theme', dark ? 'dark' : 'light');
+  const btn = document.getElementById('cg-theme-btn');
+  if(btn) btn.textContent = dark ? '☀️' : '🌙';
+}
+function cgToggleTheme(){
+  const cur = localStorage.getItem('cg-theme') ||
+    (window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
+  _cgApplyTheme(cur !== 'dark');
+}
+</script>
+<button id="cg-theme-btn" onclick="cgToggleTheme()" title="Toggle theme" style="position:fixed;top:1rem;right:1rem;z-index:9999;background:var(--card);border:1px solid var(--bdr);border-radius:50%;width:42px;height:42px;font-size:1.2rem;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.3)">🌙</button>
+</body>
+</html>
