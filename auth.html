@@ -169,19 +169,21 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
       <div class="alert" id="login-alert"></div>
       <div class="fg">
         <label class="fl">Email</label>
-        <input type="email" class="fi" id="l-email" placeholder="your@email.com">
+        <input type="email" class="fi" id="l-email" placeholder="your@email.com"
+          onkeydown="if(event.key==='Enter')window.doLogin&&window.doLogin()">
       </div>
       <div class="fg">
         <label class="fl">Password</label>
         <div class="pw-wrap">
-          <input type="password" class="fi" id="l-pw" placeholder="••••••••">
-          <button class="pw-eye" onclick="togglePw('l-pw',this)">👁</button>
+          <input type="password" class="fi" id="l-pw" placeholder="••••••••"
+            onkeydown="if(event.key==='Enter')window.doLogin&&window.doLogin()">
+          <button class="pw-eye" onclick="var f=document.getElementById('l-pw');f.type=f.type==='password'?'text':'password';this.textContent=f.type==='password'?'👁':'🙈'">👁</button>
         </div>
       </div>
-      <div class="forgot"><a href="#" onclick="forgotPw();return false">Forgot password?</a></div>
-      <button class="btn" id="login-btn" onclick="doLogin()">🔐 Login</button>
+      <div class="forgot"><a href="#" onclick="window.forgotPw&&window.forgotPw();return false">Forgot password?</a></div>
+      <button class="btn" id="login-btn" onclick="window.doLogin&&window.doLogin()">🔐 Login</button>
       <div class="divider"><span>or</span></div>
-      <button class="btn-g" id="google-login-btn" onclick="doGoogle()">
+      <button class="btn-g" id="google-login-btn" onclick="window.doGoogle&&window.doGoogle()">
         <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 19 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.8 13.5-4.7l-6.2-5.2C29.4 35.6 26.8 36.5 24 36.5c-5.2 0-9.6-3.5-11.1-8.3l-6.5 5C9.8 40.1 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.5l6.2 5.2C41 35.3 44 30 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
         Continue with Google
       </button>
@@ -192,23 +194,26 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
       <div class="alert" id="reg-alert"></div>
       <div class="fg">
         <label class="fl">Email</label>
-        <input type="email" class="fi" id="r-email" placeholder="your@email.com">
+        <input type="email" class="fi" id="r-email" placeholder="your@email.com"
+          onkeydown="if(event.key==='Enter')window.doRegister&&window.doRegister()">
       </div>
       <div class="fg">
         <label class="fl">Password</label>
         <div class="pw-wrap">
-          <input type="password" class="fi" id="r-pw" placeholder="Min. 8 characters">
-          <button class="pw-eye" onclick="togglePw('r-pw',this)">👁</button>
+          <input type="password" class="fi" id="r-pw" placeholder="Min. 8 characters"
+            onkeydown="if(event.key==='Enter')window.doRegister&&window.doRegister()">
+          <button class="pw-eye" onclick="var f=document.getElementById('r-pw');f.type=f.type==='password'?'text':'password';this.textContent=f.type==='password'?'👁':'🙈'">👁</button>
         </div>
       </div>
       <div class="fg">
         <label class="fl">Confirm Password</label>
         <div class="pw-wrap">
-          <input type="password" class="fi" id="r-pw2" placeholder="Repeat password">
-          <button class="pw-eye" onclick="togglePw('r-pw2',this)">👁</button>
+          <input type="password" class="fi" id="r-pw2" placeholder="Repeat password"
+            onkeydown="if(event.key==='Enter')window.doRegister&&window.doRegister()">
+          <button class="pw-eye" onclick="var f=document.getElementById('r-pw2');f.type=f.type==='password'?'text':'password';this.textContent=f.type==='password'?'👁':'🙈'">👁</button>
         </div>
       </div>
-      <button class="btn" id="reg-btn" onclick="doRegister()">🎮 Create Account</button>
+      <button class="btn" id="reg-btn" onclick="window.doRegister&&window.doRegister()">🎮 Create Account</button>
       <div style="display:flex;align-items:flex-start;gap:.6rem;margin-top:.8rem;
         padding:.7rem;background:rgba(245,160,32,.06);border:1px solid rgba(245,160,32,.15);border-radius:8px">
         <input type="checkbox" id="terms-check" style="width:16px;height:16px;margin-top:2px;
@@ -221,7 +226,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
         </label>
       </div>
       <div class="divider"><span>or</span></div>
-      <button class="btn-g" id="google-reg-btn" onclick="doGoogle()">
+      <button class="btn-g" id="google-reg-btn" onclick="window.doGoogle&&window.doGoogle()">
         <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 19 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.8 13.5-4.7l-6.2-5.2C29.4 35.6 26.8 36.5 24 36.5c-5.2 0-9.6-3.5-11.1-8.3l-6.5 5C9.8 40.1 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.5l6.2 5.2C41 35.3 44 30 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
         Register with Google
       </button>
