@@ -289,14 +289,6 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
 </head>
 <body>
 
-<!-- AUTH LOADING OVERLAY - prevents dashboard flash -->
-<div id="authLoading" style="position:fixed;inset:0;z-index:2000;background:var(--bg);
-  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem">
-  <img src="logo.jpg" style="width:60px;height:60px;border-radius:10px;object-fit:cover">
-  <div style="font-family:var(--fc);font-size:.8rem;font-weight:700;letter-spacing:2px;
-    text-transform:uppercase;color:var(--muted)">Loading...</div>
-</div>
-
 <!-- LOGIN SCREEN -->
 <div class="login-screen visible" id="loginScreen">
   <div class="login-card">
@@ -308,20 +300,16 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
     <div class="login-err" id="loginErr"></div>
     <div class="form-group">
       <label class="form-label">Email</label>
-      <input type="email" class="form-input" id="loginEmail" placeholder="admin@codedgames.com"
-        autocomplete="username"
-        onkeydown="if(event.key==='Enter')window._adminLogin&&window._adminLogin()">
+      <input type="email" class="form-input" id="loginEmail" placeholder="admin@codedgames.com" autocomplete="username">
     </div>
     <div class="form-group">
       <label class="form-label">Password</label>
       <div class="pw-wrap">
-        <input type="password" class="form-input" id="loginPw" placeholder="••••••••"
-          autocomplete="current-password"
-          onkeydown="if(event.key==='Enter')window._adminLogin&&window._adminLogin()">
-        <button class="pw-toggle" id="pwToggleBtn" onclick="var f=document.getElementById('loginPw');f.type=f.type==='password'?'text':'password';this.textContent=f.type==='password'?'👁':'🙈'">👁</button>
+        <input type="password" class="form-input" id="loginPw" placeholder="••••••••" autocomplete="current-password">
+        <button class="pw-toggle" onclick="togglePw()">👁</button>
       </div>
     </div>
-    <button class="btn btn-or" style="width:100%;justify-content:center;padding:.7rem" id="loginBtn" onclick="window._adminLogin&&window._adminLogin()">
+    <button class="btn btn-or" style="width:100%;justify-content:center;padding:.7rem" id="loginBtn" onclick="doLogin()">
       Sign In to Admin
     </button>
     <p style="font-size:.68rem;color:var(--muted);text-align:center;margin-top:.8rem">
@@ -340,7 +328,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
   <div class="tb-r">
     <a href="index.html" style="font-family:var(--fc);font-size:.7rem;color:var(--muted);text-decoration:none;padding:.3rem .6rem;border:1px solid var(--bdr);border-radius:6px;margin-right:.3rem">← Site</a>
     <span id="adminRoleBadge" class="role-badge role-master">Master</span>
-    <button class="signout-btn" onclick="window.doSignOut&&window.doSignOut()">Sign Out</button>
+    <button class="signout-btn" onclick="doSignOut()">Sign Out</button>
   <button id="cg-theme-btn" onclick="cgToggleTheme()" title="Toggle theme" style="background:none;border:none;font-size:1.25rem;cursor:pointer;padding:.1rem .2rem;line-height:1;color:var(--txt)">🌙</button></div>
 </div>
 
@@ -434,7 +422,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
 <div class="section" id="sec-tournaments">
   <div class="sec-hdr">
     <div><div class="sec-title">Tournaments</div><div class="sec-sub">Create and manage competitions</div></div>
-    <button class="btn btn-or btn-sm" onclick="window.openCreateTournament&&window.openCreateTournament()">➕ Create</button>
+    <button class="btn btn-or btn-sm" onclick="openCreateTournament()">➕ Create</button>
   </div>
   <div class="inner-tabs">
     <button class="inner-tab active" onclick="switchTournTab('active')">🔴 Active</button>
@@ -460,7 +448,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
 <div class="section" id="sec-promos">
   <div class="sec-hdr">
     <div><div class="sec-title">Promos & Referrals</div><div class="sec-sub">Codes and referral tracking</div></div>
-    <button class="btn btn-or btn-sm" onclick="window.openCreatePromo&&window.openCreatePromo()">➕ New Code</button>
+    <button class="btn btn-or btn-sm" onclick="openCreatePromo()">➕ New Code</button>
   </div>
 
   <div class="card" style="margin-bottom:.75rem">
@@ -515,7 +503,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
       <input type="number" class="form-input" id="refMinTournaments" placeholder="1">
     </div>
 
-    <button class="btn btn-or btn-sm" onclick="window.saveReferralRules&&window.saveReferralRules()">Save Referral Rules</button>
+    <button class="btn btn-or btn-sm" onclick="saveReferralRules()">Save Referral Rules</button>
   </div>
 
   <div class="divider-label">Promo Codes</div>
@@ -541,7 +529,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
 <div class="section" id="sec-terms">
   <div class="sec-hdr">
     <div><div class="sec-title">Terms & Conditions</div><div class="sec-sub">Edit your platform T&C</div></div>
-    <button class="btn btn-or btn-sm" onclick="window.saveTerms&&window.saveTerms()">💾 Save Terms</button>
+    <button class="btn btn-or btn-sm" onclick="saveTerms()">💾 Save Terms</button>
   </div>
   <div class="card">
     <div class="card-top-line purple"></div>
@@ -568,7 +556,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
       <div class="switch-lbl"><b>Show Countdown Gate</b>Public sees countdown only until launch</div>
       <label class="switch"><input type="checkbox" id="launchGateOn"><span class="slider"></span></label>
     </div>
-    <button class="btn btn-or btn-sm" style="margin-top:.75rem" onclick="window.saveLaunchSettings&&window.saveLaunchSettings()">Save Launch Settings</button>
+    <button class="btn btn-or btn-sm" style="margin-top:.75rem" onclick="saveLaunchSettings()">Save Launch Settings</button>
   </div>
 
   <!-- Payment details -->
@@ -593,7 +581,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
       <label class="form-label">Working Hours Notice</label>
       <input type="text" class="form-input" id="bankNotice" placeholder="Transactions made 8PM–8AM may take longer to verify">
     </div>
-    <button class="btn btn-or btn-sm" onclick="window.savePaymentSettings&&window.savePaymentSettings()">Save Payment Settings</button>
+    <button class="btn btn-or btn-sm" onclick="savePaymentSettings()">Save Payment Settings</button>
   </div>
 
   <!-- Social media -->
@@ -604,8 +592,10 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
     <div class="form-group"><label class="form-label">Instagram</label><input type="url" class="form-input" id="socInstagram" placeholder="https://instagram.com/..."></div>
     <div class="form-group"><label class="form-label">Twitter / X</label><input type="url" class="form-input" id="socTwitter" placeholder="https://x.com/..."></div>
     <div class="form-group"><label class="form-label">TikTok</label><input type="url" class="form-input" id="socTiktok" placeholder="https://tiktok.com/@..."></div>
+    <div class="form-group"><label class="form-label">Discord</label><input type="url" class="form-input" id="socDiscord" placeholder="https://discord.gg/..."></div>
+    <div class="form-group"><label class="form-label">Facebook</label><input type="url" class="form-input" id="socFacebook" placeholder="https://facebook.com/..."></div>
     <div class="form-group"><label class="form-label">Support Email</label><input type="email" class="form-input" id="socEmail" placeholder="support@codedgames.com"></div>
-    <button class="btn btn-or btn-sm" onclick="window.saveSocialSettings&&window.saveSocialSettings()">Save Social Links</button>
+    <button class="btn btn-or btn-sm" onclick="saveSocialSettings()">Save Social Links</button>
   </div>
 
   <!-- Welcome bonus -->
@@ -617,7 +607,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
       <input type="number" class="form-input" id="welcomeBonus" placeholder="500">
       <div class="form-hint">Bonus coins are not withdrawable — only usable for tournament entry</div>
     </div>
-    <button class="btn btn-or btn-sm" onclick="window.saveWelcomeBonus&&window.saveWelcomeBonus()">Save</button>
+    <button class="btn btn-or btn-sm" onclick="saveWelcomeBonus()">Save</button>
   </div>
 
   <!-- Admin management -->
@@ -643,7 +633,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
           <option value="master">Master Admin (full access)</option>
         </select>
       </div>
-      <button class="btn btn-or btn-sm" onclick="window.addAdmin&&window.addAdmin()">Add Admin</button>
+      <button class="btn btn-or btn-sm" onclick="addAdmin()">Add Admin</button>
     </div>
   </div>
 </div>
@@ -695,8 +685,8 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-red btn-sm" onclick="window.rejectPlayer&&window.rejectPlayer()">❌ Reject</button>
-      <button class="btn btn-green btn-sm" onclick="window.approvePlayer&&window.approvePlayer()">✅ Verify & Approve</button>
+      <button class="btn btn-red btn-sm" onclick="rejectPlayer()">❌ Reject</button>
+      <button class="btn btn-green btn-sm" onclick="approvePlayer()">✅ Verify & Approve</button>
     </div>
   </div>
 </div>
@@ -736,8 +726,8 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-red btn-sm" onclick="window.rejectTopup&&window.rejectTopup()">❌ Reject</button>
-      <button class="btn btn-green btn-sm" onclick="window.approveTopup&&window.approveTopup()">✅ Approve & Credit</button>
+      <button class="btn btn-red btn-sm" onclick="rejectTopup()">❌ Reject</button>
+      <button class="btn btn-green btn-sm" onclick="approveTopup()">✅ Approve & Credit</button>
     </div>
   </div>
 </div>
@@ -776,8 +766,8 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-red btn-sm" onclick="window.rejectWithdraw&&window.rejectWithdraw()">❌ Reject</button>
-      <button class="btn btn-green btn-sm" onclick="window.approveWithdraw&&window.approveWithdraw()">✅ Mark as Paid</button>
+      <button class="btn btn-red btn-sm" onclick="rejectWithdraw()">❌ Reject</button>
+      <button class="btn btn-green btn-sm" onclick="approveWithdraw()">✅ Mark as Paid</button>
     </div>
   </div>
 </div>
@@ -857,11 +847,11 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
 
       <div class="divider-label">Saved Templates</div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem" id="prizeTemplates"></div>
-      <button class="btn btn-ghost btn-sm" onclick="window.savePrizeTemplate&&window.savePrizeTemplate()">💾 Save Current Prize as Template</button>
+      <button class="btn btn-ghost btn-sm" onclick="savePrizeTemplate()">💾 Save Current Prize as Template</button>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('createTournModal')">Cancel</button>
-      <button class="btn btn-or btn-sm" onclick="window.saveTournament&&window.saveTournament()">🎮 Create Tournament</button>
+      <button class="btn btn-or btn-sm" onclick="saveTournament()">🎮 Create Tournament</button>
     </div>
   </div>
 </div>
@@ -898,14 +888,14 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
             <option value="locked">Keep Locked</option>
           </select>
         </div>
-        <button class="btn btn-or btn-sm" onclick="window.saveRoomCode&&window.saveRoomCode()">Save Room Code</button>
+        <button class="btn btn-or btn-sm" onclick="saveRoomCode()">Save Room Code</button>
       </div>
 
       <!-- Results Tab -->
       <div id="mt-results" style="display:none">
         <div class="form-hint" style="margin-bottom:.75rem">Enter placement and kills for each registered player. Prize will be auto-calculated.</div>
         <div id="mt-results-list"></div>
-        <button class="btn btn-or btn-sm" style="margin-top:.5rem" onclick="window.saveResults&&window.saveResults()">💾 Save Results & Award Prizes</button>
+        <button class="btn btn-or btn-sm" style="margin-top:.5rem" onclick="saveResults()">💾 Save Results & Award Prizes</button>
       </div>
 
       <!-- Status Tab -->
@@ -931,7 +921,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
             <option value="no">No — do not refund</option>
           </select>
         </div>
-        <button class="btn btn-or btn-sm" onclick="window.updateTournamentStatus&&window.updateTournamentStatus()">Update Status</button>
+        <button class="btn btn-or btn-sm" onclick="updateTournamentStatus()">Update Status</button>
       </div>
     </div>
   </div>
@@ -1021,7 +1011,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('promoModal')">Cancel</button>
-      <button class="btn btn-or btn-sm" onclick="window.createPromo&&window.createPromo()">Create Code</button>
+      <button class="btn btn-or btn-sm" onclick="createPromo()">Create Code</button>
     </div>
   </div>
 </div>
@@ -1031,7 +1021,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
 
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged,setPersistence,browserLocalPersistence}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import{getDatabase,ref,onValue,get,set,update,push,remove}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
 const firebaseConfig={
@@ -1047,8 +1037,6 @@ const firebaseConfig={
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const db=getDatabase(app);
-// Keep admin logged in permanently on this device
-setPersistence(auth,browserLocalPersistence).catch(()=>{});
 
 // ---- STATE ----
 let currentAdminUid=null;
@@ -1070,31 +1058,20 @@ onAuthStateChanged(auth,async user=>{
   if(user){
     currentAdminUid=user.uid;
     try{
-      // Check if this user is an admin
+      // Bootstrap: if NO admins exist yet, make this user master admin
+      const adminsSnap=await get(ref(db,'admins'));
+      if(!adminsSnap.exists()){
+        await set(ref(db,'admins/'+user.uid),{email:user.email,role:'master',createdAt:Date.now()});
+      }
+      // Now check if this user is an admin
       const snap=await get(ref(db,'admins/'+user.uid));
       if(!snap.exists()){
-        // Not an admin — check if there are ANY admins at all (bootstrap)
-        let anyAdmins=false;
-        try{
-          const allSnap=await get(ref(db,'admins'));
-          anyAdmins=allSnap.exists();
-        }catch(_){}
-        if(!anyAdmins){
-          // First ever login — make them master
-          await set(ref(db,'admins/'+user.uid),{email:user.email,role:'master',createdAt:Date.now()});
-        } else {
-          await signOut(auth);
-          showLoginScreen();
-          showErr('Access denied. This account is not an admin.');
-          // Reset the login button
-          const btn=document.getElementById('loginBtn');
-          if(btn){btn.disabled=false;btn.classList.remove('blink');btn.textContent='Sign In to Admin';}
-          return;
-        }
+        await signOut(auth);
+        showLoginScreen();
+        showErr('Access denied. This account is not an admin.');
+        return;
       }
-      // Re-fetch to get role
-      const adminSnap=await get(ref(db,'admins/'+user.uid));
-      const adminData=adminSnap.exists()?adminSnap.val():{role:'mod'};
+      const adminData=snap.val();
       currentAdminRole=adminData.role||'mod';
       document.getElementById('adminRoleBadge').textContent=roleName(currentAdminRole);
       document.getElementById('adminRoleBadge').className='role-badge role-'+currentAdminRole;
@@ -1102,43 +1079,29 @@ onAuthStateChanged(auth,async user=>{
       initListeners();
       applyRoleRestrictions();
     }catch(e){
-      console.error('Admin auth error:',e.code, e.message);
-      const btn=document.getElementById('loginBtn');
-      if(btn){btn.disabled=false;btn.classList.remove('blink');btn.textContent='Sign In to Admin';}
-      if(e.code==='permission-denied'||e.code==='PERMISSION_DENIED'){
-        await signOut(auth).catch(()=>{});
-        showLoginScreen();
-        showErr('Access denied. Check your admin permissions.');
-      } else {
-        showLoginScreen();
-        showErr('Connection error. Check your internet and try again.');
-      }
+      // Network or rules error during login
+      showLoginScreen();
+      showErr('Login error: '+e.message+'. Please try again.');
     }
   } else {
     showLoginScreen();
   }
 });
 
-function hideAuthLoading(){
-  const el=document.getElementById('authLoading');
-  if(el)el.style.display='none';
-}
 function showLoginScreen(){
-  hideAuthLoading();
   document.getElementById('loginScreen').classList.add('visible');
   document.getElementById('mainTb').style.display='none';
   document.getElementById('mainNav').style.display='none';
   document.getElementById('mainContent').style.display='none';
 }
 function showDashboard(){
-  hideAuthLoading();
   document.getElementById('loginScreen').classList.remove('visible');
   document.getElementById('mainTb').style.display='flex';
   document.getElementById('mainNav').style.display='flex';
   document.getElementById('mainContent').style.display='block';
 }
 
-window._adminLogin=window.doLogin=async function(){
+window.doLogin=async function(){
   const email=document.getElementById('loginEmail').value.trim();
   const pw=document.getElementById('loginPw').value;
   const btn=document.getElementById('loginBtn');
@@ -1147,11 +1110,11 @@ window._adminLogin=window.doLogin=async function(){
   btn.disabled=true;btn.classList.add('blink');btn.textContent='Signing in...';
   err.style.display='none';
   const resetBtn=()=>{btn.disabled=false;btn.classList.remove('blink');btn.textContent='Sign In to Admin';};
-  const timer=setTimeout(()=>{resetBtn();err.textContent='Request timed out. Check your connection and try again.';err.style.display='block';},15000);
+  const timer=setTimeout(()=>{resetBtn();err.textContent='Request timed out. Check your connection and try again.';err.style.display='block';},12000);
   try{
     await signInWithEmailAndPassword(auth,email,pw);
     clearTimeout(timer);
-    // onAuthStateChanged will fire and show dashboard
+    // btn stays disabled until onAuthStateChanged fires and shows dashboard
   }catch(e){
     clearTimeout(timer);
     resetBtn();
@@ -1164,7 +1127,7 @@ window._adminLogin=window.doLogin=async function(){
       'auth/user-disabled':'This account has been disabled.',
       'auth/invalid-email':'Invalid email address.'
     };
-    err.textContent=msgs[e.code]||('Login failed: '+e.message);
+    err.textContent=msgs[e.code]||'Login failed: '+e.message;
     err.style.display='block';
   }
 };
@@ -1181,7 +1144,7 @@ window.togglePw=function(){
 // Enter key on login fields
 ['loginEmail','loginPw'].forEach(id=>{
   const el=document.getElementById(id);
-  if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter')window._adminLogin&&window._adminLogin();});
+  if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter')window.doLogin();});
 });
 
 function showErr(msg){
@@ -1219,6 +1182,7 @@ function initListeners(){
       const profile=data.profile||{};
       allPlayers[uid]={
         ...profile,
+        // keep nested sub-collections intact
         topups:data.topups||null,
         withdrawals:data.withdrawals||null,
         tournaments:data.tournaments||null,
@@ -1226,10 +1190,7 @@ function initListeners(){
     });
     refreshCurrentTab();
     updateStats();
-    populateAdminPlayerPicker();
-  },(error)=>{
-    console.error('Players read error:',error.code,error.message);
-    toast('Could not load players: '+error.message,'red');
+    populateAdminPlayerPicker(); // refresh picker with latest player list
   });
   // Tournaments
   onValue(ref(db,'tournaments'),snap=>{
@@ -1880,22 +1841,18 @@ function renderResultsInputs(tid){
 window.saveResults=async function(){
   const tid=activeTournamentId;
   try{
-    const t=allTournaments[tid];
-    const regs=t?.registrations?Object.keys(t.registrations):[];
-    const results={};
-    regs.forEach(pid=>{
-      const rank=parseInt(document.getElementById('res-rank-'+pid)?.value)||0;
-      const kills=parseInt(document.getElementById('res-kills-'+pid)?.value)||0;
-      results[pid]={rank,kills};
-    });
-    await update(ref(db,'tournaments/'+tid),{results,status:'completed',updatedAt:Date.now()});
-    // Award prizes
-    await awardPrizes(tid,results,t);
-    toast('Results saved & prizes awarded ✅','green');
-  }catch(e){
-    toast('Failed to save results: '+e.message,'red');
-    console.error('saveResults error:',e);
-  }
+  const t=allTournaments[tid];
+  const regs=t?.registrations?Object.keys(t.registrations):[];
+  const results={};
+  regs.forEach(pid=>{
+    const rank=parseInt(document.getElementById('res-rank-'+pid)?.value)||0;
+    const kills=parseInt(document.getElementById('res-kills-'+pid)?.value)||0;
+    results[pid]={rank,kills};
+  });
+  await update(ref(db,'tournaments/'+tid),{results,status:'completed',updatedAt:Date.now()});
+  // Award prizes
+  await awardPrizes(tid,results,t);
+  toast('Results saved & prizes awarded ✅','green');
 };
 
 async function awardPrizes(tid,results,t){
@@ -2181,6 +2138,8 @@ async function loadSettings(){
     document.getElementById('socInstagram').value=s.social.instagram||'';
     document.getElementById('socTwitter').value=s.social.twitter||'';
     document.getElementById('socTiktok').value=s.social.tiktok||'';
+    document.getElementById('socDiscord').value=s.social.discord||'';
+    document.getElementById('socFacebook').value=s.social.facebook||'';
     document.getElementById('socEmail').value=s.social.email||'';
   }
   if(s.referral){
@@ -2225,6 +2184,12 @@ window.saveSocialSettings=async function(){
     instagram:document.getElementById('socInstagram').value.trim(),
     twitter:document.getElementById('socTwitter').value.trim(),
     tiktok:document.getElementById('socTiktok').value.trim(),
+    discord:document.getElementById('socDiscord').value.trim(),
+    facebook:document.getElementById('socFacebook').value.trim(),
+    email:document.getElementById('socEmail').value.trim()
+  });
+  toast('Social links saved ✅','green');
+};
     email:document.getElementById('socEmail').value.trim()
   });
   toast('Social links saved ✅','green');

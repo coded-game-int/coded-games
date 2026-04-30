@@ -476,7 +476,7 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:2rem 1.2rem
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue }
+import { getDatabase, ref, onValue, get }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -492,6 +492,7 @@ const cfg={
 };
 const app=initializeApp(cfg);
 const db=getDatabase(app);
+window._db=db; window._ref=ref; window._get=get;
 const auth=getAuth(app);
 
 // Track login state — update topbar buttons
@@ -731,5 +732,52 @@ function cgToggleTheme(){
 }
 </script>
 </div><!-- end mainContent -->
+
+<footer id="siteFooter" style="background:var(--card);border-top:1px solid var(--bdr);padding:1.5rem 1rem;text-align:center;margin-top:2rem">
+  <div style="font-family:var(--fc,monospace);font-weight:800;font-size:.85rem;letter-spacing:1px;color:var(--or,#f5a623);margin-bottom:.8rem">CODED <span style="color:var(--txt,#fff)">GAMES</span></div>
+  <div id="footerSocials" style="display:flex;justify-content:center;flex-wrap:wrap;gap:.6rem;margin-bottom:1rem"></div>
+  <div id="footerEmail" style="font-size:.72rem;color:var(--txt2,#aaa)"></div>
+  <div style="font-size:.65rem;color:var(--muted,#666);margin-top:.5rem">© 2025 Coded Games · Nigeria</div>
+</footer>
+<script>
+(function(){
+  // Load social links from Firebase settings/social
+  const socConfigs=[
+    {key:'whatsapp',icon:'💬',label:'WhatsApp'},
+    {key:'instagram',icon:'📸',label:'Instagram'},
+    {key:'twitter',icon:'𝕏',label:'Twitter'},
+    {key:'tiktok',icon:'🎵',label:'TikTok'},
+    {key:'discord',icon:'🎮',label:'Discord'},
+    {key:'facebook',icon:'👥',label:'Facebook'},
+  ];
+  function waitForDb(cb,tries){
+    tries=tries||0;
+    if(window._db&&window._ref&&window._get){cb();}
+    else if(tries<30){setTimeout(()=>waitForDb(cb,tries+1),300);}
+  }
+  waitForDb(async function(){
+    try{
+      const snap=await window._get(window._ref(window._db,'settings/social'));
+      if(!snap||!snap.exists())return;
+      const s=snap.val();
+      const wrap=document.getElementById('footerSocials');
+      const emailEl=document.getElementById('footerEmail');
+      if(!wrap)return;
+      socConfigs.forEach(({key,icon,label})=>{
+        if(s[key]){
+          const a=document.createElement('a');
+          a.href=s[key];a.target='_blank';a.rel='noopener noreferrer';
+          a.style.cssText='display:inline-flex;align-items:center;gap:.3rem;background:var(--bg2);border:1px solid var(--bdr);border-radius:20px;padding:.3rem .8rem;font-size:.72rem;color:var(--txt);text-decoration:none;font-family:var(--fc,monospace);font-weight:600;white-space:nowrap';
+          a.innerHTML=icon+' '+label;
+          wrap.appendChild(a);
+        }
+      });
+      if(s.email&&emailEl){
+        emailEl.innerHTML='📧 <a href="mailto:'+s.email+'" style="color:var(--or);text-decoration:none">'+s.email+'</a>';
+      }
+    }catch(e){}
+  });
+})();
+</script>
 </body>
 </html>
