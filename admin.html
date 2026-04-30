@@ -306,10 +306,10 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
       <label class="form-label">Password</label>
       <div class="pw-wrap">
         <input type="password" class="form-input" id="loginPw" placeholder="••••••••" autocomplete="current-password">
-        <button class="pw-toggle" onclick="togglePw()">👁</button>
+        <button type="button" class="pw-toggle" onclick="togglePw()">👁</button>
       </div>
     </div>
-    <button class="btn btn-or" style="width:100%;justify-content:center;padding:.7rem" id="loginBtn" onclick="doLogin()">
+    <button type="button" class="btn btn-or" style="width:100%;justify-content:center;padding:.7rem" id="loginBtn" onclick="doLogin()">
       Sign In to Admin
     </button>
     <p style="font-size:.68rem;color:var(--muted);text-align:center;margin-top:.8rem">
@@ -1399,7 +1399,8 @@ window.approvePlayer=async function(){
       inGameName:ingame,
       verifiedAt:Date.now(),
       verifiedBy:currentAdminUid,
-      balanceBonus:currentBonus+welcomeBonus
+      balanceReal:parseInt(pData.balanceReal)||0,
+      balanceBonus:(parseInt(pData.balanceBonus)||0)+welcomeBonus
     });
 
     // Credit referral rewards if applicable
