@@ -286,22 +286,31 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:2rem 1.2rem
 <body>
 
 <!-- LAUNCH COUNTDOWN OVERLAY -->
-<div id="countdownOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#0d0600;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem">
-  <img src="logo.jpg" alt="Coded Games" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid #f90;margin-bottom:1.2rem">
-  <div style="font-family:'Rajdhani',sans-serif;font-size:1.6rem;font-weight:800;color:#f90;letter-spacing:.08em;margin-bottom:.3rem">CODED GAMES</div>
-  <div style="color:#fff;font-size:1rem;margin-bottom:.5rem">🇳🇬 Nigeria's #1 PUBG Mobile Tournament Platform</div>
-  <div style="color:#aaa;font-size:.85rem;margin-bottom:2rem">ENTER THE BATTLEGROUND · WIN REAL MONEY</div>
-  <div style="color:#f90;font-size:.8rem;font-weight:700;letter-spacing:.15em;margin-bottom:1rem;text-transform:uppercase" id="cdLabel">Launching In</div>
-  <div style="display:flex;gap:1.2rem;margin-bottom:2rem" id="cdNums">
-    <div style="text-align:center"><div id="cdD" style="font-size:3rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1">00</div><div style="font-size:.65rem;color:#aaa;text-transform:uppercase;letter-spacing:.1em">Days</div></div>
-    <div style="font-size:3rem;font-weight:900;color:#f90;line-height:1">:</div>
-    <div style="text-align:center"><div id="cdH" style="font-size:3rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1">00</div><div style="font-size:.65rem;color:#aaa;text-transform:uppercase;letter-spacing:.1em">Hours</div></div>
-    <div style="font-size:3rem;font-weight:900;color:#f90;line-height:1">:</div>
-    <div style="text-align:center"><div id="cdM" style="font-size:3rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1">00</div><div style="font-size:.65rem;color:#aaa;text-transform:uppercase;letter-spacing:.1em">Mins</div></div>
-    <div style="font-size:3rem;font-weight:900;color:#f90;line-height:1">:</div>
-    <div style="text-align:center"><div id="cdS" style="font-size:3rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1;transition:transform .1s,color .1s">00</div><div style="font-size:.65rem;color:#aaa;text-transform:uppercase;letter-spacing:.1em">Secs</div></div>
+<!-- LAUNCH COUNTDOWN BANNER (shown when gateOn=true) -->
+<div id="countdownOverlay" style="display:none;width:100%;background:linear-gradient(135deg,#0d0600 0%,#1a0a00 100%);border-bottom:2px solid #f90;padding:1.2rem 1rem 1rem;text-align:center;position:relative;z-index:200">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.2em;color:#f90;text-transform:uppercase;margin-bottom:.6rem">🚀 Launching In</div>
+  <div style="display:flex;justify-content:center;align-items:flex-end;gap:.8rem;margin-bottom:.5rem" id="cdNums">
+    <div style="text-align:center">
+      <div id="cdD" style="font-size:2.2rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1;min-width:2ch">00</div>
+      <div style="font-size:.55rem;color:#aaa;text-transform:uppercase;letter-spacing:.12em;margin-top:.15rem">Days</div>
+    </div>
+    <div style="font-size:2rem;font-weight:900;color:#f90;line-height:1;margin-bottom:.3rem">:</div>
+    <div style="text-align:center">
+      <div id="cdH" style="font-size:2.2rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1;min-width:2ch">00</div>
+      <div style="font-size:.55rem;color:#aaa;text-transform:uppercase;letter-spacing:.12em;margin-top:.15rem">Hours</div>
+    </div>
+    <div style="font-size:2rem;font-weight:900;color:#f90;line-height:1;margin-bottom:.3rem">:</div>
+    <div style="text-align:center">
+      <div id="cdM" style="font-size:2.2rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1;min-width:2ch">00</div>
+      <div style="font-size:.55rem;color:#aaa;text-transform:uppercase;letter-spacing:.12em;margin-top:.15rem">Mins</div>
+    </div>
+    <div style="font-size:2rem;font-weight:900;color:#f90;line-height:1;margin-bottom:.3rem">:</div>
+    <div style="text-align:center">
+      <div id="cdS" style="font-size:2.2rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1;min-width:2ch;transition:transform .1s,color .1s">00</div>
+      <div style="font-size:.55rem;color:#aaa;text-transform:uppercase;letter-spacing:.12em;margin-top:.15rem">Secs</div>
+    </div>
   </div>
-  <a href="auth.html" style="color:#f90;font-size:.8rem;text-decoration:underline">Login / Register</a>
+  <div id="cdDateStr" style="font-size:.75rem;color:#f5a020;font-weight:600;margin-top:.25rem;letter-spacing:.05em"></div>
 </div>
 
 <div id="mainContent">
@@ -548,7 +557,7 @@ onValue(ref(db,'players'), snap=>{
   if(stP) stP.textContent=count;
 });
 
-// ---- LAUNCH COUNTDOWN GATE ----
+// ---- LAUNCH COUNTDOWN BANNER ----
 onValue(ref(db,'settings/launch'), snap=>{
   const s=snap.val()||{};
   const gateOn=s.gateOn===true; // explicit true check — false/undefined/null all = OFF
@@ -558,8 +567,12 @@ onValue(ref(db,'settings/launch'), snap=>{
   if(!overlay||!main)return;
   clearInterval(window._cdTimer);
   if(gateOn && launchTs>0 && launchTs>Date.now()){
-    overlay.style.display='flex';
-    main.style.display='none';
+    overlay.style.display='block';
+    main.style.display='';
+    // Show launch date string
+    const launchDate=new Date(launchTs);
+    const dateEl=document.getElementById('cdDateStr');
+    if(dateEl)dateEl.textContent=launchDate.toLocaleDateString('en-NG',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
     // Audio context for beep sounds
     let audioCtx=null;
     function playBeep(freq,duration,vol){

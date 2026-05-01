@@ -260,6 +260,33 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
 </head>
 <body>
 
+<!-- LAUNCH COUNTDOWN BANNER -->
+<div id="dashCdBanner" style="display:none;width:100%;background:linear-gradient(135deg,#0d0600 0%,#1a0a00 100%);border-bottom:2px solid #f90;padding:1.1rem 1rem .9rem;text-align:center;position:relative;z-index:200">
+  <div style="font-size:.6rem;font-weight:700;letter-spacing:.2em;color:#f90;text-transform:uppercase;margin-bottom:.5rem">🚀 Launching In</div>
+  <div style="display:flex;justify-content:center;align-items:flex-end;gap:.8rem;margin-bottom:.4rem">
+    <div style="text-align:center">
+      <div id="dcdD" style="font-size:2rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1;min-width:2ch">00</div>
+      <div style="font-size:.5rem;color:#aaa;text-transform:uppercase;letter-spacing:.12em;margin-top:.1rem">Days</div>
+    </div>
+    <div style="font-size:1.8rem;font-weight:900;color:#f90;line-height:1;margin-bottom:.25rem">:</div>
+    <div style="text-align:center">
+      <div id="dcdH" style="font-size:2rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1;min-width:2ch">00</div>
+      <div style="font-size:.5rem;color:#aaa;text-transform:uppercase;letter-spacing:.12em;margin-top:.1rem">Hours</div>
+    </div>
+    <div style="font-size:1.8rem;font-weight:900;color:#f90;line-height:1;margin-bottom:.25rem">:</div>
+    <div style="text-align:center">
+      <div id="dcdM" style="font-size:2rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1;min-width:2ch">00</div>
+      <div style="font-size:.5rem;color:#aaa;text-transform:uppercase;letter-spacing:.12em;margin-top:.1rem">Mins</div>
+    </div>
+    <div style="font-size:1.8rem;font-weight:900;color:#f90;line-height:1;margin-bottom:.25rem">:</div>
+    <div style="text-align:center">
+      <div id="dcdS" style="font-size:2rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1;min-width:2ch;transition:transform .1s,color .1s">00</div>
+      <div style="font-size:.5rem;color:#aaa;text-transform:uppercase;letter-spacing:.12em;margin-top:.1rem">Secs</div>
+    </div>
+  </div>
+  <div id="dcdDateStr" style="font-size:.72rem;color:#f5a020;font-weight:600;letter-spacing:.05em"></div>
+</div>
+
 <!-- TOPBAR -->
 <nav class="tb">
   <a class="logo" href="index.html">
@@ -615,7 +642,7 @@ async function loadRecentActivity(uid){
   }).join('')+'<div style="padding-top:.4rem"></div>';
 }
 
-function showTxDetail(i){
+window.showTxDetail=function showTxDetail(i){
   const txs=window._recentTxs;
   if(!txs||!txs[i])return;
   const tx=txs[i];
@@ -868,9 +895,10 @@ window.loadHistory=async function(){
   el.innerHTML='<div class="empty"><div class="empty-icon">⏳</div><p>Loading...</p></div>';
   _allHistoryItems=[];
   try{
-    const [tuSnap,wdSnap]=await Promise.all([
+    const [tuSnap,wdSnap,txSnap]=await Promise.all([
       window._get(window._ref(window._db,`players/${window._uid}/topups`)),
-      window._get(window._ref(window._db,`players/${window._uid}/withdrawals`))
+      window._get(window._ref(window._db,`players/${window._uid}/withdrawals`)),
+      window._get(window._ref(window._db,`players/${window._uid}/transactions`))
     ]);
     if(tuSnap.exists()){
       Object.entries(tuSnap.val()).forEach(([id,t])=>{
@@ -880,6 +908,13 @@ window.loadHistory=async function(){
     if(wdSnap.exists()){
       Object.entries(wdSnap.val()).forEach(([id,w])=>{
         _allHistoryItems.push({id,type:'withdraw',amount:w.amount,status:w.status,createdAt:w.createdAt,extra:`${w.bankName||'—'} · ${w.accountNumber||'—'}`,rejectReason:w.rejectReason});
+      });
+    }
+    if(txSnap.exists()){
+      const labelMap={tournament_entry:'🎮 Tournament Entry',prize:'🏆 Prize Won',referral:'🔗 Referral Bonus',bonus:'🎁 Bonus Credit',refund:'↩️ Refund',cancel_refund:'↩️ Cancellation Refund'};
+      Object.entries(txSnap.val()).forEach(([id,tx])=>{
+        if(tx.type==='topup'||tx.type==='withdraw'||tx.type==='withdrawal')return;
+        _allHistoryItems.push({id,type:tx.type,amount:tx.amount,status:'completed',createdAt:tx.createdAt,extra:tx.tournamentName||labelMap[tx.type]||tx.type,reason:tx.reason||''});
       });
     }
     _allHistoryItems.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
@@ -899,24 +934,30 @@ window.filterHistory=function(type){
   const items=type==='all'?_allHistoryItems:_allHistoryItems.filter(i=>i.type===type);
   const el=document.getElementById('historyList');
   if(!items.length){el.innerHTML='<div class="empty"><div class="empty-icon">📭</div><p>No transactions yet</p></div>';return;}
-  const statusColor={pending:'var(--or)',approved:'var(--green)',paid:'var(--green)',rejected:'var(--red)'};
-  const statusLabel={pending:'Pending',approved:'Approved',paid:'Paid',rejected:'Rejected'};
+  const statusColor={pending:'var(--or)',approved:'var(--green)',paid:'var(--green)',rejected:'var(--red)',completed:'var(--green)'};
+  const statusLabel={pending:'Pending',approved:'Approved',paid:'Paid',rejected:'Rejected',completed:'Completed'};
+  const creditTypes=['topup','prize','referral','bonus','refund','cancel_refund'];
+  const typeIcon={topup:'💳',withdraw:'💸',tournament_entry:'🎮',prize:'🏆',referral:'🔗',bonus:'🎁',refund:'↩️',cancel_refund:'↩️'};
+  const typeLabel={topup:'Top-Up',withdraw:'Withdrawal',tournament_entry:'Tournament Entry',prize:'Prize Won',referral:'Referral Bonus',bonus:'Bonus Credit',refund:'Refund',cancel_refund:'Cancellation Refund'};
   el.innerHTML=items.map(i=>{
     const d=new Date(i.createdAt||0);
     const dateStr=d.toLocaleDateString('en-NG',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'});
-    const isCredit=i.type==='topup';
+    const isCredit=creditTypes.includes(i.type);
     const shortId=i.id.slice(-8).toUpperCase();
+    const icon=typeIcon[i.type]||'📋';
+    const label=typeLabel[i.type]||i.type;
     return`<div style="padding:.65rem 0;border-bottom:1px solid var(--bdr)">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
-          <div style="font-size:.82rem;font-weight:600">${isCredit?'💳 Top-Up':'💸 Withdrawal'}</div>
+          <div style="font-size:.82rem;font-weight:600">${icon} ${label}</div>
           <div style="font-size:.68rem;color:var(--muted);margin-top:.1rem">ID: ${shortId}</div>
-          <div style="font-size:.7rem;color:var(--txt2);margin-top:.15rem">${i.extra}</div>
+          <div style="font-size:.7rem;color:var(--txt2);margin-top:.15rem">${i.extra||''}</div>
           ${i.rejectReason?`<div style="font-size:.68rem;color:var(--red);margin-top:.1rem">Reason: ${i.rejectReason}</div>`:''}
+          ${i.reason?`<div style="font-size:.68rem;color:var(--or);margin-top:.1rem">Note: ${i.reason}</div>`:''}
         </div>
         <div style="text-align:right">
           <div style="font-family:var(--ff);font-size:.95rem;font-weight:700;color:${isCredit?'var(--green)':'var(--red)'}">${isCredit?'+':'-'}₦${(i.amount||0).toLocaleString()}</div>
-          <div style="font-size:.68rem;margin-top:.2rem;color:${statusColor[i.status]||'var(--txt2)'}">${statusLabel[i.status]||i.status}</div>
+          <div style="font-size:.68rem;margin-top:.2rem;color:${statusColor[i.status]||'var(--txt2)'}">${statusLabel[i.status]||i.status||''}</div>
           <div style="font-size:.65rem;color:var(--muted);margin-top:.1rem">${dateStr}</div>
         </div>
       </div>
@@ -953,11 +994,49 @@ window.submitContact=async function(){
   }
 };
 
-// ---- LAUNCH GATE: redirect to index if countdown active ----
+// ---- LAUNCH COUNTDOWN BANNER (dashboard) ----
 get(ref(db,'settings/launch')).then(snap=>{
   const s=snap.val()||{};
-  if(s.gateOn===true && s.date>0 && s.date>Date.now()){
-    window.location.href='index.html';
+  const gateOn=s.gateOn===true;
+  const launchTs=s.date||0;
+  const banner=document.getElementById('dashCdBanner');
+  if(!banner)return;
+  if(gateOn && launchTs>0 && launchTs>Date.now()){
+    banner.style.display='block';
+    const launchDate=new Date(launchTs);
+    const dateEl=document.getElementById('dcdDateStr');
+    if(dateEl)dateEl.textContent=launchDate.toLocaleDateString('en-NG',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    let lastSec=-1;
+    window._dashCdTimer=setInterval(()=>{
+      const diff=launchTs-Date.now();
+      if(diff<=0){
+        clearInterval(window._dashCdTimer);
+        banner.style.display='none';
+        return;
+      }
+      const d=Math.floor(diff/86400000);
+      const h=Math.floor((diff%86400000)/3600000);
+      const m=Math.floor((diff%3600000)/60000);
+      const sec=Math.floor((diff%60000)/1000);
+      const dcdD=document.getElementById('dcdD');
+      const dcdH=document.getElementById('dcdH');
+      const dcdM=document.getElementById('dcdM');
+      const dcdS=document.getElementById('dcdS');
+      if(dcdD)dcdD.textContent=String(d).padStart(2,'0');
+      if(dcdH)dcdH.textContent=String(h).padStart(2,'0');
+      if(dcdM)dcdM.textContent=String(m).padStart(2,'0');
+      if(dcdS){
+        dcdS.textContent=String(sec).padStart(2,'0');
+        // Pulse last 10 seconds
+        if(Math.floor(diff/1000)<=10&&sec!==lastSec){
+          lastSec=sec;
+          dcdS.style.color='#ff4400';dcdS.style.transform='scale(1.3)';
+          setTimeout(()=>{dcdS.style.color='#fff';dcdS.style.transform='scale(1)';},300);
+        }
+      }
+    },1000);
+  } else {
+    banner.style.display='none';
   }
 });
 </script>
