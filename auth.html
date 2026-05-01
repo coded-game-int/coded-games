@@ -396,8 +396,11 @@ window.doForgotReset=async function(){
       });
     }
     // Even if we can't verify (privacy), still send reset — Firebase will reject bad emails
-    await sendPasswordResetEmail(auth,email);
-    showAlert('fp-alert','✅ Reset email sent! Check your inbox (and spam folder).','suc');
+    await sendPasswordResetEmail(auth,email,{
+      url:'https://coded-game-int.github.io/coded-games/auth.html',
+      handleCodeInApp:false
+    });
+    showAlert('fp-alert','✅ Reset email sent! Check your inbox AND spam folder. Click the link in the email to reset your password.','suc');
     btn.textContent='Email Sent ✅';
   }catch(e){
     btn.disabled=false;btn.textContent='Send Reset Email';

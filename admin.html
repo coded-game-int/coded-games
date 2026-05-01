@@ -324,9 +324,6 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
     <button class="btn btn-or" style="width:100%;justify-content:center;padding:.7rem" id="loginBtn" onclick="window._adminLogin&&window._adminLogin()">
       Sign In to Admin
     </button>
-    <p style="font-size:.68rem;color:var(--muted);text-align:center;margin-top:.8rem">
-      Forgot password? Contact the master admin.
-    </p>
   </div>
 </div>
 
@@ -830,12 +827,22 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
       </div>
       <div class="form-group">
         <label class="form-label">Room Code Release</label>
-        <select class="form-select" id="ct-release">
+        <select class="form-select" id="ct-release" onchange="toggleCustomRelease('ct')">
+          <option value="1">1 minute before start</option>
+          <option value="2">2 minutes before start</option>
+          <option value="3">3 minutes before start</option>
+          <option value="5">5 minutes before start</option>
+          <option value="10">10 minutes before start</option>
           <option value="15">15 minutes before start</option>
           <option value="30">30 minutes before start</option>
           <option value="60">1 hour before start</option>
+          <option value="custom">Custom time...</option>
           <option value="manual">Manual release only</option>
         </select>
+        <div id="ct-release-custom" style="display:none;margin-top:.4rem">
+          <input type="number" class="form-input" id="ct-release-custom-val" placeholder="Enter minutes before start" min="1" max="1440" style="margin-top:.3rem">
+          <div class="form-hint">Enter any number of minutes (e.g. 2 = 2 minutes before start)</div>
+        </div>
       </div>
 
       <div class="divider-label">Prize Pool</div>
@@ -846,6 +853,13 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
           <option value="kill">Kill-Based (₦ per kill)</option>
           <option value="custom">Custom / Sponsor Prize</option>
           <option value="free">Free Tournament (no prize)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Prize Goes To</label>
+        <select class="form-select" id="ct-prizeBalance">
+          <option value="real">Real Balance (withdrawable)</option>
+          <option value="bonus">Bonus Coins (not withdrawable)</option>
         </select>
       </div>
       <div id="ct-prize-fields"></div>
@@ -1736,7 +1750,21 @@ window.openCreateTournament=function(tid){
     document.getElementById('ct-maxplayers').value=t.maxPlayers||'';
     document.getElementById('ct-fee').value=t.fee||'';
     document.getElementById('ct-rules').value=t.rules||'';
-    document.getElementById('ct-prizeType').value=t.prizeType||'position';
+    document.getElementById('ct-prizeType').value=t.prizeType||t.prize?.type||'position';
+    if(document.getElementById('ct-prizeBalance'))
+      document.getElementById('ct-prizeBalance').value=t.prize?.balanceType||'real';
+    // Load room release — if it's a known value use it, else use custom
+    const release=String(t.roomRelease||'15');
+    const knownVals=['1','2','3','5','10','15','30','60','manual'];
+    const relSel=document.getElementById('ct-release');
+    if(knownVals.includes(release)){
+      relSel.value=release;
+      document.getElementById('ct-release-custom').style.display='none';
+    } else {
+      relSel.value='custom';
+      document.getElementById('ct-release-custom').style.display='block';
+      document.getElementById('ct-release-custom-val').value=release;
+    }
   } else {
     document.getElementById('ct-name').value='';
     document.getElementById('ct-maxplayers').value='';
@@ -1783,8 +1811,9 @@ window.renderPrizeFields=function(){
 
 function getPrizeData(){
   const type=document.getElementById('ct-prizeType').value;
+  const balanceType=document.getElementById('ct-prizeBalance')?.value||'real';
   if(type==='position'){
-    return{type,positions:{
+    return{type,balanceType,positions:{
       '1':parseFloat(document.getElementById('prize-1')?.value)||0,
       '2':parseFloat(document.getElementById('prize-2')?.value)||0,
       '3-5':parseFloat(document.getElementById('prize-3-5')?.value)||0,
@@ -1792,15 +1821,29 @@ function getPrizeData(){
       refund:document.getElementById('prize-refund')?.value||''
     }};
   } else if(type==='kill'){
-    return{type,perKill:parseFloat(document.getElementById('prize-perkill')?.value)||0,
+    return{type,balanceType,perKill:parseFloat(document.getElementById('prize-perkill')?.value)||0,
       killCap:parseInt(document.getElementById('prize-killcap')?.value)||10};
   } else if(type==='custom'){
-    return{type,description:document.getElementById('prize-custom')?.value||''};
+    return{type,balanceType,description:document.getElementById('prize-custom')?.value||''};
   }
   return{type:'free'};
 }
 
-window.saveTournament=async function(){
+window.toggleCustomRelease=function(prefix){
+  const sel=document.getElementById(prefix+'-release');
+  const customDiv=document.getElementById(prefix+'-release-custom');
+  if(customDiv)customDiv.style.display=sel.value==='custom'?'block':'none';
+};
+
+function getRoomRelease(prefix){
+  const sel=document.getElementById(prefix+'-release');
+  if(!sel)return'15';
+  if(sel.value==='custom'){
+    const v=document.getElementById(prefix+'-release-custom-val');
+    return v&&v.value?String(parseInt(v.value)||15):'15';
+  }
+  return sel.value;
+}
   const name=document.getElementById('ct-name').value.trim();
   const startVal=document.getElementById('ct-start').value;
   if(!name||!startVal){toast('Fill in name and start time','red');return;}
@@ -1813,7 +1856,7 @@ window.saveTournament=async function(){
     maxPlayers:parseInt(document.getElementById('ct-maxplayers').value)||25,
     fee:parseFloat(document.getElementById('ct-fee').value)||0,
     startTime:new Date(startVal).getTime(),
-    roomRelease:document.getElementById('ct-release').value,
+    roomRelease:getRoomRelease('ct'),
     rules:document.getElementById('ct-rules').value.trim(),
     prize:getPrizeData(),
     status:activeTournamentId?allTournaments[activeTournamentId]?.status:'upcoming',
@@ -1901,6 +1944,8 @@ window.saveResults=async function(){
 
 async function awardPrizes(tid,results,t){
   const prize=t.prize||{};
+  const balanceType=prize.balanceType||'real';
+  const balKey=balanceType==='bonus'?'balanceBonus':'balanceReal';
   for(const [pid,res] of Object.entries(results)){
     let award=0;
     if(prize.type==='position'){
@@ -1909,22 +1954,24 @@ async function awardPrizes(tid,results,t){
       else if(rank===2)award=prize.positions?.['2']||0;
       else if(rank>=3&&rank<=5)award=prize.positions?.['3-5']||0;
       else if(rank>=6&&rank<=10)award=prize.positions?.['6-10']||0;
-      // Refund check
       const refundRange=prize.positions?.refund||'';
       if(award===0&&refundRange){
         const[a,b]=refundRange.split('-').map(Number);
         if(rank>=a&&rank<=(b||a))award=t.fee||0;
       }
     } else if(prize.type==='kill'){
-      const kills=Math.min(res.kills,prize.killCap||10);
+      const kills=Math.min(res.kills||0,prize.killCap||10);
       award=kills*(prize.perKill||0);
     }
     if(award>0){
-      const p=allPlayers[pid];
-      const newBal=(p?.balance||0)+award;
-      await update(ref(db,'players/'+pid),{balance:newBal});
-      // Log prize transaction
-      await push(ref(db,'players/'+pid+'/transactions'),{type:'prize',amount:award,tournament:t.name,tid,createdAt:Date.now()});
+      const pSnap=await get(ref(db,'players/'+pid+'/profile'));
+      const pData=pSnap.val()||{};
+      const curBal=parseInt(pData[balKey])||0;
+      await update(ref(db,'players/'+pid+'/profile'),{[balKey]:curBal+award});
+      await push(ref(db,'players/'+pid+'/transactions'),{
+        type:'prize',amount:award,balanceType,
+        tournament:t.name,tid,createdAt:Date.now()
+      });
     }
   }
 }
@@ -2400,7 +2447,8 @@ window.switchSupportTab=function(tab){
 function renderSupport(tab){
   const el=document.getElementById('supportList');
   if(!el)return;
-  onValue(ref(db,'adminContactRequests'),snap=>{
+  el.innerHTML='<div class="empty"><div class="empty-icon">📩</div><div class="empty-txt">Loading...</div></div>';
+  get(ref(db,'adminContactRequests')).then(snap=>{
     const raw=snap.val()||{};
     const rows=Object.entries(raw).filter(([,r])=>r.status===(tab==='pending'?'pending':'resolved'));
     rows.sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
@@ -2420,7 +2468,9 @@ function renderSupport(tab){
         <div style="font-size:.68rem;color:var(--muted);margin-bottom:.5rem">${fmtDate(r.createdAt)}</div>
         ${r.status==='pending'?`<button class="btn btn-green btn-sm" onclick="resolveSupport('${rid}')">✅ Mark Resolved</button>`:''}
       </div>`).join('');
-  },{onlyOnce:true});
+  }).catch(e=>{
+    el.innerHTML=`<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-txt">Failed to load: ${e.message}</div></div>`;
+  });
 }
 
 window.resolveSupport=async function(rid){

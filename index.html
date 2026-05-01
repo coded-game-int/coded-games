@@ -291,15 +291,15 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:2rem 1.2rem
   <div style="font-family:'Rajdhani',sans-serif;font-size:1.6rem;font-weight:800;color:#f90;letter-spacing:.08em;margin-bottom:.3rem">CODED GAMES</div>
   <div style="color:#fff;font-size:1rem;margin-bottom:.5rem">🇳🇬 Nigeria's #1 PUBG Mobile Tournament Platform</div>
   <div style="color:#aaa;font-size:.85rem;margin-bottom:2rem">ENTER THE BATTLEGROUND · WIN REAL MONEY</div>
-  <div style="color:#f90;font-size:.8rem;font-weight:700;letter-spacing:.15em;margin-bottom:1rem;text-transform:uppercase">Launching In</div>
-  <div style="display:flex;gap:1.2rem;margin-bottom:2rem">
+  <div style="color:#f90;font-size:.8rem;font-weight:700;letter-spacing:.15em;margin-bottom:1rem;text-transform:uppercase" id="cdLabel">Launching In</div>
+  <div style="display:flex;gap:1.2rem;margin-bottom:2rem" id="cdNums">
     <div style="text-align:center"><div id="cdD" style="font-size:3rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1">00</div><div style="font-size:.65rem;color:#aaa;text-transform:uppercase;letter-spacing:.1em">Days</div></div>
     <div style="font-size:3rem;font-weight:900;color:#f90;line-height:1">:</div>
     <div style="text-align:center"><div id="cdH" style="font-size:3rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1">00</div><div style="font-size:.65rem;color:#aaa;text-transform:uppercase;letter-spacing:.1em">Hours</div></div>
     <div style="font-size:3rem;font-weight:900;color:#f90;line-height:1">:</div>
     <div style="text-align:center"><div id="cdM" style="font-size:3rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1">00</div><div style="font-size:.65rem;color:#aaa;text-transform:uppercase;letter-spacing:.1em">Mins</div></div>
     <div style="font-size:3rem;font-weight:900;color:#f90;line-height:1">:</div>
-    <div style="text-align:center"><div id="cdS" style="font-size:3rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1">00</div><div style="font-size:.65rem;color:#aaa;text-transform:uppercase;letter-spacing:.1em">Secs</div></div>
+    <div style="text-align:center"><div id="cdS" style="font-size:3rem;font-weight:900;color:#fff;font-family:'Rajdhani',sans-serif;line-height:1;transition:transform .1s,color .1s">00</div><div style="font-size:.65rem;color:#aaa;text-transform:uppercase;letter-spacing:.1em">Secs</div></div>
   </div>
   <a href="auth.html" style="color:#f90;font-size:.8rem;text-decoration:underline">Login / Register</a>
 </div>
@@ -560,9 +560,38 @@ onValue(ref(db,'settings/launch'), snap=>{
   if(gateOn && launchTs>0 && launchTs>Date.now()){
     overlay.style.display='flex';
     main.style.display='none';
+    // Audio context for beep sounds
+    let audioCtx=null;
+    function playBeep(freq,duration,vol){
+      try{
+        if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+        const o=audioCtx.createOscillator();
+        const g=audioCtx.createGain();
+        o.connect(g);g.connect(audioCtx.destination);
+        o.frequency.value=freq;o.type='sine';
+        g.gain.setValueAtTime(vol||0.3,audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+duration);
+        o.start();o.stop(audioCtx.currentTime+duration);
+      }catch(e){}
+    }
+    let lastSec=-1;
     window._cdTimer=setInterval(()=>{
       const diff=launchTs-Date.now();
-      if(diff<=0){clearInterval(window._cdTimer);location.reload();return;}
+      if(diff<=0){
+        clearInterval(window._cdTimer);
+        // Launch animation
+        playBeep(880,0.8,0.5);
+        setTimeout(()=>playBeep(1100,0.6,0.5),200);
+        setTimeout(()=>playBeep(1320,1.2,0.6),400);
+        const cdEl=document.getElementById('countdownOverlay');
+        if(cdEl){
+          cdEl.style.background='#1a0800';
+          const nums=cdEl.querySelector('#cdNums');
+          if(nums)nums.innerHTML='<div style="font-size:3rem;animation:pulse .5s infinite">🚀 LAUNCHED!</div>';
+        }
+        setTimeout(()=>location.reload(),2000);
+        return;
+      }
       const d=Math.floor(diff/86400000);
       const h=Math.floor((diff%86400000)/3600000);
       const m=Math.floor((diff%3600000)/60000);
@@ -571,6 +600,19 @@ onValue(ref(db,'settings/launch'), snap=>{
       document.getElementById('cdH').textContent=String(h).padStart(2,'0');
       document.getElementById('cdM').textContent=String(m).padStart(2,'0');
       document.getElementById('cdS').textContent=String(sec).padStart(2,'0');
+      // Final 10 seconds — pulse + beep each second
+      const totalSecs=Math.floor(diff/1000);
+      if(totalSecs<=10&&sec!==lastSec){
+        lastSec=sec;
+        playBeep(totalSecs===1?880:440,0.15,0.25);
+        const secEl=document.getElementById('cdS');
+        if(secEl){
+          secEl.style.color='#ff4400';
+          secEl.style.transform='scale(1.4)';
+          secEl.style.transition='transform .1s';
+          setTimeout(()=>{secEl.style.transform='scale(1)';secEl.style.color='#fff';},300);
+        }
+      }
     },1000);
   } else {
     // Gate is OFF or launch time passed — always show site
