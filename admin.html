@@ -1433,6 +1433,7 @@ window.approvePlayer=async function(){
   const pid=currentVerifyPlayerId;
   const ingame=document.getElementById('vm-ingame').value.trim();
   if(!ingame){toast('Enter the in-game name first','red');return;}
+  if(!confirm('✅ Approve & verify this player?\nThis will credit their welcome bonus. Cannot be undone.'))return;
   const btn=document.querySelector('#verifyModal .btn-green');
   if(btn){btn.textContent='Saving...';btn.disabled=true;}
   try{
@@ -1512,6 +1513,7 @@ window.approvePlayer=async function(){
 window.rejectPlayer=async function(){
   const pid=currentVerifyPlayerId;
   const reason=document.getElementById('vm-reject-reason').value.trim();
+  if(!confirm('❌ Reject this player?\nThey will be marked as rejected. Are you sure?'))return;
   try{
     await update(ref(db,'players/'+pid+'/profile'),{
       verified:false,
@@ -1590,6 +1592,8 @@ window.approveTopup=async function(){
   const actual=parseFloat(document.getElementById('tu-actual').value)||0;
   if(!actual){toast('Enter the amount received','red');return;}
   const p=allPlayers[pid];
+  if(!confirm(`✅ Approve top-up of ₦${actual} for ${p.username}?\nThis will credit their balance immediately. Cannot be undone.`))return;
+  const p=allPlayers[pid];
   const newBal=(p.balanceReal||0)+actual;
   try{
     await update(ref(db,'players/'+pid+'/profile'),{balanceReal:newBal});
@@ -1604,6 +1608,7 @@ window.approveTopup=async function(){
 window.rejectTopup=async function(){
   const {pid,tid}=currentTopupId;
   const reason=document.getElementById('tu-reject-reason').value.trim();
+  if(!confirm('❌ Reject this top-up request?\nThe player will be notified. Are you sure?'))return;
   try{
     await update(ref(db,`players/${pid}/topups/${tid}`),{status:'rejected',rejectedAt:Date.now(),rejectReason:reason||'Unverified payment'});
     closeModal('topupModal');
@@ -1663,6 +1668,7 @@ window.openWithdrawModal=function(pid,wid){
 window.approveWithdraw=async function(){
   const {pid,wid}=currentWithdrawId;
   const p=allPlayers[pid];const w=p.withdrawals[wid];
+  if(!confirm(`✅ Confirm payment of ₦${(w.amount||0).toLocaleString()} to ${p.username}?\nThis will deduct from their balance and mark as PAID. Cannot be undone.`))return;
   const newBal=(p.balanceReal||0)-(w.amount||0);
   try{
     await update(ref(db,'players/'+pid+'/profile'),{balanceReal:Math.max(0,newBal)});
@@ -1678,6 +1684,7 @@ window.rejectWithdraw=async function(){
   const {pid,wid}=currentWithdrawId;
   const reason=document.getElementById('wd-reject-reason').value.trim();
   const p=allPlayers[pid];const w=p.withdrawals[wid];
+  if(!confirm(`❌ Reject withdrawal of ₦${(w.amount||0).toLocaleString()} for ${p.username}?\nThis will refund the amount back to their balance.`))return;
   const newBal=(p.balanceReal||0)+(w.amount||0);
   try{
     await update(ref(db,'players/'+pid+'/profile'),{balanceReal:newBal});
@@ -2133,8 +2140,8 @@ window.openPlayerModal=function(pid){
   document.getElementById('pm-uid').textContent=p.pubgUid||'—';
   document.getElementById('pm-contact').textContent=p.contact||'—';
   document.getElementById('pm-status').innerHTML=`<span class="status ${p.verified?'status-verified':p.rejected?'status-rejected':'status-pending'}">${p.verified?'✅ Verified':p.rejected?'❌ Rejected':'⏳ Pending'}</span>`;
-  document.getElementById('pm-balance').textContent='₦'+(p.balance||0);
-  document.getElementById('pm-bonus').textContent=(p.bonusBalance||0)+'🪙';
+  document.getElementById('pm-balance').textContent='₦'+(p.balanceReal||0).toLocaleString();
+  document.getElementById('pm-bonus').textContent=(p.balanceBonus||0).toLocaleString()+'🪙';
   document.getElementById('pm-referredby').textContent=p.referredBy||'None';
   document.getElementById('pm-referrals').textContent=p.referralCount||0;
   document.getElementById('pm-adj-amount').value='';
@@ -2149,10 +2156,11 @@ window.adjustBalance=async function(action){
   const type=document.getElementById('pm-adj-type').value;
   if(!amount||amount<=0){toast('Enter a valid amount','red');return;}
   const p=allPlayers[pid];
-  const field=type==='real'?'balance':'bonusBalance';
+  const field=type==='real'?'balanceReal':'balanceBonus';
   const current=p[field]||0;
   const newVal=action==='add'?current+amount:Math.max(0,current-amount);
-  await update(ref(db,'players/'+pid),{[field]:newVal});
+  await update(ref(db,'players/'+pid+'/profile'),{[field]:newVal});
+  allPlayers[pid][field]=newVal;
   toast(`Balance ${action==='add'?'added':'deducted'} ✅`,'green');
   closeModal('playerModal');
 };
@@ -2260,7 +2268,13 @@ async function loadSettings(){
   const snap=await get(ref(db,'settings'));
   const s=snap.val()||{};
   if(s.launch){
-    if(s.launch.date)document.getElementById('launchDate').value=new Date(s.launch.date).toISOString().slice(0,16);
+    if(s.launch.date){
+      const ld=new Date(s.launch.date);
+      // Convert to local datetime-local format (YYYY-MM-DDTHH:MM) without timezone shift
+      const pad=n=>String(n).padStart(2,'0');
+      const localStr=ld.getFullYear()+'-'+pad(ld.getMonth()+1)+'-'+pad(ld.getDate())+'T'+pad(ld.getHours())+':'+pad(ld.getMinutes());
+      document.getElementById('launchDate').value=localStr;
+    }
     document.getElementById('launchGateOn').checked=!!s.launch.gateOn;
   }
   if(s.payment){

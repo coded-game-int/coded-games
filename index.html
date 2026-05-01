@@ -573,6 +573,8 @@ onValue(ref(db,'settings/launch'), snap=>{
     const launchDate=new Date(launchTs);
     const dateEl=document.getElementById('cdDateStr');
     if(dateEl)dateEl.textContent=launchDate.toLocaleDateString('en-NG',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    // Gentle confetti rain while countdown active
+    setTimeout(()=>{window._startConfettiRain&&window._startConfettiRain(false);},600);
     // Audio context for beep sounds
     let audioCtx=null;
     function playBeep(freq,duration,vol){
@@ -598,68 +600,18 @@ onValue(ref(db,'settings/launch'), snap=>{
         setTimeout(()=>playBeep(1320,1.2,0.6),400);
         setTimeout(()=>playBeep(1600,0.4,0.4),700);
         setTimeout(()=>playBeep(2000,1.5,0.5),1000);
-        const cdEl=document.getElementById('countdownOverlay');
-        if(cdEl){
-          cdEl.style.background='#000';
-          cdEl.style.overflow='hidden';
-          // Show launched text
-          const nums=cdEl.querySelector('#cdNums');
-          if(nums)nums.innerHTML=`
-            <div style="font-size:3rem;animation:pulse .4s infinite;z-index:10;position:relative">🚀</div>
-            <div style="font-family:var(--fc,sans-serif);font-size:2rem;font-weight:900;
-              letter-spacing:4px;color:#f5a020;text-shadow:0 0 30px #f5a020;
-              z-index:10;position:relative;margin-top:.5rem">CODED GAMES</div>
-            <div style="font-family:var(--fc,sans-serif);font-size:1rem;font-weight:700;
-              letter-spacing:6px;color:#fff;z-index:10;position:relative;margin-top:.3rem">IS LIVE!</div>`;
-          // Add fireworks canvas
-          const canvas=document.createElement('canvas');
-          canvas.style.cssText='position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none';
-          canvas.width=window.innerWidth;canvas.height=window.innerHeight;
-          cdEl.appendChild(canvas);
-          const ctx2=canvas.getContext('2d');
-          const particles=[];
-          const colors=['#f5a020','#ffd234','#ff4400','#fff','#ff6b6b','#4ecdc4','#a855f7','#3b82f6'];
-          function spawnFirework(){
-            const x=Math.random()*canvas.width;
-            const y=Math.random()*canvas.height*0.6;
-            const color=colors[Math.floor(Math.random()*colors.length)];
-            for(let i=0;i<80;i++){
-              const angle=Math.random()*Math.PI*2;
-              const speed=Math.random()*6+2;
-              particles.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,
-                alpha:1,color,size:Math.random()*3+1,decay:Math.random()*0.02+0.015});
-            }
-          }
-          let frame=0;
-          function animateFireworks(){
-            ctx2.fillStyle='rgba(0,0,0,0.15)';
-            ctx2.fillRect(0,0,canvas.width,canvas.height);
-            frame++;
-            // Spawn firework every 20 frames
-            if(frame%20===0)spawnFirework();
-            for(let i=particles.length-1;i>=0;i--){
-              const p=particles[i];
-              p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;
-              p.vx*=0.98;p.alpha-=p.decay;
-              if(p.alpha<=0){particles.splice(i,1);continue;}
-              ctx2.save();
-              ctx2.globalAlpha=p.alpha;
-              ctx2.fillStyle=p.color;
-              ctx2.shadowColor=p.color;
-              ctx2.shadowBlur=6;
-              ctx2.beginPath();
-              ctx2.arc(p.x,p.y,p.size,0,Math.PI*2);
-              ctx2.fill();
-              ctx2.restore();
-            }
-            if(frame<180)requestAnimationFrame(animateFireworks);
-          }
-          // Spawn first firework immediately
-          spawnFirework();spawnFirework();
-          animateFireworks();
+        // Launch confetti rain across the whole page
+        window._startConfettiRain&&window._startConfettiRain(true);
+        // Update banner to show LIVE message
+        const overlay=document.getElementById('countdownOverlay');
+        if(overlay){
+          overlay.style.background='linear-gradient(135deg,#0a0a00 0%,#1a1000 100%)';
+          overlay.innerHTML=`
+            <div style="font-size:.65rem;font-weight:700;letter-spacing:.2em;color:#f90;text-transform:uppercase;margin-bottom:.4rem">🎉 CODED GAMES IS LIVE!</div>
+            <div style="font-family:var(--fc,sans-serif);font-size:1.4rem;font-weight:900;color:#fff;letter-spacing:.05em;margin-bottom:.2rem">🚀 WE ARE LIVE!</div>
+            <div style="font-size:.75rem;color:#f5a020;font-weight:600">Welcome to the Battleground — Win Real Money!</div>`;
         }
-        // Reload after fireworks (6 seconds)
-        setTimeout(()=>location.reload(),6000);
+        setTimeout(()=>location.reload(),8000);
         return;
       }
       const d=Math.floor(diff/86400000);
@@ -689,6 +641,12 @@ onValue(ref(db,'settings/launch'), snap=>{
     overlay.style.display='none';
     main.style.display='';
   }
+},(error)=>{
+  // Permission error or network — just show the site, don't block
+  const overlay=document.getElementById('countdownOverlay');
+  const main=document.getElementById('mainContent');
+  if(overlay)overlay.style.display='none';
+  if(main)main.style.display='';
 });
 </script>
 
@@ -847,5 +805,90 @@ function cgToggleTheme(){
 }
 </script>
 </div><!-- end mainContent -->
+
+<script>
+// ── CONFETTI RAIN + LIVE BANNER ──────────────────────────────────────────────
+(function(){
+  const EMOJIS=['🎊','🎉','🎊','🎉','🎊','⭐','💥','🏆','🎮','💰'];
+  const COLORS=['#f5a020','#ffd234','#ff4400','#fff','#ff9900','#ffd700','#ff6b35'];
+  let _running=false,_canvas=null,_particles=[],_raf=null,_liveBanner=null;
+
+  function createCanvas(){
+    if(_canvas)return;
+    _canvas=document.createElement('canvas');
+    _canvas.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999';
+    _canvas.width=window.innerWidth;_canvas.height=window.innerHeight;
+    document.body.appendChild(_canvas);
+    window.addEventListener('resize',()=>{if(_canvas){_canvas.width=window.innerWidth;_canvas.height=window.innerHeight;}});
+  }
+
+  function spawnParticle(burst){
+    const isEmoji=Math.random()<0.35;
+    return{
+      x:Math.random()*window.innerWidth,
+      y:burst?window.innerHeight*0.4:-20,
+      vx:(Math.random()-0.5)*(burst?8:2),
+      vy:burst?(Math.random()*-12-4):(Math.random()*3+1.5),
+      rot:Math.random()*360,rotV:(Math.random()-0.5)*6,
+      size:burst?(Math.random()*18+10):(Math.random()*14+8),
+      color:COLORS[Math.floor(Math.random()*COLORS.length)],
+      emoji:isEmoji?EMOJIS[Math.floor(Math.random()*EMOJIS.length)]:null,
+      alpha:1,wobble:Math.random()*Math.PI*2,
+      wobbleSpeed:Math.random()*0.08+0.02,
+      gravity:burst?0.25:0.04
+    };
+  }
+
+  function drawParticle(ctx,p){
+    ctx.save();ctx.globalAlpha=Math.max(0,p.alpha);
+    ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);
+    if(p.emoji){ctx.font=p.size+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.emoji,0,0);}
+    else{ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=4;ctx.fillRect(-p.size/2,-p.size*0.25,p.size,p.size*0.5);}
+    ctx.restore();
+  }
+
+  function animate(){
+    if(!_canvas)return;
+    const ctx=_canvas.getContext('2d');
+    ctx.clearRect(0,0,_canvas.width,_canvas.height);
+    for(let i=_particles.length-1;i>=0;i--){
+      const p=_particles[i];
+      p.wobble+=p.wobbleSpeed;p.x+=p.vx+Math.sin(p.wobble)*0.8;
+      p.y+=p.vy;p.vy+=p.gravity;p.rot+=p.rotV;
+      if(p.y>window.innerHeight*0.85)p.alpha-=0.03;
+      if(p.alpha<=0||p.y>window.innerHeight+40)_particles.splice(i,1);
+      else drawParticle(ctx,p);
+    }
+    if(_running&&_particles.length<40&&Math.random()<0.3)_particles.push(spawnParticle(false));
+    _raf=requestAnimationFrame(animate);
+  }
+
+  function showLiveBanner(){
+    if(_liveBanner||document.getElementById('cgLiveBanner'))return;
+    if(!document.getElementById('cgLiveStyle')){
+      const s=document.createElement('style');s.id='cgLiveStyle';
+      s.textContent='@keyframes cgLivePulse{from{box-shadow:0 0 10px #f902}to{box-shadow:0 0 35px #f90,0 0 60px #f905}}';
+      document.head.appendChild(s);
+    }
+    _liveBanner=document.createElement('div');
+    _liveBanner.id='cgLiveBanner';
+    _liveBanner.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99998;background:linear-gradient(90deg,#0d0600,#2a1000,#0d0600);border-bottom:3px solid #f90;text-align:center;padding:1rem;animation:cgLivePulse 1s ease-in-out infinite alternate';
+    _liveBanner.innerHTML='<div style="font-size:.6rem;letter-spacing:.25em;color:#f90;text-transform:uppercase;font-weight:700">🎉 CONGRATULATIONS 🎉</div><div style="font-size:1.6rem;font-weight:900;color:#fff;font-family:sans-serif;letter-spacing:.05em;margin:.2rem 0">🚀 CODED GAMES IS LIVE!</div><div style="font-size:.78rem;color:#f5a020;font-weight:600">Enter the Battleground — Win Real Money!</div>';
+    document.body.appendChild(_liveBanner);
+    setTimeout(()=>{if(_liveBanner){_liveBanner.remove();_liveBanner=null;}},10000);
+  }
+
+  window._startConfettiRain=function(isLaunchMoment){
+    createCanvas();
+    if(isLaunchMoment){for(let i=0;i<120;i++)_particles.push(spawnParticle(true));showLiveBanner();}
+    if(!_running){_running=true;animate();}
+  };
+  window._stopConfettiRain=function(){
+    _running=false;if(_raf)cancelAnimationFrame(_raf);
+    if(_canvas){_canvas.remove();_canvas=null;}_particles=[];
+  };
+})();
+</script>
+
 </body>
 </html>
