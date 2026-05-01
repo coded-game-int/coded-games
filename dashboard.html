@@ -590,24 +590,70 @@ async function loadRecentActivity(uid){
     .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))
     .slice(0,5);
   if(!txs.length)return;
-  const icons={tournament_entry:'🎮',prize:'🏆',topup:'💳',withdrawal:'💸',referral:'🔗',bonus:'🎁'};
-  el.innerHTML=txs.map(tx=>{
+  const icons={tournament_entry:'🎮',prize:'🏆',topup:'💳',withdrawal:'💸',referral:'🔗',bonus:'🎁',refund:'↩️',cancel_refund:'↩️'};
+  // Store txs globally so tap can access them
+  window._recentTxs=txs;
+  el.innerHTML=txs.map((tx,i)=>{
     const icon=icons[tx.type]||'📋';
-    const isCredit=tx.type==='prize'||tx.type==='topup'||tx.type==='referral'||tx.type==='bonus';
+    // refund and cancel_refund are CREDITS — money coming back
+    const isCredit=tx.type==='prize'||tx.type==='topup'||tx.type==='referral'||tx.type==='bonus'||tx.type==='refund'||tx.type==='cancel_refund';
     const amtColor=isCredit?'var(--green)':'var(--red)';
     const amtSign=isCredit?'+':'-';
     const d=new Date(tx.createdAt||0);
     const dateStr=d.toLocaleDateString('en-NG',{day:'numeric',month:'short'});
-    return`<div style="display:flex;align-items:center;gap:.7rem;padding:.55rem 0;
-      border-bottom:1px solid var(--bdr)">
+    return`<div onclick="showTxDetail(${i})" style="display:flex;align-items:center;gap:.7rem;padding:.6rem .3rem;
+      border-bottom:1px solid var(--bdr);cursor:pointer;border-radius:6px;transition:background .15s"
+      onmouseover="this.style.background='rgba(245,160,32,.06)'" onmouseout="this.style.background='transparent'">
       <div style="font-size:1.1rem;width:28px;text-align:center;flex-shrink:0">${icon}</div>
       <div style="flex:1">
         <div style="font-size:.82rem;font-weight:600">${tx.tournamentName||tx.type.replace(/_/g,' ')}</div>
         <div style="font-size:.65rem;color:var(--muted)">${dateStr}</div>
       </div>
       ${tx.amount?`<div style="font-family:var(--ff);font-size:.92rem;font-weight:700;color:${amtColor}">${amtSign}₦${tx.amount.toLocaleString()}</div>`:''}
+      <div style="font-size:.7rem;color:var(--muted)">›</div>
     </div>`;
   }).join('')+'<div style="padding-top:.4rem"></div>';
+}
+
+function showTxDetail(i){
+  const txs=window._recentTxs;
+  if(!txs||!txs[i])return;
+  const tx=txs[i];
+  const isCredit=tx.type==='prize'||tx.type==='topup'||tx.type==='referral'||tx.type==='bonus'||tx.type==='refund'||tx.type==='cancel_refund';
+  const amtColor=isCredit?'var(--green)':'var(--red)';
+  const amtSign=isCredit?'+':'-';
+  const typeLabels={
+    tournament_entry:'Tournament Entry',prize:'Prize Won',topup:'Balance Top-Up',
+    withdrawal:'Withdrawal',referral:'Referral Bonus',bonus:'Bonus Credit',
+    refund:'Refund',cancel_refund:'Cancelled Tournament Refund'
+  };
+  const d=new Date(tx.createdAt||0);
+  const dateStr=d.toLocaleString('en-NG',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  // Show in a modal
+  let modal=document.getElementById('txDetailModal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='txDetailModal';
+    modal.className='mover';
+    modal.onclick=function(e){if(e.target===modal)modal.classList.remove('on')};
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML=`<div class="modal" style="max-width:400px">
+    <div class="mhndl"></div>
+    <div style="text-align:center;padding:1rem 0 .5rem">
+      <div style="font-size:2.5rem;margin-bottom:.5rem">${{tournament_entry:'🎮',prize:'🏆',topup:'💳',withdrawal:'💸',referral:'🔗',bonus:'🎁',refund:'↩️',cancel_refund:'↩️'}[tx.type]||'📋'}</div>
+      <div style="font-family:var(--ff);font-size:1.5rem;font-weight:700;color:${amtColor}">${amtSign}₦${(tx.amount||0).toLocaleString()}</div>
+      <div style="font-size:.8rem;color:var(--muted);margin-top:.2rem">${typeLabels[tx.type]||tx.type}</div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:.9rem;margin:.8rem 0">
+      ${tx.tournamentName?`<div style="display:flex;justify-content:space-between;margin-bottom:.5rem"><span style="font-size:.72rem;color:var(--muted);text-transform:uppercase">Tournament</span><span style="font-size:.82rem;font-weight:600">${tx.tournamentName}</span></div>`:''}
+      ${tx.reason?`<div style="display:flex;justify-content:space-between;margin-bottom:.5rem"><span style="font-size:.72rem;color:var(--muted);text-transform:uppercase">Reason</span><span style="font-size:.82rem;font-weight:600;color:var(--or)">${tx.reason}</span></div>`:''}
+      <div style="display:flex;justify-content:space-between;margin-bottom:.5rem"><span style="font-size:.72rem;color:var(--muted);text-transform:uppercase">Date</span><span style="font-size:.82rem">${dateStr}</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="font-size:.72rem;color:var(--muted);text-transform:uppercase">Status</span><span style="font-size:.82rem;color:var(--green)">✅ Completed</span></div>
+    </div>
+    <button onclick="document.getElementById('txDetailModal').classList.remove('on')" style="width:100%;padding:.8rem;border-radius:8px;background:var(--or);color:#000;border:none;font-family:var(--fc);font-size:.95rem;font-weight:800;letter-spacing:1px;cursor:pointer">Close</button>
+  </div>`;
+  modal.classList.add('on');
 }
 
 function renderDashboard(){

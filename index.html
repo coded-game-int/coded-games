@@ -521,7 +521,7 @@ onValue(ref(db,'tournaments'), snap=>{
       name:t.name||'Tournament',
       desc:t.rules?t.rules.split('\n')[0].slice(0,80):'',
       fmt:t.mode||'Open',
-      sts:t.status==='upcoming'?'open':t.status==='live'?'live':t.status==='completed'?'ended':t.status||'open',
+      sts:t.status==='upcoming'?'open':t.status==='live'?'live':t.status==='completed'?'ended':t.status==='cancelled'?'cancelled':t.status||'open',
       fee:t.fee||0,
       prize:t.prize?(t.prize.type==='kill'?'₦'+(t.prize.perKill||0)+'/kill':t.prize.positions?'₦'+((t.prize.positions['1']||0)).toLocaleString()+' top':'TBD'):'TBD',
       slots:t.maxPlayers||25,
@@ -692,8 +692,9 @@ function render(f='all'){
     else if(f==='open') list=list.filter(t=>t.sts==='open');
     else if(f==='upcoming') list=list.filter(t=>t.sts==='soon'||t.sts==='open');
   }
-  // Only show active tournaments (not cancelled/ended) on public page
-  list=list.filter(t=>t.sts!=='cancelled'&&t.sts!=='deleted');
+  // Show all tournaments including cancelled — players need to see why they got a refund
+  // Only hide deleted ones
+  list=list.filter(t=>t.sts!=='deleted');
   const g=document.getElementById('tgrid');
   if(!g) return;
   if(!list.length){
@@ -711,19 +712,22 @@ function render(f='all'){
 function card(t){
   const pct=Math.round((t.filled||0)/(t.slots||1)*100);
   const full=(t.filled||0)>=(t.slots||1);
-  const sMap={open:{c:'s-open',l:'Open'},soon:{c:'s-soon',l:'Starting Soon'},live:{c:'s-live',l:'🔴 Live'},ended:{c:'s-ended',l:'Ended'}};
+  const sMap={open:{c:'s-open',l:'Open'},soon:{c:'s-soon',l:'Starting Soon'},live:{c:'s-live',l:'🔴 Live'},ended:{c:'s-ended',l:'Ended'},cancelled:{c:'s-ended',l:'❌ Cancelled'}};
   const s=sMap[t.sts]||sMap.ended;
   let btn='';
   if(t.sts==='open'&&!full) btn=`<button class="bjoin" onclick="location.href='tournament.html?id=${t._tid||t.id}'">Join ₦${(t.fee||0).toLocaleString()}</button>`;
   else if(t.sts==='soon') btn=`<button class="bjoin" onclick="location.href='tournament.html?id=${t._tid||t.id}'">Register</button>`;
   else if(t.sts==='live') btn=`<button class="bview" onclick="location.href='tournament.html?id=${t._tid||t.id}'">View Live</button>`;
   else if(t.sts==='ended') btn=`<button class="bview" onclick="location.href='tournament.html?id=${t._tid||t.id}'">Results</button>`;
+  else if(t.sts==='cancelled') btn=`<button class="bjoin" disabled style="background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)">↩️ Refunded</button>`;
   else btn=`<button class="bjoin" disabled>Full</button>`;
-  const cd=t.sts!=='live'&&t.sts!=='ended'?`<div class="tcd"><span class="cdl">${t.sts==='soon'?'⚡ Starts in':'Starts in'}</span><div class="cdt" id="cd${t.id}">${['HRS','MIN','SEC'].map(u=>`<div class="cdb"><div class="cdn">--</div><div class="cdu">${u}</div></div>`).join('')}</div></div>`
+  const cancelNotice=t.sts==='cancelled'&&t.cancelReason?`<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:6px;padding:.5rem .7rem;margin-bottom:.7rem;font-size:.74rem;color:var(--red)">❌ Cancelled: ${t.cancelReason}</div>`:'';
+  const cd=t.sts!=='live'&&t.sts!=='ended'&&t.sts!=='cancelled'?`<div class="tcd"><span class="cdl">${t.sts==='soon'?'⚡ Starts in':'Starts in'}</span><div class="cdt" id="cd${t.id}">${['HRS','MIN','SEC'].map(u=>`<div class="cdb"><div class="cdn">--</div><div class="cdu">${u}</div></div>`).join('')}</div></div>`
     :t.sts==='live'?`<div class="tcd"><span class="cdl" style="color:var(--red)">🔴 MATCH LIVE</span><span style="font-size:.76rem;color:var(--txt2)">Results updating soon</span></div>`:'';
   return`<div class="tc" data-f="${(t.fmt||'').toLowerCase()}" data-s="${t.sts}" style="cursor:pointer" onclick="location.href='tournament.html?id=${t._tid||t.id}'">${t.hot?'<div class="ribbon">Featured</div>':''}
   <div class="tc-hd"><span class="fmt">${t.fmt||'Open'}</span><span class="sts ${s.c}"><span class="sd"></span>${s.l}</span></div>
   <div class="tc-bd"><div class="tn">${t.name||'Tournament'}</div><div class="td">${t.desc||''}</div>
+  ${cancelNotice}
   <div class="tmeta"><div class="tmi"><div class="tml">Entry Fee</div><div class="tmv">₦${(t.fee||0).toLocaleString()}</div></div><div class="tmi"><div class="tml">Prize Pool</div><div class="tmv pr">${t.prize||'TBD'}</div></div></div>
   ${cd}</div>
   <div class="tc-ft"><div class="tslt"><span>${t.filled||0}/${t.slots||0}</span><div class="slb"><div class="slf" style="width:${pct}%"></div></div><span>${full?'<span style="color:var(--red)">Full</span>':(t.slots||0)-(t.filled||0)+' left'}</span></div>${btn}</div>
