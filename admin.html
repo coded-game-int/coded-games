@@ -1989,14 +1989,35 @@ window.updateTournamentStatus=async function(){
   if((status==='cancelled'||status==='postponed')&&refundChoice==='yes'){
     const t=allTournaments[tid];
     const regs=t?.registrations?Object.keys(t.registrations):[];
+    let refunded=0;
     for(const pid of regs){
-      const p=allPlayers[pid];
-      if(p){
-        const newBal=(p.balance||0)+(t.fee||0);
-        await update(ref(db,'players/'+pid),{balance:newBal});
-      }
+      try{
+        // Read fresh balance from Firebase to avoid stale data
+        const snap=await get(ref(db,'players/'+pid+'/profile'));
+        if(snap.exists()){
+          const profile=snap.val();
+          const feeSource=t.registrations[pid]?.feeSource||'real';
+          if(feeSource==='bonus'){
+            const newBonus=(profile.balanceBonus||0)+(t.fee||0);
+            await update(ref(db,'players/'+pid+'/profile'),{balanceBonus:newBonus});
+          } else {
+            const newReal=(profile.balanceReal||0)+(t.fee||0);
+            await update(ref(db,'players/'+pid+'/profile'),{balanceReal:newReal});
+          }
+          // Log refund transaction
+          await push(ref(db,'players/'+pid+'/transactions'),{
+            type:'refund',
+            amount:t.fee||0,
+            tournamentId:tid,
+            tournamentName:t.name||'Tournament',
+            reason:reason||'Tournament cancelled',
+            createdAt:Date.now()
+          });
+          refunded++;
+        }
+      }catch(e){console.error('Refund failed for player',pid,e);}
     }
-    toast(`Status updated. ₦${allTournaments[tid]?.fee||0} refunded to ${Object.keys(allTournaments[tid]?.registrations||{}).length} players ✅`,'green');
+    toast(`Status updated. ₦${t.fee||0} refunded to ${refunded} player(s) ✅`,'green');
   } else {
     toast('Tournament status updated ✅','green');
   }
