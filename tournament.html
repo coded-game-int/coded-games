@@ -295,7 +295,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
 
 <!-- TOPBAR -->
 <div class="tb">
-  <button class="back-btn" onclick="goBack()">
+  <button class="back-btn" onclick="window.goBack&&window.goBack()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
     Back
   </button>
@@ -332,8 +332,8 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
       By registering, you agree to follow the tournament rules. Fees are non-refundable unless the tournament is cancelled by admin.
     </div>
     <div class="modal-actions">
-      <button class="mbtn mbtn-cancel" onclick="closeModal('mConfirm')">Cancel</button>
-      <button class="mbtn mbtn-confirm" id="mConfirmBtn" onclick="doRegister()">Confirm & Pay</button>
+      <button class="mbtn mbtn-cancel" onclick="window.closeModal&&window.closeModal('mConfirm')">Cancel</button>
+      <button class="mbtn mbtn-confirm" id="mConfirmBtn" onclick="window.doRegister&&window.doRegister()">Confirm & Pay</button>
     </div>
   </div>
 </div>
@@ -538,7 +538,7 @@ function renderRegBtn(t,isRegistered,isFull,regCount){
   if(isFull)return`
     <button class="reg-btn full" disabled>🔴 Tournament Full</button>`;
   return`
-    <button class="reg-btn join" onclick="openRegModal()">
+    <button class="reg-btn join" onclick="window.openRegModal&&window.openRegModal()">
       ⚔️ Register — ${t.fee?'₦'+t.fee:'Free'}
     </button>`;
 }
@@ -581,7 +581,7 @@ function renderRoomSection(t,isRegistered,roomVisible,minsToStart,isStarted){
           <div class="room-key">Room ID</div>
           <div class="room-val">${escHtml(t.roomId)}</div>
         </div>
-        <button class="room-copy" onclick="copyText('${escHtml(t.roomId)}','Room ID')">Copy</button>
+        <button class="room-copy" onclick="window.copyText&&window.copyText('${escHtml(t.roomId)}','Room ID')">Copy</button>
       </div>
       ${t.roomPassword?`
       <div class="room-row">
@@ -589,7 +589,7 @@ function renderRoomSection(t,isRegistered,roomVisible,minsToStart,isStarted){
           <div class="room-key">Password</div>
           <div class="room-val">${escHtml(t.roomPassword)}</div>
         </div>
-        <button class="room-copy" onclick="copyText('${escHtml(t.roomPassword)}','Password')">Copy</button>
+        <button class="room-copy" onclick="window.copyText&&window.copyText('${escHtml(t.roomPassword)}','Password')">Copy</button>
       </div>`:''}
       <div style="margin-top:.7rem;font-size:.7rem;color:var(--muted);
         background:rgba(76,175,80,.06);border:1px solid rgba(76,175,80,.15);

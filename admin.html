@@ -1844,6 +1844,8 @@ function getRoomRelease(prefix){
   }
   return sel.value;
 }
+
+window.saveTournament=async function(){
   const name=document.getElementById('ct-name').value.trim();
   const startVal=document.getElementById('ct-start').value;
   if(!name||!startVal){toast('Fill in name and start time','red');return;}

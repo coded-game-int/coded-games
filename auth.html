@@ -251,10 +251,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
         <input type="text" class="fi" id="fp-uid" placeholder="e.g. 5123456789">
         <div style="font-size:.68rem;color:var(--muted);margin-top:.3rem">Your numeric UID from your PUBG profile</div>
       </div>
-      <button class="btn" id="fp-btn" onclick="doForgotReset()">📧 Send Reset Email</button>
+      <button class="btn" id="fp-btn" onclick="window.doForgotReset&&window.doForgotReset()">📧 Send Reset Email</button>
       <div style="text-align:center;margin-top:.9rem">
         <span style="font-size:.73rem;color:var(--muted)">No email access? </span>
-        <a href="#" onclick="doContactAdmin();return false"
+        <a href="#" onclick="window.doContactAdmin&&window.doContactAdmin();return false"
           style="font-size:.73rem;color:var(--or);text-decoration:none;font-weight:600">Contact Admin →</a>
       </div>
       <div style="text-align:center;margin-top:.8rem">

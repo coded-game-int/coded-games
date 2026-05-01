@@ -332,7 +332,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
         <div class="ar"><span class="al">Amount</span><span class="av hi" id="taD2"></span></div>
       </div>
       <div id="payNotice" class="nbox"><p>ℹ️ Balance credited once confirmed. <strong>Transactions between 8PM–8AM may take longer to verify.</strong></p></div>
-      <button class="bfull" id="topup-confirm-btn" onclick="submitTopupRequest()">✅ Done — I've Sent the Money</button>
+      <button class="bfull" id="topup-confirm-btn" onclick="window.submitTopupRequest&&window.submitTopupRequest()">✅ Done — I've Sent the Money</button>
       <button class="bfull out" onclick="tsBack()">← Go Back</button>
     </div>
   </div>
@@ -356,7 +356,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
     <div class="fg"><label class="fl">Account Name</label>
       <input type="text" class="fi" id="wName" placeholder="Name on your bank account"></div>
     <div class="alert" id="w-alert"></div>
-    <button class="bfull" onclick="submitWithdraw()">Submit Withdrawal Request</button>
+    <button class="bfull" onclick="window.submitWithdraw&&window.submitWithdraw()">Submit Withdrawal Request</button>
   </div>
 </div>
 
@@ -368,7 +368,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
     <div class="mtitle">👤 My Profile</div>
     <div id="profileModalContent">Loading...</div>
     <button class="bfull" style="margin-top:.8rem;background:transparent;border:1px solid var(--bdr2);color:var(--txt2)" onclick="openM('mContact');closeM('mProfile')">📩 Contact Admin</button>
-    <button class="bfull out" style="margin-top:.5rem" onclick="doSignOut()">🚪 Sign Out</button>
+    <button class="bfull out" style="margin-top:.5rem" onclick="window.doSignOut&&window.doSignOut()">🚪 Sign Out</button>
   </div>
 </div>
 
@@ -391,9 +391,9 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
     <button class="mclose" onclick="closeM('mHistory')">✕</button>
     <div class="mtitle">📋 Transaction History</div>
     <div style="display:flex;gap:.4rem;margin-bottom:.8rem">
-      <button id="htab-all" onclick="filterHistory('all')" style="flex:1;padding:.4rem;border-radius:8px;border:1px solid var(--or);background:var(--or);color:#000;font-size:.75rem;cursor:pointer">All</button>
-      <button id="htab-topup" onclick="filterHistory('topup')" style="flex:1;padding:.4rem;border-radius:8px;border:1px solid var(--bdr2);background:transparent;color:var(--txt2);font-size:.75rem;cursor:pointer">Top-Ups</button>
-      <button id="htab-withdraw" onclick="filterHistory('withdraw')" style="flex:1;padding:.4rem;border-radius:8px;border:1px solid var(--bdr2);background:transparent;color:var(--txt2);font-size:.75rem;cursor:pointer">Withdrawals</button>
+      <button id="htab-all" onclick="window.filterHistory&&window.filterHistory('all')" style="flex:1;padding:.4rem;border-radius:8px;border:1px solid var(--or);background:var(--or);color:#000;font-size:.75rem;cursor:pointer">All</button>
+      <button id="htab-topup" onclick="window.filterHistory&&window.filterHistory('topup')" style="flex:1;padding:.4rem;border-radius:8px;border:1px solid var(--bdr2);background:transparent;color:var(--txt2);font-size:.75rem;cursor:pointer">Top-Ups</button>
+      <button id="htab-withdraw" onclick="window.filterHistory&&window.filterHistory('withdraw')" style="flex:1;padding:.4rem;border-radius:8px;border:1px solid var(--bdr2);background:transparent;color:var(--txt2);font-size:.75rem;cursor:pointer">Withdrawals</button>
     </div>
     <div id="historyList"><div class="empty"><div class="empty-icon">⏳</div><p>Loading...</p></div></div>
     <div style="margin-top:1rem;text-align:center">
@@ -419,7 +419,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
     <input type="text" id="contactTxnId" placeholder="Transaction ID (optional)" style="width:100%;padding:.55rem .8rem;border-radius:8px;border:1px solid var(--bdr2);background:var(--card);color:var(--txt);font-size:.82rem;margin-bottom:.6rem;box-sizing:border-box">
     <textarea id="contactMsg" placeholder="Describe your issue..." rows="4" style="width:100%;padding:.55rem .8rem;border-radius:8px;border:1px solid var(--bdr2);background:var(--card);color:var(--txt);font-size:.82rem;resize:none;box-sizing:border-box"></textarea>
     <div id="contact-alert" class="alert" style="margin-top:.5rem"></div>
-    <button class="bfull" style="margin-top:.8rem" onclick="submitContact()">📤 Send Message</button>
+    <button class="bfull" style="margin-top:.8rem" onclick="window.submitContact&&window.submitContact()">📤 Send Message</button>
   </div>
 </div>
 
@@ -675,7 +675,7 @@ function renderDashboard(){
         <div class="bal-note">Withdrawable</div>
         <div class="bal-actions">
           <button class="bal-btn topup" onclick="openM('mTopup')">Top Up</button>
-          <button class="bal-btn withdraw" onclick="openWithdraw()">Withdraw</button>
+          <button class="bal-btn withdraw" onclick="window.openWithdraw&&window.openWithdraw()">Withdraw</button>
         </div>
       </div>
       <div class="bal-card bonus">
@@ -714,7 +714,7 @@ function renderDashboard(){
       <div class="ref-title" style="margin-bottom:.7rem">🎟 Promo Code</div>
       <div style="display:flex;gap:.5rem">
         <input type="text" id="promoInput" placeholder="Enter promo code" style="flex:1;background:var(--bg2);border:1.5px solid var(--bdr);color:var(--txt);padding:.6rem .8rem;border-radius:8px;font-family:var(--fb);font-size:.88rem;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
-        <button style="background:var(--or);color:#000;border:none;border-radius:8px;padding:.6rem 1rem;font-family:var(--fc);font-size:.78rem;font-weight:800;letter-spacing:.5px;cursor:pointer;white-space:nowrap" onclick="redeemPromo()">Redeem</button>
+        <button style="background:var(--or);color:#000;border:none;border-radius:8px;padding:.6rem 1rem;font-family:var(--fc);font-size:.78rem;font-weight:800;letter-spacing:.5px;cursor:pointer;white-space:nowrap" onclick="window.redeemPromo&&window.redeemPromo()">Redeem</button>
       </div>
       <div id="promoMsg" style="font-size:.72rem;margin-top:.5rem;display:none"></div>
     </div>
