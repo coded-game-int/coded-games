@@ -1733,11 +1733,33 @@ function renderTournaments(tab){
           <button class="btn btn-or btn-sm" onclick="openManageTournament('${tid}')">⚙️ Manage</button>
           <button class="btn btn-ghost btn-sm" onclick="viewRegistrations('${tid}')">👥 ${regCount} Registered</button>
           <a href="tournament.html?id=${tid}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">👁️ View</a>
+          ${(t.status==='completed'||t.status==='cancelled'||t.status==='postponed')?`<button class="btn btn-red btn-sm" onclick="deleteTournament('${tid}','${(t.name||'Tournament').replace(/'/g,'')}')" style="margin-left:auto">🗑️ Delete</button>`:''}
         </div>
       </div>
     </div>`;
   }).join('');
 }
+
+window.deleteTournament=async function(tid,name){
+  if(!confirm(`Delete "${name}"?\n\nThis permanently removes the tournament from Firebase. Player registrations and transaction records are NOT deleted.\n\nOnly delete ended or test tournaments you no longer need.`))return;
+  try{
+    await remove(ref(db,'tournaments/'+tid));
+    delete allTournaments[tid];
+    const activeTabBtn=document.querySelector('#sec-tournaments .inner-tab.active');
+    let currentTab='completed';
+    if(activeTabBtn){
+      const txt=activeTabBtn.textContent.toLowerCase();
+      if(txt.includes('active'))currentTab='active';
+      else if(txt.includes('upcoming'))currentTab='upcoming';
+      else if(txt.includes('complete'))currentTab='completed';
+      else if(txt.includes('cancel'))currentTab='cancelled';
+    }
+    renderTournaments(currentTab);
+    toast('Tournament deleted ✅','green');
+  }catch(e){
+    toast('Delete failed: '+e.message,'red');
+  }
+};
 
 window.openCreateTournament=function(tid){
   activeTournamentId=tid||null;
