@@ -1515,14 +1515,39 @@ window.rejectPlayer=async function(){
   const reason=document.getElementById('vm-reject-reason').value.trim();
   if(!confirm('❌ Reject this player?\nThey will be marked as rejected. Are you sure?'))return;
   try{
-    await update(ref(db,'players/'+pid+'/profile'),{
+    // Re-fetch latest profile to check if bonus was already credited
+    const playerSnap=await get(ref(db,'players/'+pid+'/profile'));
+    const pData=playerSnap.val()||{};
+    const wasVerified=pData.verified===true;
+
+    // If they were already approved and bonus credited, reverse the welcome bonus
+    const updates={
       verified:false,
       rejected:true,
       rejectedReason:reason||'UID not verifiable',
       verifiedAt:null
-    });
+    };
+
+    if(wasVerified){
+      // Get welcome bonus amount (same value that was credited on approve)
+      const settingsSnap=await get(ref(db,'settings/welcomeBonus'));
+      const welcomeBonus=settingsSnap.exists()?parseInt(settingsSnap.val())||500:500;
+      const currentBonus=parseInt(pData.balanceBonus)||0;
+      // Reverse the bonus — don't go below 0
+      updates.balanceBonus=Math.max(0,currentBonus-welcomeBonus);
+      // Log the reversal as a transaction
+      await push(ref(db,'players/'+pid+'/transactions'),{
+        type:'bonus_reversed',amount:welcomeBonus,
+        note:'Welcome bonus reversed — verification rejected',
+        createdAt:Date.now()
+      });
+      toast('Player rejected — welcome bonus reversed ↩️','red');
+    } else {
+      toast('Player rejected','red');
+    }
+
+    await update(ref(db,'players/'+pid+'/profile'),updates);
     closeModal('verifyModal');
-    toast('Player rejected','red');
   }catch(e){
     toast('Failed to reject: '+e.message,'red');
     console.error('rejectPlayer error:',e);
@@ -1592,14 +1617,18 @@ window.approveTopup=async function(){
   const actual=parseFloat(document.getElementById('tu-actual').value)||0;
   if(!actual){toast('Enter the amount received','red');return;}
   const p=allPlayers[pid];
-  if(!confirm(`✅ Approve top-up of ₦${actual} for ${p.username}?\nThis will credit their balance immediately. Cannot be undone.`))return;
-  const p=allPlayers[pid];
+  if(!confirm(`✅ Approve top-up of ₦${actual.toLocaleString()} for ${p.username}?\nThis will credit their real balance immediately. Cannot be undone.`))return;
+  // Check not already approved
+  const txSnap=await get(ref(db,`players/${pid}/topups/${tid}`));
+  if(txSnap.exists()&&txSnap.val().status==='approved'){toast('Already approved','red');return;}
   const newBal=(p.balanceReal||0)+actual;
   try{
     await update(ref(db,'players/'+pid+'/profile'),{balanceReal:newBal});
     await update(ref(db,`players/${pid}/topups/${tid}`),{status:'approved',approvedAt:Date.now(),actualAmount:actual});
+    await push(ref(db,`players/${pid}/transactions`),{type:'topup',amount:actual,status:'approved',createdAt:Date.now(),note:'Top-up approved by admin'});
+    allPlayers[pid].balanceReal=newBal;
     closeModal('topupModal');
-    toast(`₦${actual} credited to ${p.username} ✅`,'green');
+    toast(`₦${actual.toLocaleString()} credited to ${p.username} ✅`,'green');
   }catch(e){
     toast('Failed to approve topup: '+e.message,'red');
   }
@@ -1608,11 +1637,29 @@ window.approveTopup=async function(){
 window.rejectTopup=async function(){
   const {pid,tid}=currentTopupId;
   const reason=document.getElementById('tu-reject-reason').value.trim();
-  if(!confirm('❌ Reject this top-up request?\nThe player will be notified. Are you sure?'))return;
+  const p=allPlayers[pid];
+  const txSnap=await get(ref(db,`players/${pid}/topups/${tid}`));
+  const txData=txSnap.exists()?txSnap.val():{};
+  const wasApproved=txData.status==='approved';
+  const creditedAmt=txData.actualAmount||txData.amount||0;
+  const confirmMsg=wasApproved
+    ?`❌ Reject this ALREADY APPROVED top-up?\nThis will REVERSE ₦${creditedAmt.toLocaleString()} from ${p.username}'s balance.\n\nAre you absolutely sure?`
+    :`❌ Reject this top-up request?\nThe player will be notified. Are you sure?`;
+  if(!confirm(confirmMsg))return;
   try{
-    await update(ref(db,`players/${pid}/topups/${tid}`),{status:'rejected',rejectedAt:Date.now(),rejectReason:reason||'Unverified payment'});
+    const updates={status:'rejected',rejectedAt:Date.now(),rejectReason:reason||'Unverified payment'};
+    await update(ref(db,`players/${pid}/topups/${tid}`),updates);
+    // If already approved — reverse the credited amount
+    if(wasApproved&&creditedAmt>0){
+      const newBal=Math.max(0,(p.balanceReal||0)-creditedAmt);
+      await update(ref(db,'players/'+pid+'/profile'),{balanceReal:newBal});
+      await push(ref(db,`players/${pid}/transactions`),{type:'topup_reversed',amount:creditedAmt,status:'reversed',createdAt:Date.now(),note:'Top-up reversed after rejection'});
+      allPlayers[pid].balanceReal=newBal;
+      toast(`Top-up rejected — ₦${creditedAmt.toLocaleString()} reversed from ${p.username}`,'red');
+    } else {
+      toast('Top-up rejected','red');
+    }
     closeModal('topupModal');
-    toast('Top-up rejected','red');
   }catch(e){
     toast('Failed to reject: '+e.message,'red');
   }
@@ -2120,7 +2167,7 @@ function renderPlayers(filter=''){
       <div class="player-info">
         <div class="player-name">${p.username||'Unknown'}</div>
         <div class="player-uid">UID: ${p.pubgUid||'—'} ${p.inGameName?'• 🎮 '+p.inGameName:''}</div>
-        <div class="player-meta">${p.contact||''} • ₦${p.balance||0} real • ${p.bonusBalance||0}🪙 bonus</div>
+        <div class="player-meta">${p.contact||''} • ₦${(p.balanceReal||0).toLocaleString()} real • ${(p.balanceBonus||0).toLocaleString()}🪙 bonus</div>
       </div>
       <div>
         <span class="status ${p.verified?'status-verified':p.rejected?'status-rejected':'status-pending'}">${p.verified?'✅':p.rejected?'❌':'⏳'}</span>

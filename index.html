@@ -573,8 +573,6 @@ onValue(ref(db,'settings/launch'), snap=>{
     const launchDate=new Date(launchTs);
     const dateEl=document.getElementById('cdDateStr');
     if(dateEl)dateEl.textContent=launchDate.toLocaleDateString('en-NG',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-    // Gentle confetti rain while countdown active
-    setTimeout(()=>{window._startConfettiRain&&window._startConfettiRain(false);},600);
     // Audio context for beep sounds
     let audioCtx=null;
     function playBeep(freq,duration,vol){
@@ -879,8 +877,11 @@ function cgToggleTheme(){
   }
 
   window._startConfettiRain=function(isLaunchMoment){
+    // Only run at launch moment (timer hits zero) — not during countdown
+    if(!isLaunchMoment)return;
     createCanvas();
-    if(isLaunchMoment){for(let i=0;i<120;i++)_particles.push(spawnParticle(true));showLiveBanner();}
+    for(let i=0;i<120;i++)_particles.push(spawnParticle(true));
+    showLiveBanner();
     if(!_running){_running=true;animate();}
   };
   window._stopConfettiRain=function(){
