@@ -601,6 +601,8 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
     <div class="form-group"><label class="form-label">Instagram</label><input type="url" class="form-input" id="socInstagram" placeholder="https://instagram.com/..."></div>
     <div class="form-group"><label class="form-label">Twitter / X</label><input type="url" class="form-input" id="socTwitter" placeholder="https://x.com/..."></div>
     <div class="form-group"><label class="form-label">TikTok</label><input type="url" class="form-input" id="socTiktok" placeholder="https://tiktok.com/@..."></div>
+    <div class="form-group"><label class="form-label">Facebook</label><input type="url" class="form-input" id="socFacebook" placeholder="https://facebook.com/..."></div>
+    <div class="form-group"><label class="form-label">Discord</label><input type="url" class="form-input" id="socDiscord" placeholder="https://discord.gg/..."></div>
     <div class="form-group"><label class="form-label">Support Email</label><input type="email" class="form-input" id="socEmail" placeholder="support@codedgames.com"></div>
     <button class="btn btn-or btn-sm" onclick="window.saveSocialSettings&&window.saveSocialSettings()">Save Social Links</button>
   </div>
@@ -2335,6 +2337,8 @@ async function loadSettings(){
     document.getElementById('socInstagram').value=s.social.instagram||'';
     document.getElementById('socTwitter').value=s.social.twitter||'';
     document.getElementById('socTiktok').value=s.social.tiktok||'';
+    document.getElementById('socFacebook').value=s.social.facebook||'';
+    document.getElementById('socDiscord').value=s.social.discord||'';
     document.getElementById('socEmail').value=s.social.email||'';
   }
   if(s.referral){
@@ -2379,6 +2383,8 @@ window.saveSocialSettings=async function(){
     instagram:document.getElementById('socInstagram').value.trim(),
     twitter:document.getElementById('socTwitter').value.trim(),
     tiktok:document.getElementById('socTiktok').value.trim(),
+    facebook:document.getElementById('socFacebook').value.trim(),
+    discord:document.getElementById('socDiscord').value.trim(),
     email:document.getElementById('socEmail').value.trim()
   });
   toast('Social links saved ✅','green');
