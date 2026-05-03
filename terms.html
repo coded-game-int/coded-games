@@ -287,6 +287,44 @@ const cfg={
 const app=initializeApp(cfg);
 const db=getDatabase(app);
 window._db=db; window._ref=ref; window._get=get;
+  // Load WhatsApp float button link from Firebase
+  (function(){
+    const waDiv=document.getElementById('waFloat');
+    const waLink=document.getElementById('waFloatLink');
+    if(!waDiv||!waLink)return;
+    get(ref(db,'settings/social')).then(snap=>{
+      if(snap&&snap.exists()){
+        const link=(snap.val()||{}).whatsapp||'';
+        if(link){waLink.href=link;waDiv.style.display='block';}
+      }
+    }).catch(()=>{});
+  })();
+
+  const _SOCIAL_ICONS={
+    whatsapp:{icon:'💬',label:'WhatsApp'},
+    instagram:{icon:'📸',label:'Instagram'},
+    twitter:{icon:'🐦',label:'Twitter / X'},
+    tiktok:{icon:'🎵',label:'TikTok'},
+    facebook:{icon:'📘',label:'Facebook'},
+    discord:{icon:'🎮',label:'Discord'},
+    email:{icon:'✉️',label:'Email',isEmail:true}
+  };
+  function _loadFooterSocial(){
+    const el=document.getElementById('cgFooterSocial');
+    if(!el)return;
+    get(ref(db,'settings/social')).then(snap=>{
+      const s=snap&&snap.exists()?snap.val():{};
+      const links=Object.entries(_SOCIAL_ICONS)
+        .filter(([key])=>s[key]&&s[key].trim())
+        .map(([key,info])=>{
+          const href=info.isEmail?'mailto:'+s[key]:s[key];
+          return `<a href="${href}" target="_blank" rel="noopener" class="cg-social-link"><span>${info.icon}</span>${info.label}</a>`;
+        }).join('');
+      el.innerHTML='<h4>Social</h4>'+(links||'<span style="font-size:.72rem;color:var(--muted,#8a7060)">Coming soon</span>');
+    }).catch(()=>{el.innerHTML='<h4>Social</h4>';});
+  }
+  _loadFooterSocial();
+
 (async()=>{
   try{
     const snap=await get(ref(db,'settings/termsContent'));
@@ -348,52 +386,7 @@ window._db=db; window._ref=ref; window._get=get;
     <p>Made for Nigerian PUBG players 🇳🇬</p>
   </div>
 </footer>
-<script>
-// Load social links into footer dynamically from Firebase
-(function(){
-  const SOCIAL_ICONS={
-    whatsapp:{icon:'💬',label:'WhatsApp'},
-    instagram:{icon:'📸',label:'Instagram'},
-    twitter:{icon:'🐦',label:'Twitter / X'},
-    tiktok:{icon:'🎵',label:'TikTok'},
-    facebook:{icon:'📘',label:'Facebook'},
-    discord:{icon:'🎮',label:'Discord'},
-    email:{icon:'✉️',label:'Email',isEmail:true}
-  };
-  let _ftAttempts=0;
-  function loadFooterSocial(){
-    const el=document.getElementById('cgFooterSocial');
-    if(!el)return;
-    const db=window._db;
-    const refFn=window._ref;
-    const getFn=window._get;
-    if(!db||!refFn||!getFn){
-      _ftAttempts++;
-      if(_ftAttempts<20)setTimeout(loadFooterSocial,300);
-      return;
-    }
-    getFn(refFn(db,'settings/social')).then(snap=>{
-      const s=snap&&snap.exists()?snap.val():{};
-      const links=Object.entries(SOCIAL_ICONS)
-        .filter(([key])=>s[key]&&s[key].trim())
-        .map(([key,info])=>{
-          const href=info.isEmail?'mailto:'+s[key]:s[key];
-          return `<a href="${href}" target="_blank" rel="noopener" class="cg-social-link">
-            <span>${info.icon}</span>${info.label}
-          </a>`;
-        }).join('');
-      el.innerHTML='<h4>Social</h4>'+(links||'<span style="font-size:.72rem;color:var(--muted,#8a7060)">Coming soon</span>');
-    }).catch(()=>{
-      el.innerHTML='<h4>Social</h4>';
-    });
-  }
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',()=>setTimeout(loadFooterSocial,800));
-  } else {
-    setTimeout(loadFooterSocial,800);
-  }
-})();
-</script>
+
 <div id="waFloat" style="display:none;position:fixed;bottom:80px;right:18px;z-index:9990;animation:waPulse 2s ease-in-out infinite">
   <a id="waFloatLink" href="#" target="_blank" rel="noopener"
      style="display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;background:#25D366;box-shadow:0 4px 16px rgba(37,211,102,.5);text-decoration:none;transition:transform .2s"
@@ -403,50 +396,7 @@ window._db=db; window._ref=ref; window._get=get;
     </svg>
   </a>
 </div>
-<style>
-@keyframes waPulse{
-  0%,100%{filter:drop-shadow(0 0 0px #25D36688);}
-  50%{filter:drop-shadow(0 0 8px #25D36688);}
-}
-</style>
-<script>
-// Load WhatsApp link from Firebase settings and show float button
-(function(){
-  function initWaFloat(){
-    const waDiv=document.getElementById('waFloat');
-    const waLink=document.getElementById('waFloatLink');
-    if(!waDiv||!waLink)return;
-    // Try to get settings - works on all pages that have Firebase loaded
-    let _waAttempts=0;
-    const tryLoad=()=>{
-      const db=window._db;
-      const refFn=window._ref;
-      const getFn=window._get;
-      if(!db||!refFn||!getFn){
-        _waAttempts++;
-        if(_waAttempts<20)setTimeout(tryLoad,300);
-        return;
-      }
-      getFn(refFn(db,'settings/social')).then(snap=>{
-        if(snap&&snap.exists()){
-          const s=snap.val()||{};
-          const link=s.whatsapp||'';
-          if(link){
-            waLink.href=link;
-            waDiv.style.display='block';
-          }
-        }
-      }).catch(()=>{});
-    };
-    setTimeout(tryLoad,800);
-  }
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',initWaFloat);
-  } else {
-    initWaFloat();
-  }
-})();
-</script>
+
 
 </body>
 </html>

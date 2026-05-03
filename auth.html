@@ -290,6 +290,19 @@ const app=initializeApp(cfg);
 const auth=getAuth(app);
 const db=getDatabase(app);
 window._db=db; window._ref=ref; window._get=get;
+  // Load WhatsApp float button link from Firebase
+  (function(){
+    const waDiv=document.getElementById('waFloat');
+    const waLink=document.getElementById('waFloatLink');
+    if(!waDiv||!waLink)return;
+    get(ref(db,'settings/social')).then(snap=>{
+      if(snap&&snap.exists()){
+        const link=(snap.val()||{}).whatsapp||'';
+        if(link){waLink.href=link;waDiv.style.display='block';}
+      }
+    }).catch(()=>{});
+  })();
+
 const googleProvider=new GoogleAuthProvider();
 // Keep user logged in permanently on this device
 setPersistence(auth, browserLocalPersistence).catch(()=>{});
@@ -501,50 +514,7 @@ function cgToggleTheme(){
     </svg>
   </a>
 </div>
-<style>
-@keyframes waPulse{
-  0%,100%{filter:drop-shadow(0 0 0px #25D36688);}
-  50%{filter:drop-shadow(0 0 8px #25D36688);}
-}
-</style>
-<script>
-// Load WhatsApp link from Firebase settings and show float button
-(function(){
-  function initWaFloat(){
-    const waDiv=document.getElementById('waFloat');
-    const waLink=document.getElementById('waFloatLink');
-    if(!waDiv||!waLink)return;
-    // Try to get settings - works on all pages that have Firebase loaded
-    let _waAttempts=0;
-    const tryLoad=()=>{
-      const db=window._db;
-      const refFn=window._ref;
-      const getFn=window._get;
-      if(!db||!refFn||!getFn){
-        _waAttempts++;
-        if(_waAttempts<20)setTimeout(tryLoad,300);
-        return;
-      }
-      getFn(refFn(db,'settings/social')).then(snap=>{
-        if(snap&&snap.exists()){
-          const s=snap.val()||{};
-          const link=s.whatsapp||'';
-          if(link){
-            waLink.href=link;
-            waDiv.style.display='block';
-          }
-        }
-      }).catch(()=>{});
-    };
-    setTimeout(tryLoad,800);
-  }
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',initWaFloat);
-  } else {
-    initWaFloat();
-  }
-})();
-</script>
+
 
 </body>
 </html>
