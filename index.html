@@ -317,7 +317,7 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:2rem 1.2rem
 
 <nav class="tb">
   <a class="logo" href="#">
-    <img src="logo.jpg" alt="Coded Games" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid var(--or)">
+    <img src="logo.jpg" alt="Coded Games" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid var(--or)" onerror="this.style.display='none';this.nextElementSibling&&(this.nextElementSibling.style.display='grid')">
     <div class="logo-txt">CODED <b>GAMES</b></div>
   </a>
   <div class="tb-r">
@@ -402,27 +402,96 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:2rem 1.2rem
 </section>
 
 <!-- FOOTER -->
-<footer>
-  <div class="ft">
-    <div class="fb">
-      <div class="logo"><img src="logo.jpg" alt="Coded Games" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1.5px solid var(--or)"><div class="logo-txt">CODED <b>GAMES</b></div></div>
+
+<style>
+.cg-footer{background:var(--bg2,#130900);border-top:1px solid var(--bdr,#2a1800);padding:2rem 1.2rem 1.2rem;margin-top:2rem}
+.cg-ft{display:flex;justify-content:space-between;gap:1.2rem;flex-wrap:wrap;margin-bottom:1.2rem}
+.cg-fb p{font-size:.73rem;color:var(--muted,#8a7060);margin-top:.45rem;line-height:1.5;max-width:200px}
+.cg-fl h4{font-family:var(--fc,'Rajdhani'),sans-serif;font-size:.72rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--or,#f5a020);margin-bottom:.6rem}
+.cg-fl a{display:block;font-size:.78rem;color:var(--txt2,#c8a882);text-decoration:none;margin-bottom:.35rem;transition:color .15s}
+.cg-fl a:hover{color:var(--or,#f5a020)}
+.cg-fwarn{background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.18);border-radius:8px;padding:.75rem 1rem;font-size:.72rem;color:var(--txt2,#c8a882);margin-bottom:1rem;line-height:1.5}
+.cg-fwarn strong{color:var(--or,#f5a020)}
+.cg-fbot{border-top:1px solid var(--bdr,#2a1800);padding-top:.9rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.3rem}
+.cg-fbot p{font-size:.68rem;color:var(--muted,#8a7060)}
+.cg-social-link{display:flex;align-items:center;gap:.4rem}
+.cg-social-link span{font-size:.82rem}
+</style>
+<footer class="cg-footer" id="cgFooter">
+  <div class="cg-ft">
+    <div class="cg-fb">
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
+        <img src="logo.jpg" alt="Coded Games" style="width:26px;height:26px;border-radius:50%;object-fit:cover;border:1.5px solid var(--or,#f5a020)">
+        <span style="font-family:var(--fc,'Rajdhani'),sans-serif;font-size:1rem;font-weight:800;color:var(--txt,#fff)">CODED <b style="color:var(--or,#f5a020)">GAMES</b></span>
+      </div>
       <p>Nigeria's competitive PUBG Mobile tournament platform. Skill-based. Real prizes.</p>
     </div>
-    <div class="fl">
+    <div class="cg-fl">
       <h4>Platform</h4>
-      <a href="index.html#tournaments">Tournaments</a><a href="leaderboard.html">Leaderboard</a><a href="index.html#how">How It Works</a><a href="index.html#prizes">Prizes</a>
+      <a href="index.html#tournaments">Tournaments</a>
+      <a href="leaderboard.html">Leaderboard</a>
+      <a href="index.html#how">How It Works</a>
+      <a href="index.html#prizes">Prizes</a>
     </div>
-    <div class="fl">
+    <div class="cg-fl">
       <h4>Account</h4>
       <a href="auth.html#register">Register</a>
       <a href="auth.html">Login</a>
-      <a href="#" onclick="openTopupOrLogin();return false">Top Up</a>
       <a href="dashboard.html">Dashboard</a>
+      <a href="terms.html">Terms</a>
+    </div>
+    <div class="cg-fl" id="cgFooterSocial">
+      <h4>Social</h4>
+      <span style="font-size:.72rem;color:var(--muted,#8a7060)">Loading...</span>
     </div>
   </div>
-  <div class="fwarn"><strong>⚠️ Important:</strong> Coded Games is a skill-based tournament platform. Entry fees are non-refundable except where stated. Players must be <strong>18 years or older</strong>. Nigeria only.</div>
-  <div class="fbot"><p>© 2026 Coded Games × Coded INT × Prince Web Dev · All Rights Reserved</p><p>Made for Nigerian PUBG players 🇳🇬</p></div>
+  <div class="cg-fwarn"><strong>⚠️ Important:</strong> Coded Games is a skill-based tournament platform. Entry fees are non-refundable except where stated. Players must be <strong>18 years or older</strong>. Nigeria only.</div>
+  <div class="cg-fbot">
+    <p>© 2026 Coded Games × Coded INT × Prince Web Dev · All Rights Reserved</p>
+    <p>Made for Nigerian PUBG players 🇳🇬</p>
+  </div>
 </footer>
+<script>
+// Load social links into footer dynamically from Firebase
+(function(){
+  const SOCIAL_ICONS={
+    whatsapp:{icon:'💬',label:'WhatsApp'},
+    instagram:{icon:'📸',label:'Instagram'},
+    twitter:{icon:'🐦',label:'Twitter / X'},
+    tiktok:{icon:'🎵',label:'TikTok'},
+    facebook:{icon:'📘',label:'Facebook'},
+    discord:{icon:'🎮',label:'Discord'},
+    email:{icon:'✉️',label:'Email',isEmail:true}
+  };
+  function loadFooterSocial(){
+    const el=document.getElementById('cgFooterSocial');
+    if(!el)return;
+    const db=window._db||(typeof getDatabase!=='undefined'?getDatabase():null);
+    const refFn=window._ref||(typeof ref!=='undefined'?ref:null);
+    const getFn=window._get||(typeof get!=='undefined'?get:null);
+    if(!db||!refFn||!getFn){setTimeout(loadFooterSocial,600);return;}
+    getFn(refFn(db,'settings/social')).then(snap=>{
+      const s=snap&&snap.exists()?snap.val():{};
+      const links=Object.entries(SOCIAL_ICONS)
+        .filter(([key])=>s[key]&&s[key].trim())
+        .map(([key,info])=>{
+          const href=info.isEmail?'mailto:'+s[key]:s[key];
+          return `<a href="${href}" target="_blank" rel="noopener" class="cg-social-link">
+            <span>${info.icon}</span>${info.label}
+          </a>`;
+        }).join('');
+      el.innerHTML='<h4>Social</h4>'+(links||'<span style="font-size:.72rem;color:var(--muted,#8a7060)">Coming soon</span>');
+    }).catch(()=>{
+      el.innerHTML='<h4>Social</h4>';
+    });
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(loadFooterSocial,800));
+  } else {
+    setTimeout(loadFooterSocial,800);
+  }
+})();
+</script>
 
 <!-- TOP-UP MODAL -->
 <div class="mover" id="mTopup" onclick="ovClick(event,'mTopup')">
