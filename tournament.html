@@ -355,6 +355,7 @@ const cfg={
 const app=initializeApp(cfg);
 const auth=getAuth(app);
 const db=getDatabase(app);
+window._db=db; window._ref=ref; window._get=get;
 
 // --- STATE ---
 let currentUser=null;
@@ -994,13 +995,18 @@ function cgToggleTheme(){
     discord:{icon:'🎮',label:'Discord'},
     email:{icon:'✉️',label:'Email',isEmail:true}
   };
+  let _ftAttempts=0;
   function loadFooterSocial(){
     const el=document.getElementById('cgFooterSocial');
     if(!el)return;
-    const db=window._db||(typeof getDatabase!=='undefined'?getDatabase():null);
-    const refFn=window._ref||(typeof ref!=='undefined'?ref:null);
-    const getFn=window._get||(typeof get!=='undefined'?get:null);
-    if(!db||!refFn||!getFn){setTimeout(loadFooterSocial,600);return;}
+    const db=window._db;
+    const refFn=window._ref;
+    const getFn=window._get;
+    if(!db||!refFn||!getFn){
+      _ftAttempts++;
+      if(_ftAttempts<20)setTimeout(loadFooterSocial,300);
+      return;
+    }
     getFn(refFn(db,'settings/social')).then(snap=>{
       const s=snap&&snap.exists()?snap.val():{};
       const links=Object.entries(SOCIAL_ICONS)
@@ -1046,11 +1052,16 @@ function cgToggleTheme(){
     const waLink=document.getElementById('waFloatLink');
     if(!waDiv||!waLink)return;
     // Try to get settings - works on all pages that have Firebase loaded
+    let _waAttempts=0;
     const tryLoad=()=>{
-      const db=window._db||(typeof getDatabase!=='undefined'?getDatabase():null);
-      const refFn=window._ref||(typeof ref!=='undefined'?ref:null);
-      const getFn=window._get||(typeof get!=='undefined'?get:null);
-      if(!db||!refFn||!getFn){setTimeout(tryLoad,500);return;}
+      const db=window._db;
+      const refFn=window._ref;
+      const getFn=window._get;
+      if(!db||!refFn||!getFn){
+        _waAttempts++;
+        if(_waAttempts<20)setTimeout(tryLoad,300);
+        return;
+      }
       getFn(refFn(db,'settings/social')).then(snap=>{
         if(snap&&snap.exists()){
           const s=snap.val()||{};
