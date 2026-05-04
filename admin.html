@@ -590,7 +590,26 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
       <label class="form-label">Working Hours Notice</label>
       <input type="text" class="form-input" id="bankNotice" placeholder="Transactions made 8PM–8AM may take longer to verify">
     </div>
+    <div class="form-group">
+      <label class="form-label">Minimum Withdrawal (₦)</label>
+      <input type="number" class="form-input" id="minWithdrawal" placeholder="500" min="0">
+      <div style="font-size:.68rem;color:var(--muted);margin-top:.3rem">Players cannot withdraw below this amount</div>
+    </div>
     <button class="btn btn-or btn-sm" onclick="window.savePaymentSettings&&window.savePaymentSettings()">Save Payment Settings</button>
+  </div>
+
+  <!-- General Settings -->
+  <div class="card" style="border-top:3px solid var(--or)">
+    <div class="card-top-line" style="background:var(--or)"></div>
+    <div class="sec-title" style="font-size:.82rem;margin-bottom:.8rem">⚙️ General Settings</div>
+    <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;background:var(--bg2);padding:.7rem .8rem;border-radius:8px;border:1px solid var(--bdr)">
+      <div>
+        <div style="font-size:.8rem;font-weight:600;color:var(--txt)">Show Player Count on Tournament Page</div>
+        <div style="font-size:.68rem;color:var(--muted);margin-top:.15rem">When OFF, players cannot see how many have registered</div>
+      </div>
+      <input type="checkbox" id="showPlayerCount" style="width:18px;height:18px;accent-color:var(--or);cursor:pointer;flex-shrink:0">
+    </div>
+    <button class="btn btn-or btn-sm" style="margin-top:.8rem" onclick="window.saveGeneralSettings&&window.saveGeneralSettings()">Save General Settings</button>
   </div>
 
   <!-- Social media -->
@@ -2316,6 +2335,10 @@ async function renderSettings(){
 async function loadSettings(){
   const snap=await get(ref(db,'settings'));
   const s=snap.val()||{};
+  if(s.general){
+    const spc=document.getElementById('showPlayerCount');
+    if(spc)spc.checked=!!s.general.showPlayerCount;
+  }
   if(s.launch){
     if(s.launch.date){
       const ld=new Date(s.launch.date);
@@ -2331,6 +2354,7 @@ async function loadSettings(){
     document.getElementById('bankAcct').value=s.payment.accountNumber||'8900952292';
     document.getElementById('bankAcctName').value=s.payment.accountName||'CODED INT(HAMMED)';
     document.getElementById('bankNotice').value=s.payment.notice||'Transactions made between 8PM – 8AM may take longer to verify';
+    document.getElementById('minWithdrawal').value=s.payment.minWithdrawal||500;
   }
   if(s.social){
     document.getElementById('socWhatsapp').value=s.social.whatsapp||'';
@@ -2367,12 +2391,20 @@ window.saveLaunchSettings=async function(){
   toast(gateOn?'Countdown gate ACTIVE ✅ — players see countdown':'Countdown gate OFF — site is open','green');
 };
 
+window.saveGeneralSettings=async function(){
+  const showPlayerCount=document.getElementById('showPlayerCount').checked;
+  await update(ref(db,'settings/general'),{showPlayerCount});
+  toast('General settings saved ✅','green');
+};
+
 window.savePaymentSettings=async function(){
+  const minWd=parseInt(document.getElementById('minWithdrawal').value)||500;
   await update(ref(db,'settings/payment'),{
     bankName:document.getElementById('bankName').value.trim(),
     accountNumber:document.getElementById('bankAcct').value.trim(),
     accountName:document.getElementById('bankAcctName').value.trim(),
-    notice:document.getElementById('bankNotice').value.trim()
+    notice:document.getElementById('bankNotice').value.trim(),
+    minWithdrawal:minWd
   });
   toast('Payment settings saved ✅','green');
 };

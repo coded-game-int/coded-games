@@ -423,7 +423,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
     <button class="mclose" onclick="closeM('mWithdraw')">✕</button>
     <div class="mtitle">💸 Withdraw</div>
     <div class="withdraw-warning">
-      <p>⚠️ <strong>Withdrawals are manual.</strong> Funds will be sent to your bank account within 24 hours. Minimum withdrawal: <strong>₦500</strong>.</p>
+      <p>⚠️ <strong>Withdrawals are manual.</strong> Funds will be sent to your bank account within 24 hours. <span id="wdMinNotice">Minimum withdrawal: ₦500</span>.</p>
     </div>
     <div class="fg"><label class="fl">Amount (₦)</label>
       <input type="number" class="fi" id="wAmt" placeholder="e.g. 1000" min="500"></div>
@@ -938,14 +938,25 @@ function updateBalanceDisplay(){
 }
 
 // WITHDRAW
-window.openWithdraw=function(){
+window.openWithdraw=async function(){
   const p=window._player;
   if(!p.verified){
     alert('Your account must be verified before you can withdraw.');return;
   }
-  if((p.balanceReal||0)<500){
-    alert('Minimum withdrawal is ₦500. Your current balance is ₦'+(p.balanceReal||0));return;
+  // Read minimum withdrawal from Firebase settings
+  let minWd=500;
+  try{
+    const snap=await window._get(window._ref(window._db,'settings/payment/minWithdrawal'));
+    if(snap&&snap.exists())minWd=parseInt(snap.val())||500;
+  }catch(_){}
+  if((p.balanceReal||0)<minWd){
+    alert('Minimum withdrawal is ₦'+minWd.toLocaleString()+'. Your current balance is ₦'+(p.balanceReal||0).toLocaleString());return;
   }
+  // Store for use in submitWithdraw
+  window._minWithdrawal=minWd;
+  // Update modal notice text
+  const noticeEl=document.getElementById('wdMinNotice');
+  if(noticeEl)noticeEl.textContent='Minimum withdrawal: ₦'+minWd.toLocaleString();
   openM('mWithdraw');
 };
 
@@ -957,7 +968,8 @@ window.submitWithdraw=async function(){
   const p=window._player;
   const alertEl=document.getElementById('w-alert');
   alertEl.className='alert';
-  if(!amt||amt<500){alertEl.textContent='Minimum withdrawal is ₦500';alertEl.className='alert err show';return;}
+  const minWd=window._minWithdrawal||500;
+  if(!amt||amt<minWd){alertEl.textContent='Minimum withdrawal is ₦'+minWd.toLocaleString();alertEl.className='alert err show';return;}
   if(amt>(p.balanceReal||0)){alertEl.textContent='Insufficient balance';alertEl.className='alert err show';return;}
   if(!bank||!acct||!name){alertEl.textContent='Please fill all fields';alertEl.className='alert err show';return;}
   if(acct.length!==10||!/^\d+$/.test(acct)){alertEl.textContent='Enter a valid 10-digit account number';alertEl.className='alert err show';return;}

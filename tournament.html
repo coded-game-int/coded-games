@@ -357,6 +357,14 @@ const auth=getAuth(app);
 setPersistence(auth,browserLocalPersistence).catch(()=>{});
 const db=getDatabase(app);
 window._db=db; window._ref=ref; window._get=get;
+// Load general settings
+get(ref(db,'settings/general')).then(snap=>{
+  if(snap&&snap.exists()){
+    window._showPlayerCount=snap.val().showPlayerCount!==false;
+  } else {
+    window._showPlayerCount=true; // default ON
+  }
+}).catch(()=>{window._showPlayerCount=true;});
   // Load WhatsApp float button link from Firebase
   (function(){
     const waDiv=document.getElementById('waFloat');
@@ -469,6 +477,8 @@ function render(){
   const isRegistered=currentUser&&t.registrations&&t.registrations[currentUser.uid];
   const regCount=t.registrations?Object.keys(t.registrations).length:0;
   const isFull=regCount>=(t.maxPlayers||100);
+  // showPlayerCount controlled by admin setting
+  const showCount=window._showPlayerCount!==false;
   const starts=t.startTime||0;
   const isStarted=now>=starts;
   const minsToStart=(starts-now)/60000;
@@ -497,7 +507,7 @@ function render(){
           </div>
           <div class="info-item">
             <div class="info-label">Players</div>
-            <div class="info-val orange">${regCount} / ${t.maxPlayers||'—'}</div>
+            <div class="info-val orange">${showCount?regCount+'&thinsp;/&thinsp;'+(t.maxPlayers||'—'):'— / '+(t.maxPlayers||'—')}</div>
           </div>
           <div class="info-item">
             <div class="info-label">Entry Fee</div>
@@ -543,11 +553,7 @@ function render(){
       <div class="rules-txt">${escHtml(t.rules)}</div>
     </div>`:''}
 
-    <!-- REGISTERED PLAYERS -->
-    <div class="sec-title">👥 Players (${regCount})</div>
-    <div class="players-card">
-      ${renderPlayerList(t)}
-    </div>
+    <!-- REGISTERED PLAYERS HIDDEN FOR NOW -->
   `;
 
   // Start countdown interval
