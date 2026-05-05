@@ -911,9 +911,11 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
     </div>
     <div class="modal-body">
       <div class="inner-tabs" style="margin-bottom:.75rem">
-        <button class="inner-tab active" onclick="switchManageTab('room')">🔑 Room Code</button>
+        <button class="inner-tab active" onclick="switchManageTab('room')">🔑 Room</button>
+        <button class="inner-tab" onclick="switchManageTab('edit')">✏️ Edit</button>
         <button class="inner-tab" onclick="switchManageTab('results')">📊 Results</button>
         <button class="inner-tab" onclick="switchManageTab('status')">⚙️ Status</button>
+        <button class="inner-tab" onclick="switchManageTab('players')">👥 Players</button>
       </div>
 
       <!-- Room Code Tab -->
@@ -969,6 +971,53 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
         </div>
         <button class="btn btn-or btn-sm" onclick="window.updateTournamentStatus&&window.updateTournamentStatus()">Update Status</button>
       </div>
+
+      <!-- Edit Details Tab -->
+      <div id="mt-edit" style="display:none">
+        <div class="form-hint" style="margin-bottom:.75rem">Edit tournament details. Changes take effect immediately.</div>
+        <div class="form-group">
+          <label class="form-label">Tournament Name</label>
+          <input type="text" class="form-input" id="mt-edit-name" placeholder="Tournament name">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Start Date & Time</label>
+            <input type="datetime-local" class="form-input" id="mt-edit-start">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Max Players</label>
+            <input type="number" class="form-input" id="mt-edit-maxplayers" placeholder="25" min="1">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Entry Fee (₦)</label>
+            <input type="number" class="form-input" id="mt-edit-fee" placeholder="0" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Map</label>
+            <select class="form-select" id="mt-edit-map">
+              <option value="Erangel">Erangel</option>
+              <option value="Miramar">Miramar</option>
+              <option value="Sanhok">Sanhok</option>
+              <option value="Vikendi">Vikendi</option>
+              <option value="Livik">Livik</option>
+              <option value="Karakin">Karakin</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rules / Description</label>
+          <textarea class="form-textarea" id="mt-edit-rules" placeholder="Tournament rules..."></textarea>
+        </div>
+        <button class="btn btn-green btn-sm" onclick="window.saveTournamentDetails&&window.saveTournamentDetails()">💾 Save Changes</button>
+      </div>
+
+      <!-- Registered Players Tab -->
+      <div id="mt-players" style="display:none">
+        <div class="form-hint" style="margin-bottom:.75rem">Registered players. You can remove a player and refund their entry fee.</div>
+        <div id="mt-players-list"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1014,6 +1063,13 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
       <div style="display:flex;gap:.5rem">
         <button class="btn btn-green btn-sm" style="flex:1" onclick="adjustBalance('add')">➕ Add</button>
         <button class="btn btn-red btn-sm" style="flex:1" onclick="adjustBalance('deduct')">➖ Deduct</button>
+      </div>
+      <div style="margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--bdr)">
+        <div class="form-label" style="margin-bottom:.5rem;color:var(--muted)">Danger Zone</div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="btn btn-red btn-sm" style="flex:1" onclick="window.toggleBlockPlayer&&window.toggleBlockPlayer()">🚫 Block / Unblock</button>
+          <button class="btn btn-red btn-sm" style="flex:1;background:rgba(239,68,68,.2)" onclick="window.deletePlayerAccount&&window.deletePlayerAccount()">🗑️ Delete Account</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1649,6 +1705,36 @@ window.approveTopup=async function(){
     await update(ref(db,`players/${pid}/topups/${tid}`),{status:'approved',approvedAt:Date.now(),actualAmount:actual});
     await push(ref(db,`players/${pid}/transactions`),{type:'topup',amount:actual,status:'approved',createdAt:Date.now(),note:'Top-up approved by admin'});
     allPlayers[pid].balanceReal=newBal;
+    // Handle pending referral topup condition
+    if(p.pendingReferralReward&&p.referralCondition==='topup'){
+      const refSnap=await get(ref(db,'settings/referral'));
+      const refRules=refSnap.val()||{};
+      const minTopup=refRules.minTopup||0;
+      if(actual>=minTopup&&refRules.referrerAmt>0&&p.referredBy){
+        const referrerEntry=Object.entries(allPlayers).find(([,rp])=>rp.username===p.referredBy);
+        if(referrerEntry){
+          const [refId,refP]=referrerEntry;
+          const balKey=refRules.rewardType==='real'?'balanceReal':'balanceBonus';
+          const curBal=parseInt(refP[balKey])||0;
+          await update(ref(db,'players/'+refId+'/profile'),{
+            [balKey]:curBal+refRules.referrerAmt,
+            referralCount:(parseInt(refP.referralCount)||0)+1
+          });
+          await push(ref(db,'players/'+refId+'/transactions'),{
+            type:'referral',amount:refRules.referrerAmt,
+            note:'Referral bonus — '+p.username+' topped up',createdAt:Date.now()
+          });
+          allPlayers[refId][balKey]=curBal+refRules.referrerAmt;
+        }
+        if(refRules.newPlayerAmt>0){
+          const npKey=refRules.newPlayerRewardType==='real'?'balanceReal':'balanceBonus';
+          const npBal=parseInt(p[npKey])||0;
+          await update(ref(db,'players/'+pid+'/profile'),{[npKey]:npBal+refRules.newPlayerAmt});
+          await push(ref(db,'players/'+pid+'/transactions'),{type:'referral',amount:refRules.newPlayerAmt,note:'Welcome referral bonus',createdAt:Date.now()});
+        }
+        await update(ref(db,'players/'+pid+'/profile'),{pendingReferralReward:false,pendingReferralTopupAmt:null});
+      }
+    }
     closeModal('topupModal');
     toast(`₦${actual.toLocaleString()} credited to ${p.username} ✅`,'green');
   }catch(e){
@@ -2030,18 +2116,32 @@ window.openManageTournament=function(tid){
   document.getElementById('mt-room-release').value=t.roomReleaseOverride||'auto';
   document.getElementById('mt-status-sel').value=t.status||'upcoming';
   document.getElementById('mt-status-reason').value=t.statusReason||'';
+  // Populate edit fields
+  document.getElementById('mt-edit-name').value=t.name||'';
+  document.getElementById('mt-edit-maxplayers').value=t.maxPlayers||'';
+  document.getElementById('mt-edit-fee').value=t.fee||'';
+  document.getElementById('mt-edit-map').value=t.map||'Erangel';
+  document.getElementById('mt-edit-rules').value=t.rules||'';
+  if(t.startTime){
+    const d=new Date(t.startTime);
+    const local=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+    document.getElementById('mt-edit-start').value=local;
+  } else {
+    document.getElementById('mt-edit-start').value='';
+  }
   switchManageTab('room');
   openModal('manageTournModal');
   renderResultsInputs(tid);
 };
 
 window.switchManageTab=function(tab){
-  ['room','results','status'].forEach(t=>{
+  ['room','results','status','edit','players'].forEach(t=>{
     document.getElementById('mt-'+t).style.display=t===tab?'block':'none';
   });
   document.querySelectorAll('#manageTournModal .inner-tab').forEach((t,i)=>{
-    t.classList.toggle('active',['room','results','status'][i]===tab);
+    t.classList.toggle('active',['room','edit','results','status','players'][i]===tab);
   });
+  if(tab==='players')renderTournamentPlayers(activeTournamentId);
 };
 
 window.saveRoomCode=async function(){
@@ -2053,6 +2153,76 @@ window.saveRoomCode=async function(){
     updatedAt:Date.now()
   });
   toast('Room code saved ✅','green');
+};
+
+window.saveTournamentDetails=async function(){
+  const tid=activeTournamentId;
+  const name=document.getElementById('mt-edit-name').value.trim();
+  const maxPlayers=parseInt(document.getElementById('mt-edit-maxplayers').value)||0;
+  const fee=parseFloat(document.getElementById('mt-edit-fee').value)||0;
+  const map=document.getElementById('mt-edit-map').value;
+  const rules=document.getElementById('mt-edit-rules').value.trim();
+  const startVal=document.getElementById('mt-edit-start').value;
+  const startTime=startVal?new Date(startVal).getTime():allTournaments[tid].startTime;
+  if(!name){toast('Tournament name cannot be empty','red');return;}
+  if(!maxPlayers){toast('Max players cannot be zero','red');return;}
+  if(!confirm(`Save changes to "${name}"?\nStart: ${startVal||'unchanged'}\nMax Players: ${maxPlayers}\nEntry Fee: ₦${fee}`))return;
+  try{
+    await update(ref(db,'tournaments/'+tid),{name,maxPlayers,fee,map,rules,startTime,updatedAt:Date.now()});
+    allTournaments[tid]={...allTournaments[tid],name,maxPlayers,fee,map,rules,startTime};
+    document.getElementById('mt-title').textContent=name;
+    toast('Tournament updated ✅','green');
+  }catch(e){toast('Failed: '+e.message,'red');}
+};
+
+function renderTournamentPlayers(tid){
+  const t=allTournaments[tid];
+  const el=document.getElementById('mt-players-list');
+  if(!el)return;
+  const regs=t?.registrations?Object.entries(t.registrations):[];
+  if(!regs.length){el.innerHTML=emptyState('👥','No players registered','Nobody has joined yet');return;}
+  el.innerHTML=regs.map(([uid,r])=>`
+    <div style="display:flex;align-items:center;gap:.6rem;padding:.6rem 0;border-bottom:1px solid var(--bdr)">
+      <div style="flex:1">
+        <div style="font-size:.85rem;font-weight:700">${r.username||'Unknown'}</div>
+        <div style="font-size:.68rem;color:var(--muted)">UID: ${r.pubgUid||'—'} · Fee: ₦${r.feePaid||0} (${r.feeSource||'real'})</div>
+      </div>
+      <button class="btn btn-red btn-sm" onclick="window.removePlayerFromTournament('${tid}','${uid}')">❌ Remove & Refund</button>
+    </div>`).join('');
+}
+
+window.removePlayerFromTournament=async function(tid,uid){
+  const t=allTournaments[tid];
+  const reg=t?.registrations?.[uid];
+  if(!reg){toast('Player not found','red');return;}
+  const username=reg.username||'Unknown';
+  const feePaid=reg.feePaid||0;
+  const feeSource=reg.feeSource||'real';
+  if(!confirm(`Remove ${username} from "${t.name}" and refund ₦${feePaid}?\nThis cannot be undone.`))return;
+  try{
+    // Remove registration
+    await remove(ref(db,'tournaments/'+tid+'/registrations/'+uid));
+    // Refund fee
+    if(feePaid>0){
+      const pSnap=await get(ref(db,'players/'+uid+'/profile'));
+      if(pSnap.exists()){
+        const profile=pSnap.val();
+        const balKey=feeSource==='bonus'?'balanceBonus':'balanceReal';
+        const newBal=(profile[balKey]||0)+feePaid;
+        await update(ref(db,'players/'+uid+'/profile'),{[balKey]:newBal});
+        await push(ref(db,'players/'+uid+'/transactions'),{
+          type:'refund',amount:feePaid,
+          tournamentId:tid,tournamentName:t.name,
+          reason:'Removed from tournament by admin',
+          createdAt:Date.now()
+        });
+      }
+    }
+    // Update local data
+    if(allTournaments[tid]?.registrations) delete allTournaments[tid].registrations[uid];
+    renderTournamentPlayers(tid);
+    toast(`${username} removed and refunded ✅`,'green');
+  }catch(e){toast('Failed: '+e.message,'red');}
 };
 
 function renderResultsInputs(tid){
@@ -2322,6 +2492,47 @@ window.adjustBalance=async function(action){
   allPlayers[pid][field]=newVal;
   toast(`Balance ${action==='add'?'added':'deducted'} ✅`,'green');
   closeModal('playerModal');
+};
+
+window.toggleBlockPlayer=async function(){
+  const pid=document.getElementById('playerModal').dataset.pid;
+  const p=allPlayers[pid];
+  const isBlocked=p.blocked===true;
+  const action=isBlocked?'Unblock':'Block';
+  if(!confirm(`${action} ${p.username||'this player'}?\n${isBlocked?'They will be able to log in and use the platform again.':'They will be locked out. Their data stays intact. If they try to register with the same PUBG UID our system will flag it as duplicate.'}`))return;
+  try{
+    await update(ref(db,'players/'+pid+'/profile'),{
+      blocked:!isBlocked,
+      blockedAt:isBlocked?null:Date.now(),
+      blockedBy:isBlocked?null:currentAdminUid
+    });
+    allPlayers[pid].blocked=!isBlocked;
+    toast(`Player ${isBlocked?'unblocked':'blocked'} ✅`,'green');
+    closeModal('playerModal');
+  }catch(e){toast('Failed: '+e.message,'red');}
+};
+
+window.deletePlayerAccount=async function(){
+  const pid=document.getElementById('playerModal').dataset.pid;
+  const p=allPlayers[pid];
+  const username=p.username||'Unknown';
+  const pubgUid=p.pubgUid||'';
+  if(!confirm(`⚠️ PERMANENTLY DELETE account for "${username}"?\n\nThis will:\n• Delete all their data (profile, transactions, topups, withdrawals)\n• Free their username so it can be registered again\n• Free their PUBG UID so it won't show duplicate warnings\n• Remove them from Firebase Auth is NOT done here (do that in Firebase Console > Authentication)\n\nType DELETE to confirm.`))return;
+  const typed=prompt('Type DELETE to confirm:');
+  if(typed!=='DELETE'){toast('Cancelled — you must type DELETE exactly','red');return;}
+  try{
+    // Remove from database completely
+    await remove(ref(db,'players/'+pid));
+    // Free username index
+    if(username) await remove(ref(db,'usernames/'+username.toLowerCase()));
+    // Free pubgUid index
+    if(pubgUid) await remove(ref(db,'pubgUids/'+pubgUid));
+    delete allPlayers[pid];
+    closeModal('playerModal');
+    renderPlayers();
+    toast(`Account for "${username}" deleted ✅`,'green');
+    toast('⚠️ Remember to also delete from Firebase Console > Authentication manually','red');
+  }catch(e){toast('Failed: '+e.message,'red');}
 };
 
 // ---- PROMOS & REFERRALS ----

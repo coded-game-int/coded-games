@@ -309,9 +309,21 @@ setPersistence(auth, browserLocalPersistence).catch(()=>{});
 
 // If already logged in → check profile completion
 onAuthStateChanged(auth, async user=>{
-  if(!user) return;
+  if(!user){
+    // Show blocked message if redirected here after block
+    if(new URLSearchParams(location.search).get('blocked')==='1'){
+      showAlert('login-alert','🚫 Your account has been blocked. Contact support for assistance.','err');
+    }
+    return;
+  }
   const snap=await get(ref(db,`players/${user.uid}/profile`));
   if(snap.exists()&&snap.val().username){
+    if(snap.val().blocked===true){
+      const {signOut:so}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
+      await so(auth);
+      showAlert('login-alert','🚫 Your account has been blocked. Contact support for assistance.','err');
+      return;
+    }
     location.href='dashboard.html';
   } else {
     location.href='setup.html';

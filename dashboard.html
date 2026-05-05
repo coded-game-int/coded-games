@@ -574,6 +574,12 @@ onAuthStateChanged(auth, async user=>{
     const snap=await get(ref(db,`players/${user.uid}/profile`));
     if(!snap.exists()||!snap.val().username){location.href='setup.html';return;}
     playerData=snap.val();
+    // Blocked account check
+    if(playerData.blocked===true){
+      await signOut(auth);
+      location.href='auth.html?blocked=1';
+      return;
+    }
     window._player=playerData;
     window._uid=user.uid;
   }catch(e){
@@ -1202,30 +1208,10 @@ window.submitTopupRequest=async function(){
       status:'pending',
       createdAt:Date.now()
     });
-    // Check pending referral condition (min top-up)
+    // Pending referral (topup condition) — store amount so admin can verify on approval
     const p=window._player||{};
     if(p.pendingReferralReward&&p.referralCondition==='topup'){
-      const refSnap=await window._get(window._ref(window._db,'settings/referral'));
-      const rules=refSnap.val()||{};
-      if(amt>=(rules.minTopup||0)&&rules.referrerAmt>0&&p.referredBy){
-        // Credit referrer — find by username
-        const allSnap=await window._get(window._ref(window._db,'players'));
-        const all=allSnap.val()||{};
-        for(const[rid,rdata] of Object.entries(all)){
-          const rp=rdata.profile||{};
-          if(rp.username===p.referredBy){
-            const balKey=rules.rewardType==='real'?'balanceReal':'balanceBonus';
-            await window._set(window._ref(window._db,'players/'+rid+'/profile/'+balKey),(parseInt(rp[balKey])||0)+rules.referrerAmt);
-            await window._push(window._ref(window._db,'players/'+rid+'/transactions'),{
-              type:'referral',amount:rules.referrerAmt,
-              note:'Referral reward — '+p.username+' topped up',createdAt:Date.now()
-            });
-            break;
-          }
-        }
-        // Clear pending flag
-        await window._set(window._ref(window._db,`players/${window._uid}/profile/pendingReferralReward`),false);
-      }
+      await window._set(window._ref(window._db,`players/${window._uid}/profile/pendingReferralTopupAmt`),amt);
     }
     closeM('mTopup');
     rTopup();
