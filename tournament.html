@@ -948,22 +948,34 @@ window.doRegister=async function(){
     if(regCount>=(t.maxPlayers||100)){toast('Tournament is now full!','red');closeModal('mConfirm');return;}
 
     // Deduct fee
+    const balKey=useBonus?'balanceBonus':'balanceReal';
     if(fee>0){
-      const balKey=useBonus?'balanceBonus':'balanceReal';
       const currentBal=useBonus?(playerData.balanceBonus||0):(playerData.balanceReal||0);
       if(currentBal<fee){toast('Insufficient balance!','red');closeModal('mConfirm');return;}
       await set(ref(db,'players/'+uid+'/profile/'+balKey),currentBal-fee);
     }
 
-    // Register player
-    await set(ref(db,'tournaments/'+tid+'/registrations/'+uid),{
-      username:playerData.username||'Unknown',
-      inGameName:playerData.inGameName||'',
-      pubgUid:playerData.pubgUid||'',
-      registeredAt:Date.now(),
-      feePaid:fee,
-      feeSource:useBonus?'bonus':'real'
-    });
+    // Register player — if this fails, refund the fee immediately
+    let regSuccess=false;
+    try{
+      await set(ref(db,'tournaments/'+tid+'/registrations/'+uid),{
+        username:playerData.username||'Unknown',
+        inGameName:playerData.inGameName||'',
+        pubgUid:playerData.pubgUid||'',
+        registeredAt:Date.now(),
+        feePaid:fee,
+        feeSource:useBonus?'bonus':'real'
+      });
+      regSuccess=true;
+    }catch(regErr){
+      // Registration write was blocked (e.g. Firebase rules) — refund fee immediately
+      if(fee>0){
+        const freshSnap=await get(ref(db,'players/'+uid+'/profile'));
+        const freshBal=freshSnap.exists()?(freshSnap.val()[balKey]||0):0;
+        await set(ref(db,'players/'+uid+'/profile/'+balKey),freshBal+fee);
+      }
+      throw new Error('Registration blocked by server. Your balance has been refunded. Contact support if needed. ('+regErr.message+')');
+    }
 
     // Log transaction
     await push(ref(db,'players/'+uid+'/transactions'),{
