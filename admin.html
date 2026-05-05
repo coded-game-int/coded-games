@@ -872,6 +872,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
         <select class="form-select" id="ct-prizeType" onchange="renderPrizeFields()">
           <option value="position">Position-Based (1st, 2nd, 3rd...)</option>
           <option value="kill">Kill-Based (₦ per kill)</option>
+          <option value="mixed">Mixed (Position + Per Kill)</option>
           <option value="custom">Custom / Sponsor Prize</option>
           <option value="free">Free Tournament (no prize)</option>
         </select>
@@ -1877,6 +1878,10 @@ window.openCreateTournament=function(tid){
 window.renderPrizeFields=function(){
   const type=document.getElementById('ct-prizeType').value;
   const el=document.getElementById('ct-prize-fields');
+  // Show/hide global prize-goes-to (not needed for mixed — each section has its own)
+  const globalBal=document.getElementById('ct-prizeBalance')?.closest('.form-group');
+  if(globalBal) globalBal.style.display=type==='mixed'?'none':'block';
+
   if(type==='position'){
     el.innerHTML=`
       <div class="form-hint" style="margin-bottom:.5rem">Set prize amount per position. Leave 0 for refund-only positions.</div>
@@ -1896,6 +1901,39 @@ window.renderPrizeFields=function(){
         <input type="number" class="form-input" id="prize-perkill" placeholder="50"></div>
         <div class="form-group"><label class="form-label">Kill Cap (max kills counted)</label>
         <input type="number" class="form-input" id="prize-killcap" placeholder="10"></div>
+      </div>`;
+  } else if(type==='mixed'){
+    el.innerHTML=`
+      <div class="divider-label" style="margin:.4rem 0">📍 Position Prizes</div>
+      <div class="form-group">
+        <label class="form-label">Position Prizes Go To</label>
+        <select class="form-select" id="prize-pos-balance">
+          <option value="real">Real Balance (withdrawable)</option>
+          <option value="bonus">Bonus Coins (not withdrawable)</option>
+        </select>
+      </div>
+      ${[['1st','1'],['2nd','2'],['3rd-5th','3-5'],['6th-10th','6-10']].map(([lbl,key])=>`
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">${lbl} Place (₦)</label>
+          <input type="number" class="form-input" id="prize-${key}" placeholder="0" min="0"></div>
+        </div>`).join('')}
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Refund Positions (e.g. 6-10)</label>
+        <input type="text" class="form-input" id="prize-refund" placeholder="e.g. 6-10"></div>
+      </div>
+      <div class="divider-label" style="margin:.6rem 0">🔫 Kill Bonus (added on top of position prize)</div>
+      <div class="form-group">
+        <label class="form-label">Kill Prizes Go To</label>
+        <select class="form-select" id="prize-kill-balance">
+          <option value="real">Real Balance (withdrawable)</option>
+          <option value="bonus">Bonus Coins (not withdrawable)</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">₦ Per Kill</label>
+        <input type="number" class="form-input" id="prize-perkill" placeholder="20"></div>
+        <div class="form-group"><label class="form-label">Kill Cap (max kills counted)</label>
+        <input type="number" class="form-input" id="prize-killcap" placeholder="30"></div>
       </div>`;
   } else if(type==='custom'){
     el.innerHTML=`
@@ -1920,6 +1958,20 @@ function getPrizeData(){
   } else if(type==='kill'){
     return{type,balanceType,perKill:parseFloat(document.getElementById('prize-perkill')?.value)||0,
       killCap:parseInt(document.getElementById('prize-killcap')?.value)||10};
+  } else if(type==='mixed'){
+    return{type,
+      posBalanceType:document.getElementById('prize-pos-balance')?.value||'real',
+      killBalanceType:document.getElementById('prize-kill-balance')?.value||'real',
+      positions:{
+        '1':parseFloat(document.getElementById('prize-1')?.value)||0,
+        '2':parseFloat(document.getElementById('prize-2')?.value)||0,
+        '3-5':parseFloat(document.getElementById('prize-3-5')?.value)||0,
+        '6-10':parseFloat(document.getElementById('prize-6-10')?.value)||0,
+        refund:document.getElementById('prize-refund')?.value||''
+      },
+      perKill:parseFloat(document.getElementById('prize-perkill')?.value)||0,
+      killCap:parseInt(document.getElementById('prize-killcap')?.value)||999
+    };
   } else if(type==='custom'){
     return{type,balanceType,description:document.getElementById('prize-custom')?.value||''};
   }
@@ -2045,9 +2097,13 @@ async function awardPrizes(tid,results,t){
   const prize=t.prize||{};
   const balanceType=prize.balanceType||'real';
   const balKey=balanceType==='bonus'?'balanceBonus':'balanceReal';
+
   for(const [pid,res] of Object.entries(results)){
-    let award=0;
+    const pSnap=await get(ref(db,'players/'+pid+'/profile'));
+    const pData=pSnap.val()||{};
+
     if(prize.type==='position'){
+      let award=0;
       const rank=res.rank;
       if(rank===1)award=prize.positions?.['1']||0;
       else if(rank===2)award=prize.positions?.['2']||0;
@@ -2058,19 +2114,54 @@ async function awardPrizes(tid,results,t){
         const[a,b]=refundRange.split('-').map(Number);
         if(rank>=a&&rank<=(b||a))award=t.fee||0;
       }
+      if(award>0){
+        const curBal=parseInt(pData[balKey])||0;
+        await update(ref(db,'players/'+pid+'/profile'),{[balKey]:curBal+award});
+        await push(ref(db,'players/'+pid+'/transactions'),{type:'prize',amount:award,balanceType,tournament:t.name,tid,createdAt:Date.now()});
+      }
+
     } else if(prize.type==='kill'){
       const kills=Math.min(res.kills||0,prize.killCap||10);
-      award=kills*(prize.perKill||0);
-    }
-    if(award>0){
-      const pSnap=await get(ref(db,'players/'+pid+'/profile'));
-      const pData=pSnap.val()||{};
-      const curBal=parseInt(pData[balKey])||0;
-      await update(ref(db,'players/'+pid+'/profile'),{[balKey]:curBal+award});
-      await push(ref(db,'players/'+pid+'/transactions'),{
-        type:'prize',amount:award,balanceType,
-        tournament:t.name,tid,createdAt:Date.now()
-      });
+      const award=kills*(prize.perKill||0);
+      if(award>0){
+        const curBal=parseInt(pData[balKey])||0;
+        await update(ref(db,'players/'+pid+'/profile'),{[balKey]:curBal+award});
+        await push(ref(db,'players/'+pid+'/transactions'),{type:'prize',amount:award,balanceType,tournament:t.name,tid,createdAt:Date.now()});
+      }
+
+    } else if(prize.type==='mixed'){
+      // --- Position prize ---
+      const posBalKey=(prize.posBalanceType||'real')==='bonus'?'balanceBonus':'balanceReal';
+      let posAward=0;
+      const rank=res.rank;
+      if(rank===1)posAward=prize.positions?.['1']||0;
+      else if(rank===2)posAward=prize.positions?.['2']||0;
+      else if(rank>=3&&rank<=5)posAward=prize.positions?.['3-5']||0;
+      else if(rank>=6&&rank<=10)posAward=prize.positions?.['6-10']||0;
+      const refundRange=prize.positions?.refund||'';
+      if(posAward===0&&refundRange){
+        const[a,b]=refundRange.split('-').map(Number);
+        if(rank>=a&&rank<=(b||a))posAward=t.fee||0;
+      }
+      // --- Kill prize ---
+      const killBalKey=(prize.killBalanceType||'real')==='bonus'?'balanceBonus':'balanceReal';
+      const kills=Math.min(res.kills||0,prize.killCap||999);
+      const killAward=kills*(prize.perKill||0);
+
+      // Write position award
+      if(posAward>0){
+        const curBal=parseInt(pData[posBalKey])||0;
+        await update(ref(db,'players/'+pid+'/profile'),{[posBalKey]:curBal+posAward});
+        await push(ref(db,'players/'+pid+'/transactions'),{type:'prize',amount:posAward,balanceType:prize.posBalanceType||'real',label:'Position Prize',tournament:t.name,tid,createdAt:Date.now()});
+      }
+      // Write kill award (re-read profile if same key to avoid overwrite)
+      if(killAward>0){
+        const freshSnap=await get(ref(db,'players/'+pid+'/profile'));
+        const freshData=freshSnap.val()||{};
+        const curKillBal=parseInt(freshData[killBalKey])||0;
+        await update(ref(db,'players/'+pid+'/profile'),{[killBalKey]:curKillBal+killAward});
+        await push(ref(db,'players/'+pid+'/transactions'),{type:'prize',amount:killAward,balanceType:prize.killBalanceType||'real',label:'Kill Bonus',tournament:t.name,tid,createdAt:Date.now()});
+      }
     }
   }
 }

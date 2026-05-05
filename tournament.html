@@ -694,6 +694,37 @@ function renderPrize(prize){
       </div>
     </div>`;
   }
+  if(prize.type==='mixed'){
+    const p=prize.positions||{};
+    const rows=[
+      {label:'🥇 1st Place',key:'1'},{label:'🥈 2nd Place',key:'2'},
+      {label:'🥉 3rd – 5th',key:'3-5'},{label:'🎯 6th – 10th',key:'6-10'},
+    ];
+    let posHtml='';
+    rows.forEach(r=>{
+      const amt=p[r.key];
+      if(!amt)return;
+      posHtml+=`<div class="prize-row">
+        <div class="prize-pos"><div class="prize-pos-txt">${r.label}</div></div>
+        <div class="prize-amt">₦${Number(amt).toLocaleString()}</div>
+      </div>`;
+    });
+    if(p.refund)posHtml+=`<div class="prize-row">
+      <div class="prize-pos"><div class="prize-pos-txt">♻️ Positions ${p.refund} — Refunded</div></div>
+      <div class="prize-amt" style="color:var(--txt2)">Refund</div>
+    </div>`;
+    return`${posHtml}
+    <div class="prize-kill-info" style="margin-top:.5rem">
+      <div class="prize-kill-row" style="font-weight:700;color:var(--or);margin-bottom:.2rem">
+        <span>🔫 Kill Bonus (on top)</span>
+      </div>
+      <div class="prize-kill-row">
+        <span class="prize-kill-label">₦ Per Kill</span>
+        <span class="prize-kill-val">₦${Number(prize.perKill||0).toLocaleString()}</span>
+      </div>
+      ${prize.killCap&&prize.killCap<999?`<div class="prize-kill-row"><span class="prize-kill-label">Kill Cap</span><span class="prize-kill-val">${prize.killCap} kills max</span></div>`:''}
+    </div>`;
+  }
   return'';
 }
 
@@ -758,6 +789,21 @@ function calcPrize(res,prize,fee){
     const kills=Math.min(res.kills||0,prize.killCap||10);
     return kills*(prize.perKill||0);
   }
+  if(prize.type==='mixed'){
+    const p=prize.positions||{};
+    const rank=res.rank;
+    let posAward=0;
+    if(rank===1)posAward=p['1']||0;
+    else if(rank===2)posAward=p['2']||0;
+    else if(rank>=3&&rank<=5)posAward=p['3-5']||0;
+    else if(rank>=6&&rank<=10)posAward=p['6-10']||0;
+    if(!posAward&&p.refund){
+      const[a,b]=p.refund.split('-').map(Number);
+      if(rank>=a&&rank<=(b||a))posAward=fee||0;
+    }
+    const killAward=Math.min(res.kills||0,prize.killCap||999)*(prize.perKill||0);
+    return posAward+killAward;
+  }
   return 0;
 }
 
@@ -811,6 +857,11 @@ function getPrizePoolLabel(t){
     const p=prize.positions||{};
     const total=[p['1'],p['2'],p['3-5'],p['6-10']].map(Number).filter(Boolean).reduce((a,b)=>a+b,0);
     return total?'₦'+total.toLocaleString():'Position';
+  }
+  if(prize.type==='mixed'){
+    const p=prize.positions||{};
+    const posTotal=[p['1'],p['2'],p['3-5'],p['6-10']].map(Number).filter(Boolean).reduce((a,b)=>a+b,0);
+    return posTotal?'₦'+posTotal.toLocaleString()+' + kills':'Position + Kills';
   }
   return'TBA';
 }
