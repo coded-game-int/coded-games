@@ -654,7 +654,9 @@ function renderPrize(prize){
     const rows=[
       {label:'🥇 1st Place',key:'1',medal:'🥇'},
       {label:'🥈 2nd Place',key:'2',medal:'🥈'},
-      {label:'🥉 3rd – 5th',key:'3-5',medal:'🥉'},
+      {label:'🥉 3rd Place',key:'3',medal:'🥉'},
+      {label:'4th Place',key:'4',medal:'4️⃣'},
+      {label:'5th Place',key:'5',medal:'5️⃣'},
       {label:'🎯 6th – 10th',key:'6-10',medal:'🎯'},
     ];
     let html='';
@@ -698,7 +700,8 @@ function renderPrize(prize){
     const p=prize.positions||{};
     const rows=[
       {label:'🥇 1st Place',key:'1'},{label:'🥈 2nd Place',key:'2'},
-      {label:'🥉 3rd – 5th',key:'3-5'},{label:'🎯 6th – 10th',key:'6-10'},
+      {label:'🥉 3rd Place',key:'3'},{label:'4th Place',key:'4'},
+      {label:'5th Place',key:'5'},{label:'🎯 6th – 10th',key:'6-10'},
     ];
     let posHtml='';
     rows.forEach(r=>{
@@ -777,7 +780,10 @@ function calcPrize(res,prize,fee){
     const rank=res.rank;
     if(rank===1)return p['1']||0;
     if(rank===2)return p['2']||0;
-    if(rank>=3&&rank<=5)return p['3-5']||0;
+    // Individual positions (new format) with fallback to old grouped format
+    if(rank===3)return p['3']||p['3-5']||0;
+    if(rank===4)return p['4']||p['3-5']||0;
+    if(rank===5)return p['5']||p['3-5']||0;
     if(rank>=6&&rank<=10)return p['6-10']||0;
     if(p.refund){
       const[a,b]=p.refund.split('-').map(Number);
@@ -795,7 +801,9 @@ function calcPrize(res,prize,fee){
     let posAward=0;
     if(rank===1)posAward=p['1']||0;
     else if(rank===2)posAward=p['2']||0;
-    else if(rank>=3&&rank<=5)posAward=p['3-5']||0;
+    else if(rank===3)posAward=p['3']||p['3-5']||0;
+    else if(rank===4)posAward=p['4']||p['3-5']||0;
+    else if(rank===5)posAward=p['5']||p['3-5']||0;
     else if(rank>=6&&rank<=10)posAward=p['6-10']||0;
     if(!posAward&&p.refund){
       const[a,b]=p.refund.split('-').map(Number);
@@ -855,12 +863,12 @@ function getPrizePoolLabel(t){
   if(prize.type==='kill')return'₦'+((prize.perKill||0)*(prize.killCap||10)).toLocaleString()+' max';
   if(prize.type==='position'){
     const p=prize.positions||{};
-    const total=[p['1'],p['2'],p['3-5'],p['6-10']].map(Number).filter(Boolean).reduce((a,b)=>a+b,0);
+    const total=[p['1'],p['2'],p['3'],p['4'],p['5'],p['6-10']].map(Number).filter(Boolean).reduce((a,b)=>a+b,0);
     return total?'₦'+total.toLocaleString():'Position';
   }
   if(prize.type==='mixed'){
     const p=prize.positions||{};
-    const posTotal=[p['1'],p['2'],p['3-5'],p['6-10']].map(Number).filter(Boolean).reduce((a,b)=>a+b,0);
+    const posTotal=[p['1'],p['2'],p['3'],p['4'],p['5'],p['6-10']].map(Number).filter(Boolean).reduce((a,b)=>a+b,0);
     return posTotal?'₦'+posTotal.toLocaleString()+' + kills':'Position + Kills';
   }
   return'TBA';

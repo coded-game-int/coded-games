@@ -1975,8 +1975,8 @@ window.renderPrizeFields=function(){
 
   if(type==='position'){
     el.innerHTML=`
-      <div class="form-hint" style="margin-bottom:.5rem">Set prize amount per position. Leave 0 for refund-only positions.</div>
-      ${[['1st','1'],['2nd','2'],['3rd-5th','3-5'],['6th-10th','6-10']].map(([lbl,key])=>`
+      <div class="form-hint" style="margin-bottom:.5rem">Set prize amount per position. Leave 0 for no prize. Set same amount on multiple positions for a group prize.</div>
+      ${[['1st','1'],['2nd','2'],['3rd','3'],['4th','4'],['5th','5'],['6th–10th','6-10']].map(([lbl,key])=>`
         <div class="form-row">
           <div class="form-group"><label class="form-label">${lbl} Place (₦)</label>
           <input type="number" class="form-input" id="prize-${key}" placeholder="0" min="0"></div>
@@ -2003,7 +2003,7 @@ window.renderPrizeFields=function(){
           <option value="bonus">Bonus Coins (not withdrawable)</option>
         </select>
       </div>
-      ${[['1st','1'],['2nd','2'],['3rd-5th','3-5'],['6th-10th','6-10']].map(([lbl,key])=>`
+      ${[['1st','1'],['2nd','2'],['3rd','3'],['4th','4'],['5th','5'],['6th–10th','6-10']].map(([lbl,key])=>`
         <div class="form-row">
           <div class="form-group"><label class="form-label">${lbl} Place (₦)</label>
           <input type="number" class="form-input" id="prize-${key}" placeholder="0" min="0"></div>
@@ -2042,7 +2042,9 @@ function getPrizeData(){
     return{type,balanceType,positions:{
       '1':parseFloat(document.getElementById('prize-1')?.value)||0,
       '2':parseFloat(document.getElementById('prize-2')?.value)||0,
-      '3-5':parseFloat(document.getElementById('prize-3-5')?.value)||0,
+      '3':parseFloat(document.getElementById('prize-3')?.value)||0,
+      '4':parseFloat(document.getElementById('prize-4')?.value)||0,
+      '5':parseFloat(document.getElementById('prize-5')?.value)||0,
       '6-10':parseFloat(document.getElementById('prize-6-10')?.value)||0,
       refund:document.getElementById('prize-refund')?.value||''
     }};
@@ -2056,7 +2058,9 @@ function getPrizeData(){
       positions:{
         '1':parseFloat(document.getElementById('prize-1')?.value)||0,
         '2':parseFloat(document.getElementById('prize-2')?.value)||0,
-        '3-5':parseFloat(document.getElementById('prize-3-5')?.value)||0,
+        '3':parseFloat(document.getElementById('prize-3')?.value)||0,
+        '4':parseFloat(document.getElementById('prize-4')?.value)||0,
+        '5':parseFloat(document.getElementById('prize-5')?.value)||0,
         '6-10':parseFloat(document.getElementById('prize-6-10')?.value)||0,
         refund:document.getElementById('prize-refund')?.value||''
       },
@@ -2168,7 +2172,7 @@ function renderManagePrizeFields(prize){
   const type=prize.type;
   const p=prize.positions||{};
   if(type==='position'||type==='mixed'){
-    const positions=[['1st Place','1'],['2nd Place','2'],['3rd–5th Place','3-5'],['6th–10th Place','6-10']];
+    const positions=[['1st Place','1'],['2nd Place','2'],['3rd Place','3'],['4th Place','4'],['5th Place','5'],['6th–10th Place','6-10']];
     el.innerHTML=positions.map(([lbl,key])=>`
       <div class="form-row">
         <div class="form-group">
@@ -2216,7 +2220,9 @@ window.savePrizePool=async function(){
     updatedPrize.positions={
       '1':parseFloat(document.getElementById('mt-prize-1')?.value)||0,
       '2':parseFloat(document.getElementById('mt-prize-2')?.value)||0,
-      '3-5':parseFloat(document.getElementById('mt-prize-3-5')?.value)||0,
+      '3':parseFloat(document.getElementById('mt-prize-3')?.value)||0,
+      '4':parseFloat(document.getElementById('mt-prize-4')?.value)||0,
+      '5':parseFloat(document.getElementById('mt-prize-5')?.value)||0,
       '6-10':parseFloat(document.getElementById('mt-prize-6-10')?.value)||0,
     };
     // Remove zero values so they don't show on player side
@@ -2358,7 +2364,9 @@ async function awardPrizes(tid,results,t){
       const rank=res.rank;
       if(rank===1)award=prize.positions?.['1']||0;
       else if(rank===2)award=prize.positions?.['2']||0;
-      else if(rank>=3&&rank<=5)award=prize.positions?.['3-5']||0;
+      else if(rank===3)award=prize.positions?.['3']||prize.positions?.['3-5']||0;
+      else if(rank===4)award=prize.positions?.['4']||prize.positions?.['3-5']||0;
+      else if(rank===5)award=prize.positions?.['5']||prize.positions?.['3-5']||0;
       else if(rank>=6&&rank<=10)award=prize.positions?.['6-10']||0;
       const refundRange=prize.positions?.refund||'';
       if(award===0&&refundRange){
@@ -2387,7 +2395,9 @@ async function awardPrizes(tid,results,t){
       const rank=res.rank;
       if(rank===1)posAward=prize.positions?.['1']||0;
       else if(rank===2)posAward=prize.positions?.['2']||0;
-      else if(rank>=3&&rank<=5)posAward=prize.positions?.['3-5']||0;
+      else if(rank===3)posAward=prize.positions?.['3']||prize.positions?.['3-5']||0;
+      else if(rank===4)posAward=prize.positions?.['4']||prize.positions?.['3-5']||0;
+      else if(rank===5)posAward=prize.positions?.['5']||prize.positions?.['3-5']||0;
       else if(rank>=6&&rank<=10)posAward=prize.positions?.['6-10']||0;
       const refundRange=prize.positions?.refund||'';
       if(posAward===0&&refundRange){
