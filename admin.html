@@ -1011,6 +1011,11 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
           <textarea class="form-textarea" id="mt-edit-rules" placeholder="Tournament rules..."></textarea>
         </div>
         <button class="btn btn-green btn-sm" onclick="window.saveTournamentDetails&&window.saveTournamentDetails()">💾 Save Changes</button>
+        <div style="margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--bdr)">
+          <div class="form-label" style="margin-bottom:.5rem">🏆 Edit Prize Pool</div>
+          <div id="mt-edit-prize-fields"></div>
+          <button class="btn btn-or btn-sm" style="margin-top:.5rem" onclick="window.savePrizePool&&window.savePrizePool()">💾 Save Prize Pool</button>
+        </div>
       </div>
 
       <!-- Registered Players Tab -->
@@ -2129,6 +2134,8 @@ window.openManageTournament=function(tid){
   } else {
     document.getElementById('mt-edit-start').value='';
   }
+  // Render prize edit fields
+  renderManagePrizeFields(t.prize);
   switchManageTab('room');
   openModal('manageTournModal');
   renderResultsInputs(tid);
@@ -2153,6 +2160,80 @@ window.saveRoomCode=async function(){
     updatedAt:Date.now()
   });
   toast('Room code saved ✅','green');
+};
+
+function renderManagePrizeFields(prize){
+  const el=document.getElementById('mt-edit-prize-fields');
+  if(!el||!prize)return;
+  const type=prize.type;
+  const p=prize.positions||{};
+  if(type==='position'||type==='mixed'){
+    const positions=[['1st Place','1'],['2nd Place','2'],['3rd–5th Place','3-5'],['6th–10th Place','6-10']];
+    el.innerHTML=positions.map(([lbl,key])=>`
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">${lbl} (₦) <span style="font-size:.65rem;color:var(--muted)">set 0 to remove</span></label>
+          <input type="number" class="form-input" id="mt-prize-${key}" value="${p[key]||0}" min="0">
+        </div>
+      </div>`).join('');
+    if(type==='mixed'){
+      el.innerHTML+=`
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">₦ Per Kill</label>
+            <input type="number" class="form-input" id="mt-prize-perkill" value="${prize.perKill||0}" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kill Cap</label>
+            <input type="number" class="form-input" id="mt-prize-killcap" value="${prize.killCap||10}" min="1">
+          </div>
+        </div>`;
+    }
+  } else if(type==='kill'){
+    el.innerHTML=`
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">₦ Per Kill</label>
+          <input type="number" class="form-input" id="mt-prize-perkill" value="${prize.perKill||0}" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Kill Cap</label>
+          <input type="number" class="form-input" id="mt-prize-killcap" value="${prize.killCap||10}" min="1">
+        </div>
+      </div>`;
+  } else {
+    el.innerHTML=`<div class="form-hint">Prize type not recognized.</div>`;
+  }
+}
+
+window.savePrizePool=async function(){
+  const tid=activeTournamentId;
+  const t=allTournaments[tid];
+  if(!t||!t.prize){toast('No prize data found','red');return;}
+  const type=t.prize.type;
+  let updatedPrize={...t.prize};
+  if(type==='position'||type==='mixed'){
+    updatedPrize.positions={
+      '1':parseFloat(document.getElementById('mt-prize-1')?.value)||0,
+      '2':parseFloat(document.getElementById('mt-prize-2')?.value)||0,
+      '3-5':parseFloat(document.getElementById('mt-prize-3-5')?.value)||0,
+      '6-10':parseFloat(document.getElementById('mt-prize-6-10')?.value)||0,
+    };
+    // Remove zero values so they don't show on player side
+    Object.keys(updatedPrize.positions).forEach(k=>{
+      if(!updatedPrize.positions[k]) delete updatedPrize.positions[k];
+    });
+  }
+  if(type==='mixed'||type==='kill'){
+    updatedPrize.perKill=parseFloat(document.getElementById('mt-prize-perkill')?.value)||0;
+    updatedPrize.killCap=parseInt(document.getElementById('mt-prize-killcap')?.value)||10;
+  }
+  if(!confirm('Save updated prize pool? Players will see this change immediately.'))return;
+  try{
+    await update(ref(db,'tournaments/'+tid),{prize:updatedPrize,updatedAt:Date.now()});
+    allTournaments[tid].prize=updatedPrize;
+    toast('Prize pool updated ✅','green');
+  }catch(e){toast('Failed: '+e.message,'red');}
 };
 
 window.saveTournamentDetails=async function(){
