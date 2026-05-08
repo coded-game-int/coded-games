@@ -482,7 +482,9 @@ function render(){
   const starts=t.startTime||0;
   const isStarted=now>=starts;
   const minsToStart=(starts-now)/60000;
-  const roomVisible=isRegistered&&playerData?.verified&&(minsToStart<=15||isStarted||t.roomReleaseOverride==='now');
+  // Use the tournament's configured release time (default 15 mins if not set)
+  const releaseMinutes=parseFloat(t.roomRelease||t.roomReleaseMinutes||'15')||15;
+  const roomVisible=isRegistered&&playerData?.verified&&(minsToStart<=releaseMinutes||isStarted||t.roomReleaseOverride==='now');
   const statusLabel={upcoming:'🕐 Upcoming',live:'🟢 Live',completed:'✅ Completed',
     cancelled:'❌ Cancelled',postponed:'⏸️ Postponed'}[t.status||'upcoming']||'Upcoming';
   const statusClass=t.status||'upcoming';
@@ -611,7 +613,7 @@ function renderRoomSection(t,isRegistered,roomVisible,minsToStart,isStarted){
       </div>
       <div class="room-locked">
         <div class="room-locked-icon">⏳</div>
-        <div class="room-locked-txt">Available 15 min before start</div>
+        <div class="room-locked-txt">Available ${t.roomRelease||'15'} min before start</div>
         <div class="room-locked-sub">Come back shortly before the tournament begins</div>
       </div>
     </div>`;
