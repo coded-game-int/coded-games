@@ -979,7 +979,21 @@ window.submitWithdraw=async function(){
   if(amt>(p.balanceReal||0)){alertEl.textContent='Insufficient balance';alertEl.className='alert err show';return;}
   if(!bank||!acct||!name){alertEl.textContent='Please fill all fields';alertEl.className='alert err show';return;}
   if(acct.length!==10||!/^\d+$/.test(acct)){alertEl.textContent='Enter a valid 10-digit account number';alertEl.className='alert err show';return;}
+  // Block if pending withdrawal already exists
+  const existingSnap=await window._get(window._ref(window._db,`players/${window._uid}/withdrawals`));
+  if(existingSnap.exists()){
+    const withdrawals=existingSnap.val();
+    const hasPending=Object.values(withdrawals).some(w=>w.status==='pending');
+    if(hasPending){
+      alertEl.textContent='You already have a pending withdrawal request. Wait for it to be processed before submitting a new one.';
+      alertEl.className='alert err show';
+      return;
+    }
+  }
   try{
+    // Deduct balance immediately (escrow) — refunded if admin rejects
+    const newBal=(p.balanceReal||0)-amt;
+    await window._set(window._ref(window._db,`players/${window._uid}/profile/balanceReal`),newBal);
     await window._push(window._ref(window._db,`players/${window._uid}/withdrawals`),{
       amount:amt,
       bankName:bank,
@@ -988,8 +1002,15 @@ window.submitWithdraw=async function(){
       status:'pending',
       createdAt:Date.now()
     });
+    await window._push(window._ref(window._db,`players/${window._uid}/transactions`),{
+      type:'withdrawal_hold',amount:amt,
+      note:'Withdrawal request — funds on hold',
+      createdAt:Date.now()
+    });
+    // Update local player data so UI reflects new balance immediately
+    window._player.balanceReal=newBal;
     closeM('mWithdraw');
-    alert('✅ Withdrawal request submitted! Funds will be sent within 24 hours.');
+    alert('✅ Withdrawal request submitted! ₦'+amt.toLocaleString()+' has been placed on hold and will be sent within 24 hours.');
   }catch(e){
     alertEl.textContent='Failed to submit. Try again.';alertEl.className='alert err show';
   }
@@ -1200,6 +1221,17 @@ window.submitTopupRequest=async function(){
   const btn=document.getElementById('topup-confirm-btn');
   if(!amt||!senderName)return;
   if(!window._db||!window._uid){alert('Not logged in. Please refresh.');return;}
+  // Check for existing pending topup
+  const existingSnap=await window._get(window._ref(window._db,`players/${window._uid}/topups`));
+  if(existingSnap.exists()){
+    const topups=existingSnap.val();
+    const hasPending=Object.values(topups).some(t=>t.status==='pending');
+    if(hasPending){
+      alert('⚠️ You already have a pending top-up request. Please wait for it to be approved or rejected before submitting a new one.');
+      closeM('mTopup');
+      return;
+    }
+  }
   btn.textContent='Submitting...';btn.disabled=true;
   try{
     await window._push(window._ref(window._db,`players/${window._uid}/topups`),{
@@ -1208,7 +1240,6 @@ window.submitTopupRequest=async function(){
       status:'pending',
       createdAt:Date.now()
     });
-    // Pending referral (topup condition) — store amount so admin can verify on approval
     const p=window._player||{};
     if(p.pendingReferralReward&&p.referralCondition==='topup'){
       await window._set(window._ref(window._db,`players/${window._uid}/profile/pendingReferralTopupAmt`),amt);

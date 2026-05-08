@@ -1079,6 +1079,10 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
           <button class="btn btn-red btn-sm" style="flex:1" onclick="window.toggleBlockPlayer&&window.toggleBlockPlayer()">🚫 Block / Unblock</button>
           <button class="btn btn-red btn-sm" style="flex:1;background:rgba(239,68,68,.2)" onclick="window.deletePlayerAccount&&window.deletePlayerAccount()">🗑️ Delete Account</button>
         </div>
+        <div style="margin-top:.5rem">
+          <button class="btn btn-sm" style="width:100%;background:var(--card2);color:var(--txt)" onclick="window.fixPlayerEarnings&&window.fixPlayerEarnings()">🔧 Recalculate Total Earnings</button>
+          <div style="font-size:.65rem;color:var(--muted);margin-top:.25rem">Use this if a player's "Earned" stat is wrong due to duplicate prize credits. Deletes duplicate prize transactions and recalculates correctly.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1833,13 +1837,16 @@ window.openWithdrawModal=function(pid,wid){
 window.approveWithdraw=async function(){
   const {pid,wid}=currentWithdrawId;
   const p=allPlayers[pid];const w=p.withdrawals[wid];
-  if(!confirm(`✅ Confirm payment of ₦${(w.amount||0).toLocaleString()} to ${p.username}?\nThis will deduct from their balance and mark as PAID. Cannot be undone.`))return;
-  const newBal=(p.balanceReal||0)-(w.amount||0);
+  if(!confirm(`✅ Confirm you have sent ₦${(w.amount||0).toLocaleString()} to ${p.username}?\n\nBalance was already deducted when they submitted the request. This will just mark it as PAID.`))return;
   try{
-    await update(ref(db,'players/'+pid+'/profile'),{balanceReal:Math.max(0,newBal)});
     await update(ref(db,`players/${pid}/withdrawals/${wid}`),{status:'paid',paidAt:Date.now(),paidBy:currentAdminUid});
+    await push(ref(db,`players/${pid}/transactions`),{
+      type:'withdrawal',amount:w.amount,
+      note:'Withdrawal paid by admin',
+      createdAt:Date.now()
+    });
     closeModal('withdrawModal');
-    toast('Withdrawal marked as paid — balance deducted ✅','green');
+    toast('Withdrawal marked as paid ✅','green');
   }catch(e){
     toast('Failed: '+e.message,'red');
   }
@@ -2721,7 +2728,54 @@ window.deletePlayerAccount=async function(){
   }catch(e){toast('Failed: '+e.message,'red');}
 };
 
-// ---- PROMOS & REFERRALS ----
+window.fixPlayerEarnings=async function(){
+  const pid=document.getElementById('playerModal').dataset.pid;
+  const p=allPlayers[pid];
+  if(!confirm(`Recalculate earnings for ${p.username}?\n\nThis will:\n• Scan all their prize transactions\n• For each tournament, keep only the LATEST prize transaction\n• Delete all duplicate prize entries\n• Their "Earned" stat will show the correct amount\n\nThis does NOT affect their balance — only the displayed earnings stat.`))return;
+  try{
+    // Load full transactions from Firebase
+    const txSnap=await get(ref(db,`players/${pid}/transactions`));
+    if(!txSnap.exists()){toast('No transactions found','red');return;}
+    const txs=txSnap.val();
+    // Group prize transactions by tournament
+    const prizeByTournament={};
+    const nonPrizeTxs={};
+    Object.entries(txs).forEach(([txid,tx])=>{
+      if(tx.type==='prize'||tx.type==='kill_prize'){
+        const tkey=tx.tid||tx.tournamentId||tx.tournament||'unknown';
+        if(!prizeByTournament[tkey])prizeByTournament[tkey]=[];
+        prizeByTournament[tkey].push({txid,...tx});
+      } else {
+        nonPrizeTxs[txid]=tx;
+      }
+    });
+    // For each tournament, keep only the entry with highest createdAt (most recent)
+    const keepTxIds=new Set();
+    const deleteTxIds=[];
+    let correctTotal=0;
+    Object.values(prizeByTournament).forEach(entries=>{
+      // Sort by createdAt descending
+      entries.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+      // Keep first (most recent), delete rest
+      keepTxIds.add(entries[0].txid);
+      correctTotal+=entries[0].amount||0;
+      entries.slice(1).forEach(e=>deleteTxIds.push(e.txid));
+    });
+    if(!deleteTxIds.length){
+      toast(`No duplicate prize transactions found for ${p.username} ✅`,'green');
+      return;
+    }
+    if(!confirm(`Found ${deleteTxIds.length} duplicate prize transaction(s) to remove.\nCorrect total earnings will be: ₦${correctTotal.toLocaleString()}\n\nProceed?`))return;
+    // Delete duplicates
+    for(const txid of deleteTxIds){
+      await remove(ref(db,`players/${pid}/transactions/${txid}`));
+    }
+    toast(`✅ Fixed ${p.username}'s earnings — removed ${deleteTxIds.length} duplicate(s). Correct earned: ₦${correctTotal.toLocaleString()}`,'green');
+    closeModal('playerModal');
+  }catch(e){
+    toast('Failed: '+e.message,'red');
+  }
+};
 window.openCreatePromo=function(){openModal('promoModal');};
 
 window.createPromo=async function(){
