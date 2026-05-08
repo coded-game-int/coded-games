@@ -913,7 +913,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
       <div class="inner-tabs" style="margin-bottom:.75rem">
         <button class="inner-tab active" onclick="switchManageTab('room')">🔑 Room</button>
         <button class="inner-tab" onclick="switchManageTab('edit')">✏️ Edit</button>
-        <button class="inner-tab" onclick="switchManageTab('results')">📊 Results</button>
+        <button class="inner-tab" onclick="switchManageTab('results')">📊 Results${allTournaments[activeTournamentId||'']?.prizesAwarded?` <span style="color:var(--red);font-size:.65rem">AWARDED</span>`:''}</button>
         <button class="inner-tab" onclick="switchManageTab('status')">⚙️ Status</button>
         <button class="inner-tab" onclick="switchManageTab('players')">👥 Players</button>
       </div>
@@ -941,9 +941,13 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
 
       <!-- Results Tab -->
       <div id="mt-results" style="display:none">
-        <div class="form-hint" style="margin-bottom:.75rem">Enter placement and kills for each registered player. Prize will be auto-calculated.</div>
+        <div class="form-hint" style="margin-bottom:.75rem">Enter placement and kills for each registered player. Save first, review carefully, then award prizes.</div>
         <div id="mt-results-list"></div>
-        <button class="btn btn-or btn-sm" style="margin-top:.5rem" onclick="window.saveResults&&window.saveResults()">💾 Save Results & Award Prizes</button>
+        <div style="display:flex;gap:.5rem;margin-top:.5rem;flex-wrap:wrap">
+          <button class="btn btn-or btn-sm" style="flex:1" onclick="window.saveResultsOnly&&window.saveResultsOnly()">💾 Save Results</button>
+          <button class="btn btn-green btn-sm" style="flex:1" id="award-prizes-btn" onclick="window.awardPrizesManual&&window.awardPrizesManual()">🏆 Award Prizes</button>
+        </div>
+        <div id="award-status-msg" style="font-size:.72rem;margin-top:.4rem;color:var(--muted)"></div>
       </div>
 
       <!-- Status Tab -->
@@ -2139,6 +2143,38 @@ window.openManageTournament=function(tid){
   } else {
     document.getElementById('mt-edit-start').value='';
   }
+  // Mark results tab if prizes already awarded
+  const resultsTab=document.querySelector('#manageTournModal .inner-tab:nth-child(3)');
+  if(resultsTab){
+    resultsTab.innerHTML=t.prizesAwarded
+      ?'📊 Results <span style="color:var(--red);font-size:.65rem">✓ AWARDED</span>'
+      :'📊 Results';
+  }
+  // Set award button state
+  const awardBtn=document.getElementById('award-prizes-btn');
+  const awardMsg=document.getElementById('award-status-msg');
+  if(awardBtn&&awardMsg){
+    if(t.prizesAwarded){
+      awardBtn.disabled=true;
+      awardBtn.style.opacity='0.4';
+      awardBtn.textContent='🏆 Prizes Already Awarded';
+      const awardedDate=t.prizesAwardedAt?new Date(t.prizesAwardedAt).toLocaleString('en-NG'):'';
+      awardMsg.textContent=`Prizes were awarded${awardedDate?' on '+awardedDate:''}.  To correct a player's balance use the Players tab.`;
+      awardMsg.style.color='var(--red)';
+    } else if(!t.results){
+      awardBtn.disabled=true;
+      awardBtn.style.opacity='0.4';
+      awardBtn.textContent='🏆 Award Prizes';
+      awardMsg.textContent='Save results first before awarding prizes.';
+      awardMsg.style.color='var(--muted)';
+    } else {
+      awardBtn.disabled=false;
+      awardBtn.style.opacity='1';
+      awardBtn.textContent='🏆 Award Prizes';
+      awardMsg.textContent='Results saved. Review carefully then award prizes.';
+      awardMsg.style.color='var(--green)';
+    }
+  }
   // Render prize edit fields
   renderManagePrizeFields(t.prize);
   switchManageTab('room');
@@ -2330,24 +2366,82 @@ function renderResultsInputs(tid){
   }).join('');
 }
 
-window.saveResults=async function(){
+window.saveResultsOnly=async function(){
   const tid=activeTournamentId;
   try{
     const t=allTournaments[tid];
     const regs=t?.registrations?Object.keys(t.registrations):[];
     const results={};
+    let hasAnyRank=false;
     regs.forEach(pid=>{
       const rank=parseInt(document.getElementById('res-rank-'+pid)?.value)||0;
       const kills=parseInt(document.getElementById('res-kills-'+pid)?.value)||0;
       results[pid]={rank,kills};
+      if(rank>0)hasAnyRank=true;
     });
-    await update(ref(db,'tournaments/'+tid),{results,status:'completed',updatedAt:Date.now()});
-    // Award prizes
-    await awardPrizes(tid,results,t);
-    toast('Results saved & prizes awarded ✅','green');
+    if(!hasAnyRank){toast('Enter at least one rank before saving','red');return;}
+    await update(ref(db,'tournaments/'+tid),{results,updatedAt:Date.now()});
+    allTournaments[tid].results=results;
+    // Enable award button now that results exist
+    const awardBtn=document.getElementById('award-prizes-btn');
+    const awardMsg=document.getElementById('award-status-msg');
+    if(awardBtn&&!t.prizesAwarded){
+      awardBtn.disabled=false;
+      awardBtn.style.opacity='1';
+      awardMsg.textContent='✅ Results saved. Review carefully, then award prizes when ready.';
+      awardMsg.style.color='var(--green)';
+    }
+    toast('Results saved ✅ — prizes NOT yet awarded','green');
   }catch(e){
-    toast('Failed to save results: '+e.message,'red');
-    console.error('saveResults error:',e);
+    toast('Failed to save: '+e.message,'red');
+  }
+};
+
+window.awardPrizesManual=async function(){
+  const tid=activeTournamentId;
+  const t=allTournaments[tid];
+  if(t.prizesAwarded){
+    toast('Prizes already awarded for this tournament','red');
+    return;
+  }
+  if(!t.results||!Object.values(t.results).some(r=>r.rank>0)){
+    toast('Save results first before awarding prizes','red');
+    return;
+  }
+  // Show a summary before confirming
+  const results=t.results;
+  const prize=t.prize||{};
+  const ranked=Object.entries(results)
+    .filter(([,r])=>r.rank>0)
+    .sort((a,b)=>a[1].rank-b[1].rank)
+    .slice(0,5);
+  const summary=ranked.map(([pid,r])=>{
+    const reg=t.registrations?.[pid];
+    const name=reg?.username||pid;
+    return `Rank ${r.rank}: ${name} (${r.kills||0} kills)`;
+  }).join('\n');
+  if(!confirm(`⚠️ AWARD PRIZES — THIS CANNOT BE UNDONE\n\nTop players:\n${summary}\n\nAre you 100% sure the ranks and kills are correct?\nPress OK to credit all players now.`)){return;}
+  try{
+    await update(ref(db,'tournaments/'+tid),{status:'completed',prizesAwarded:true,prizesAwardedAt:Date.now(),updatedAt:Date.now()});
+    allTournaments[tid].prizesAwarded=true;
+    await awardPrizes(tid,results,t);
+    // Update UI
+    const awardBtn=document.getElementById('award-prizes-btn');
+    const awardMsg=document.getElementById('award-status-msg');
+    if(awardBtn){
+      awardBtn.disabled=true;
+      awardBtn.style.opacity='0.4';
+      awardBtn.textContent='🏆 Prizes Already Awarded';
+    }
+    if(awardMsg){
+      awardMsg.textContent='Prizes awarded successfully.';
+      awardMsg.style.color='var(--red)';
+    }
+    const resultsTab=document.querySelector('#manageTournModal .inner-tab:nth-child(3)');
+    if(resultsTab)resultsTab.innerHTML='📊 Results <span style="color:var(--red);font-size:.65rem">✓ AWARDED</span>';
+    toast('Prizes awarded successfully ✅','green');
+  }catch(e){
+    toast('Failed to award prizes: '+e.message,'red');
   }
 };
 
