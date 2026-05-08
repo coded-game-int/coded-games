@@ -1319,6 +1319,7 @@ function initListeners(){
         topups:data.topups||null,
         withdrawals:data.withdrawals||null,
         tournaments:data.tournaments||null,
+        usedPromos:data.usedPromos||null,
       };
     });
     refreshCurrentTab();
@@ -2651,15 +2652,32 @@ async function loadPromos(){
   if(!entries.length){el.innerHTML=emptyState('🎟','No promo codes','Create one above');return;}
   el.innerHTML=entries.map(([code,p])=>`
     <div class="promo-row">
-      <div>
+      <div style="flex:1">
         <div class="promo-code">${code}</div>
         <div class="promo-detail">${p.type==='real'?'Real':'Bonus'} ₦${p.amount} • Used ${p.usedCount||0}/${p.maxUses||'∞'} ${p.expires?'• Expires '+p.expires:''}</div>
+        <div id="promo-users-${code}" style="display:none;margin-top:.4rem;font-size:.72rem;color:var(--txt2)"></div>
       </div>
-      <div class="promo-actions">
+      <div class="promo-actions" style="display:flex;gap:.3rem;align-items:flex-start">
+        <button class="btn btn-sm" style="background:var(--card2)" onclick="window.togglePromoUsers('${code}')">👥</button>
         <button class="btn btn-red btn-sm" onclick="deletePromo('${code}')">🗑</button>
       </div>
     </div>`).join('');
 }
+
+window.togglePromoUsers=function(code){
+  const el=document.getElementById('promo-users-'+code);
+  if(!el)return;
+  if(el.style.display!=='none'){el.style.display='none';return;}
+  // Find all players who have this promo in their usedPromos
+  const users=Object.values(allPlayers).filter(p=>p.usedPromos&&p.usedPromos[code]);
+  if(!users.length){el.textContent='No one has used this code yet.';el.style.display='block';return;}
+  el.innerHTML='<strong>Used by:</strong><br>'+users.map(p=>{
+    const ts=p.usedPromos[code];
+    const date=ts?new Date(ts).toLocaleDateString('en-NG',{day:'numeric',month:'short',year:'numeric'}):'';
+    return `• ${p.username||'Unknown'} ${date?'on '+date:''}`;
+  }).join('<br>');
+  el.style.display='block';
+};
 
 window.deletePromo=async function(code){
   if(!confirm('Delete promo code '+code+'?'))return;
@@ -2673,14 +2691,32 @@ async function loadReferrals(){
   if(!el)return;
   const entries=Object.entries(allPlayers).filter(([id,p])=>p.referralCount>0);
   if(!entries.length){el.innerHTML=emptyState('🔗','No referrals yet','');return;}
-  el.innerHTML=entries.sort((a,b)=>(b[1].referralCount||0)-(a[1].referralCount||0)).map(([pid,p])=>`
-    <div class="promo-row">
-      <div>
-        <div class="promo-code" style="font-size:.85rem">${p.username||pid}</div>
-        <div class="promo-detail">Referral code: ${p.username} • ${p.referralCount||0} referral(s)</div>
+  // Build a map: username → list of players they referred
+  const referredMap={};
+  Object.values(allPlayers).forEach(p=>{
+    if(p.referredBy){
+      if(!referredMap[p.referredBy])referredMap[p.referredBy]=[];
+      referredMap[p.referredBy].push(p);
+    }
+  });
+  el.innerHTML=entries.sort((a,b)=>(b[1].referralCount||0)-(a[1].referralCount||0)).map(([pid,p])=>{
+    const referred=referredMap[p.username]||[];
+    const referredList=referred.length
+      ?referred.map(r=>`<div style="font-size:.7rem;color:var(--txt2);padding:.15rem 0">• ${r.username||'Unknown'} ${r.verified?'✅':'⏳ unverified'}</div>`).join('')
+      :`<div style="font-size:.7rem;color:var(--muted)">No referred players found</div>`;
+    return`<div class="promo-row" style="flex-direction:column;align-items:flex-start;gap:.3rem">
+      <div style="display:flex;width:100%;justify-content:space-between;align-items:center">
+        <div>
+          <div class="promo-code" style="font-size:.85rem">${p.username||pid}</div>
+          <div class="promo-detail">${p.referralCount||0} referral(s) made</div>
+        </div>
+        <span class="status status-verified">${p.referralCount||0} refs</span>
       </div>
-      <span class="status status-verified">${p.referralCount||0} refs</span>
-    </div>`).join('');
+      <div style="padding-left:.5rem;border-left:2px solid var(--or);width:100%">
+        ${referredList}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 window.saveReferralRules=async function(){
