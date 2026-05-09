@@ -671,6 +671,11 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
       <input type="text" class="form-input" id="wowWinCondition" placeholder="Survive the full time OR reach 25 points">
     </div>
     <div class="form-group">
+      <label class="form-label">WOW WhatsApp Number</label>
+      <input type="text" class="form-input" id="wowWhatsapp" placeholder="e.g. 2348012345678">
+      <div class="form-hint">Direct number (with country code, no + or spaces) — players send screenshots here</div>
+    </div>
+    <div class="form-group">
       <label class="form-label">Additional Rules (shown to players)</label>
       <textarea class="form-textarea" id="wowRules" placeholder="e.g. Must submit 2 screenshots within 30 mins of match ending..."></textarea>
     </div>
@@ -3061,7 +3066,8 @@ window.saveWowSettings=async function(){
   const mapCode=document.getElementById('wowMapCode').value.trim();
   const winCondition=document.getElementById('wowWinCondition').value.trim();
   const rules=document.getElementById('wowRules').value.trim();
-  await set(ref(db,'settings/wow'),{enabled,prize,dailyLimit,mapCode,winCondition,rules,updatedAt:Date.now()});
+  const whatsapp=document.getElementById('wowWhatsapp').value.replace(/[^0-9]/g,'');
+  await set(ref(db,'settings/wow'),{enabled,prize,dailyLimit,mapCode,winCondition,rules,whatsapp,updatedAt:Date.now()});
   toast('WOW settings saved ✅','green');
 };
 
@@ -3075,7 +3081,7 @@ async function loadWowSettings(){
   if(el('wowDailyLimit'))el('wowDailyLimit').value=s.dailyLimit||2;
   if(el('wowMapCode'))el('wowMapCode').value=s.mapCode||'';
   if(el('wowWinCondition'))el('wowWinCondition').value=s.winCondition||'';
-  if(el('wowRules'))el('wowRules').value=s.rules||'';
+  if(el('wowWhatsapp'))el('wowWhatsapp').value=s.whatsapp||'';
 }
 
 async function renderWowSubmissions(){

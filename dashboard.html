@@ -392,31 +392,23 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
     <div class="mhndl"></div>
     <div class="mtitle">⚡ Submit WOW Win</div>
     <div id="wow-alert" class="alert" style="display:none"></div>
+    <div style="background:rgba(147,51,234,.1);border:1px solid #9333ea;border-radius:8px;padding:.6rem;margin-bottom:.75rem;font-size:.72rem;color:var(--txt2);line-height:1.6">
+      📸 After filling this form you will be redirected to WhatsApp.<br>
+      <strong style="color:#c084fc">Attach both screenshots in that WhatsApp message</strong> — one in-game (showing status bar time) and one result screen.
+    </div>
     <div class="form-group">
       <label class="form-label">Match Time (from status bar) <span style="color:var(--red)">*</span></label>
       <input type="time" class="form-input" id="wowMatchTime">
-      <div class="form-hint">The time shown in your phone's status bar during the match</div>
     </div>
     <div class="form-group">
       <label class="form-label">Your Score / Points <span style="color:var(--red)">*</span></label>
       <input type="number" class="form-input" id="wowScore" placeholder="e.g. 25" min="0">
     </div>
     <div class="form-group">
-      <label class="form-label">📷 Screenshot 1 — In-game (showing status bar time) <span style="color:var(--red)">*</span></label>
-      <input type="file" class="form-input" id="wowShot1" accept="image/*" onchange="previewWowShot(1)">
-      <img id="wowShot1Preview" style="display:none;width:100%;border-radius:8px;margin-top:.4rem;max-height:180px;object-fit:cover">
-    </div>
-    <div class="form-group">
-      <label class="form-label">📷 Screenshot 2 — Result screen (showing status bar time) <span style="color:var(--red)">*</span></label>
-      <input type="file" class="form-input" id="wowShot2" accept="image/*" onchange="previewWowShot(2)">
-      <img id="wowShot2Preview" style="display:none;width:100%;border-radius:8px;margin-top:.4rem;max-height:180px;object-fit:cover">
-    </div>
-    <div class="form-group">
       <label class="form-label">Additional Note (optional)</label>
-      <input type="text" class="form-input" id="wowNote" placeholder="Any extra info for admin...">
+      <input type="text" class="form-input" id="wowNote" placeholder="Any extra info...">
     </div>
-    <div id="wowUploadProgress" style="display:none;font-size:.72rem;color:var(--muted);text-align:center;padding:.5rem">Uploading screenshots...</div>
-    <button class="btn btn-or" style="width:100%;background:linear-gradient(135deg,#9333ea,#7c3aed)" id="wowSubmitFormBtn" onclick="window.submitWowWin&&window.submitWowWin()">⚡ Submit Win</button>
+    <button class="btn btn-or" style="width:100%;background:linear-gradient(135deg,#9333ea,#7c3aed)" id="wowSubmitFormBtn" onclick="window.submitWowWin&&window.submitWowWin()">⚡ Submit & Open WhatsApp</button>
   </div>
 </div>
 
@@ -538,8 +530,6 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
 <!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getStorage, ref as sRef, uploadBytes, getDownloadURL }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getDatabase, ref, get, set, push, onValue }
@@ -557,7 +547,6 @@ const cfg={
 const app=initializeApp(cfg);
 const auth=getAuth(app);
 const db=getDatabase(app);
-const storage=getStorage(app);
 setPersistence(auth,browserLocalPersistence).catch(()=>{});
 // Expose Firebase to non-module scripts
 window._db=db; window._ref=ref; window._push=push; window._set=set; window._get=get;
@@ -1349,89 +1338,63 @@ async function loadWowSection(){
   }catch(e){console.error('WOW load error:',e);}
 }
 
-window.previewWowShot=function(n){
-  const file=document.getElementById('wowShot'+n).files[0];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const img=document.getElementById('wowShot'+n+'Preview');
-    img.src=e.target.result;img.style.display='block';
-  };
-  reader.readAsDataURL(file);
-};
-
-window.openWowSubmit=function(){
-  const today=new Date().toISOString().slice(0,10);
-  const todayWins=parseInt(document.getElementById('wowTodayWins').textContent)||0;
-  const limit=wowSettings.dailyLimit||2;
-  if(todayWins>=limit){
-    alert(`Daily limit reached (${todayWins}/${limit}). Come back tomorrow!`);
-    return;
-  }
-  openM('mWow');
-};
+window.previewWowShot=function(){};// no longer needed
 
 window.submitWowWin=async function(){
   const matchTime=document.getElementById('wowMatchTime').value;
   const score=document.getElementById('wowScore').value;
-  const shot1=document.getElementById('wowShot1').files[0];
-  const shot2=document.getElementById('wowShot2').files[0];
   const note=document.getElementById('wowNote').value.trim();
   const alertEl=document.getElementById('wow-alert');
   alertEl.style.display='none';
   const showErr=msg=>{alertEl.textContent=msg;alertEl.style.display='block';alertEl.className='alert err';};
   if(!matchTime){showErr('Enter the match time from your status bar');return;}
   if(!score){showErr('Enter your score/points');return;}
-  if(!shot1){showErr('Upload your in-game screenshot');return;}
-  if(!shot2){showErr('Upload your result screen screenshot');return;}
   // Check submission time vs match time (must be within 45 mins)
   const now=new Date();
   const [mh,mm]=matchTime.split(':').map(Number);
   const matchMins=mh*60+mm;
   const nowMins=now.getHours()*60+now.getMinutes();
   let diff=Math.abs(nowMins-matchMins);
-  if(diff>720)diff=1440-diff; // handle midnight crossing
+  if(diff>720)diff=1440-diff;
   if(diff>45){showErr('Screenshots must be submitted within 45 minutes of match time. The time shown in your status bar is too far from now.');return;}
   const btn=document.getElementById('wowSubmitFormBtn');
-  const progress=document.getElementById('wowUploadProgress');
-  btn.disabled=true;btn.textContent='Uploading...';
-  progress.style.display='block';
+  btn.disabled=true;btn.textContent='Saving...';
   try{
     const uid=window._uid;
+    const username=window._player?.username||'Unknown';
     const ts=Date.now();
-    // Upload both screenshots to Firebase Storage
-    const upload=async(file,name)=>{
-      const storageRef=sRef(storage,`wow-submissions/${uid}/${ts}_${name}`);
-      await uploadBytes(storageRef,file);
-      return await getDownloadURL(storageRef);
-    };
-    const [url1,url2]=await Promise.all([upload(shot1,'ingame'),upload(shot2,'result')]);
-    // Save submission to Firebase
-    await push(ref(db,'wowSubmissions'),{
-      uid,
-      username:window._player?.username||'Unknown',
-      matchTime,
+    // Save submission record to Firebase (without screenshots — sent via WhatsApp)
+    const subRef=await push(ref(db,'wowSubmissions'),{
+      uid,username,matchTime,
       score:parseInt(score)||0,
       note:note||'',
-      screenshot1:url1,
-      screenshot2:url2,
       status:'pending',
-      submittedAt:ts
+      submittedAt:ts,
+      screenshotMethod:'whatsapp'
     });
+    const sid=subRef.key;
+    // Get WOW WhatsApp number from wow settings
+    const waNumber=wowSettings.whatsapp||'';
+    const waMsg=encodeURIComponent(
+      `⚡ WOW WIN CLAIM\nUsername: ${username}\nMatch Time: ${matchTime}\nScore: ${score}${note?'\nNote: '+note:''}\nSubmission ID: ${sid}\n\n📸 Attaching 2 screenshots below (in-game + result screen, both showing status bar time)`
+    );
     closeM('mWow');
     // Reset form
-    ['wowMatchTime','wowScore','wowNote'].forEach(id=>document.getElementById(id).value='');
-    ['wowShot1','wowShot2'].forEach(id=>document.getElementById(id).value='');
-    ['wowShot1Preview','wowShot2Preview'].forEach(id=>{const el=document.getElementById(id);el.src='';el.style.display='none';});
-    alert('✅ Win submitted! Admin will review and credit your balance shortly.');
-    // Refresh WOW section
+    document.getElementById('wowMatchTime').value='';
+    document.getElementById('wowScore').value='';
+    document.getElementById('wowNote').value='';
+    // Refresh WOW section stats
     loadWowSection();
+    // Open WhatsApp
+    if(waNumber){
+      window.open(`https://wa.me/${waNumber}?text=${waMsg}`,'_blank');
+    } else {
+      alert('✅ Submission saved! Now send your 2 screenshots to the admin WhatsApp number to complete your claim.');
+    }
   }catch(e){
-    showErr('Upload failed: '+e.message);
-    console.error('WOW submit error:',e);
+    showErr('Failed to submit: '+e.message);
   }finally{
-    btn.disabled=false;btn.textContent='⚡ Submit Win';
-    progress.style.display='none';
+    btn.disabled=false;btn.textContent='⚡ Submit & Open WhatsApp';
   }
 };
 
