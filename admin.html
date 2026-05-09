@@ -438,8 +438,10 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
     <button class="inner-tab" onclick="switchTournTab('upcoming')">⏰ Upcoming</button>
     <button class="inner-tab" onclick="switchTournTab('completed')">✅ Done</button>
     <button class="inner-tab" onclick="switchTournTab('cancelled')">❌ Cancelled</button>
+    <button class="inner-tab" onclick="switchTournTab('wow')">⚡ WOW</button>
   </div>
   <div id="tournList"><div class="empty"><div class="empty-icon">🎮</div><div class="empty-txt">Loading...</div></div></div>
+  <div id="wowList" style="display:none"></div>
 </div>
 
 <!-- ======= PLAYERS ======= -->
@@ -636,6 +638,43 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
       <div class="form-hint">Bonus coins are not withdrawable — only usable for tournament entry</div>
     </div>
     <button class="btn btn-or btn-sm" onclick="window.saveWelcomeBonus&&window.saveWelcomeBonus()">Save</button>
+  </div>
+
+  <!-- WOW Challenge Settings -->
+  <div class="card">
+    <div class="card-top-line" style="background:#9333ea"></div>
+    <div class="sec-title" style="font-size:.82rem;margin-bottom:.6rem">⚡ WOW Challenge Settings</div>
+    <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;background:var(--bg2);padding:.7rem .8rem;border-radius:8px;border:1px solid var(--bdr);margin-bottom:.75rem">
+      <div>
+        <div style="font-size:.8rem;font-weight:600;color:var(--txt)">Enable WOW Challenge</div>
+        <div style="font-size:.68rem;color:var(--muted);margin-top:.15rem">When OFF, players cannot see or submit WOW challenges</div>
+      </div>
+      <input type="checkbox" id="wowEnabled" style="width:18px;height:18px;accent-color:var(--or);cursor:pointer;flex-shrink:0">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Prize Per Win (₦)</label>
+        <input type="number" class="form-input" id="wowPrize" placeholder="100" min="0">
+        <div class="form-hint">Credited as real balance</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Max Wins Per Day</label>
+        <input type="number" class="form-input" id="wowDailyLimit" placeholder="2" min="1">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Map Creator Code</label>
+      <input type="text" class="form-input" id="wowMapCode" placeholder="25341057">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Win Condition (shown to players)</label>
+      <input type="text" class="form-input" id="wowWinCondition" placeholder="Survive the full time OR reach 25 points">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Additional Rules (shown to players)</label>
+      <textarea class="form-textarea" id="wowRules" placeholder="e.g. Must submit 2 screenshots within 30 mins of match ending..."></textarea>
+    </div>
+    <button class="btn btn-or btn-sm" onclick="window.saveWowSettings&&window.saveWowSettings()">💾 Save WOW Settings</button>
   </div>
 
   <!-- Admin management -->
@@ -1872,9 +1911,17 @@ window.rejectWithdraw=async function(){
 window.switchTournTab=function(tab){
   activeTournTab=tab;
   document.querySelectorAll('#sec-tournaments .inner-tab').forEach((t,i)=>{
-    t.classList.toggle('active',['active','upcoming','completed','cancelled'][i]===tab);
+    t.classList.toggle('active',['active','upcoming','completed','cancelled','wow'][i]===tab);
   });
-  renderTournaments(tab);
+  if(tab==='wow'){
+    document.getElementById('tournList').style.display='none';
+    document.getElementById('wowList').style.display='block';
+    renderWowSubmissions();
+  } else {
+    document.getElementById('tournList').style.display='block';
+    document.getElementById('wowList').style.display='none';
+    renderTournaments(tab);
+  }
 };
 
 function renderTournaments(tab){
@@ -2954,6 +3001,8 @@ async function loadSettings(){
     updateRefConditionUI();
   }
   document.getElementById('welcomeBonus').value=s.welcomeBonus||500;
+  // Load WOW settings
+  await loadWowSettings();
 }
 
 window.saveLaunchSettings=async function(){
@@ -3004,7 +3053,136 @@ window.saveWelcomeBonus=async function(){
   toast('Welcome bonus saved ✅','green');
 };
 
-// ---- ADMIN MANAGEMENT ----
+// ---- WOW CHALLENGE ----
+window.saveWowSettings=async function(){
+  const enabled=document.getElementById('wowEnabled').checked;
+  const prize=parseInt(document.getElementById('wowPrize').value)||100;
+  const dailyLimit=parseInt(document.getElementById('wowDailyLimit').value)||2;
+  const mapCode=document.getElementById('wowMapCode').value.trim();
+  const winCondition=document.getElementById('wowWinCondition').value.trim();
+  const rules=document.getElementById('wowRules').value.trim();
+  await set(ref(db,'settings/wow'),{enabled,prize,dailyLimit,mapCode,winCondition,rules,updatedAt:Date.now()});
+  toast('WOW settings saved ✅','green');
+};
+
+async function loadWowSettings(){
+  const snap=await get(ref(db,'settings/wow'));
+  if(!snap.exists())return;
+  const s=snap.val();
+  const el=id=>document.getElementById(id);
+  if(el('wowEnabled'))el('wowEnabled').checked=s.enabled||false;
+  if(el('wowPrize'))el('wowPrize').value=s.prize||100;
+  if(el('wowDailyLimit'))el('wowDailyLimit').value=s.dailyLimit||2;
+  if(el('wowMapCode'))el('wowMapCode').value=s.mapCode||'';
+  if(el('wowWinCondition'))el('wowWinCondition').value=s.winCondition||'';
+  if(el('wowRules'))el('wowRules').value=s.rules||'';
+}
+
+async function renderWowSubmissions(){
+  const el=document.getElementById('wowList');
+  el.innerHTML='<div class="empty"><div class="empty-txt">Loading WOW submissions...</div></div>';
+  try{
+    const snap=await get(ref(db,'wowSubmissions'));
+    if(!snap.exists()){el.innerHTML=emptyState('⚡','No WOW submissions yet','Players will appear here when they submit wins');return;}
+    const all=snap.val();
+    const entries=Object.entries(all).sort((a,b)=>(b[1].submittedAt||0)-(a[1].submittedAt||0));
+    const pending=entries.filter(([,s])=>s.status==='pending');
+    const reviewed=entries.filter(([,s])=>s.status!=='pending');
+    el.innerHTML=`
+      <div style="margin-bottom:.5rem;font-size:.78rem;color:var(--muted)">
+        ${pending.length} pending · ${reviewed.length} reviewed
+      </div>
+      ${pending.length?`<div class="divider-label">⏳ PENDING</div>`+pending.map(([sid,s])=>renderWowCard(sid,s)).join(''):''}
+      ${reviewed.length?`<div class="divider-label" style="margin-top:.75rem">✅ REVIEWED</div>`+reviewed.map(([sid,s])=>renderWowCard(sid,s)).join(''):''}
+    `;
+  }catch(e){el.innerHTML=emptyState('⚡','Error loading',''+e.message);}
+}
+
+function renderWowCard(sid,s){
+  const date=s.submittedAt?new Date(s.submittedAt).toLocaleString('en-NG',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+  const statusColor=s.status==='approved'?'var(--green)':s.status==='rejected'?'var(--red)':'var(--or)';
+  const statusLabel=s.status==='approved'?'✅ Approved':s.status==='rejected'?'❌ Rejected':'⏳ Pending';
+  return`<div class="card" style="margin-bottom:.6rem;border-left:3px solid ${statusColor}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem">
+      <div>
+        <div style="font-weight:700;font-size:.9rem">${s.username||'Unknown'}</div>
+        <div style="font-size:.68rem;color:var(--muted)">${date}</div>
+      </div>
+      <span style="font-size:.7rem;color:${statusColor};font-weight:700">${statusLabel}</span>
+    </div>
+    <div style="font-size:.75rem;color:var(--txt2);margin-bottom:.5rem">
+      <div>Match time: <strong>${s.matchTime||'—'}</strong></div>
+      <div>Score: <strong>${s.score||'—'}</strong></div>
+      ${s.note?`<div>Note: ${s.note}</div>`:''}
+    </div>
+    <div style="display:flex;gap:.4rem;margin-bottom:.5rem;flex-wrap:wrap">
+      ${s.screenshot1?`<a href="${s.screenshot1}" target="_blank" style="font-size:.72rem;color:var(--or);text-decoration:underline">📷 In-game shot</a>`:''}
+      ${s.screenshot2?`<a href="${s.screenshot2}" target="_blank" style="font-size:.72rem;color:var(--or);text-decoration:underline">📷 Result shot</a>`:''}
+    </div>
+    ${s.status==='pending'?`
+    <div style="display:flex;gap:.4rem">
+      <button class="btn btn-green btn-sm" style="flex:1" onclick="window.approveWow('${sid}','${s.uid}','${s.username||''}')">✅ Approve</button>
+      <button class="btn btn-red btn-sm" style="flex:1" onclick="window.rejectWow('${sid}','${s.uid}')">❌ Reject</button>
+    </div>`:''}
+    ${s.status==='rejected'&&s.rejectReason?`<div style="font-size:.68rem;color:var(--red);margin-top:.3rem">Reason: ${s.rejectReason}</div>`:''}
+  </div>`;
+}
+
+window.approveWow=async function(sid,uid,username){
+  const settSnap=await get(ref(db,'settings/wow'));
+  const prize=settSnap.exists()?(settSnap.val().prize||100):100;
+  if(!confirm(`Approve WOW win for ${username}?\nCredits ₦${prize} real balance to their account.`))return;
+  try{
+    // Credit balance
+    const pSnap=await get(ref(db,`players/${uid}/profile`));
+    if(!pSnap.exists()){toast('Player not found','red');return;}
+    const p=pSnap.val();
+    const newBal=(p.balanceReal||0)+prize;
+    await update(ref(db,`players/${uid}/profile`),{balanceReal:newBal});
+    await push(ref(db,`players/${uid}/transactions`),{
+      type:'wow_prize',amount:prize,
+      note:'WOW Challenge win approved',
+      submissionId:sid,
+      createdAt:Date.now()
+    });
+    // Mark submission approved
+    await update(ref(db,`wowSubmissions/${sid}`),{
+      status:'approved',
+      approvedAt:Date.now(),
+      approvedBy:currentAdminUid,
+      prizePaid:prize
+    });
+    // Record win for daily limit tracking
+    const today=new Date().toISOString().slice(0,10);
+    const winsSnap=await get(ref(db,`players/${uid}/wowWins/${today}`));
+    const currentWins=winsSnap.exists()?parseInt(winsSnap.val())||0:0;
+    await set(ref(db,`players/${uid}/wowWins/${today}`),currentWins+1);
+    toast(`✅ Approved — ₦${prize} credited to ${username}`,'green');
+    renderWowSubmissions();
+  }catch(e){toast('Failed: '+e.message,'red');}
+};
+
+window.rejectWow=async function(sid,uid){
+  const reason=prompt('Rejection reason (shown to player):');
+  if(reason===null)return;
+  try{
+    await update(ref(db,`wowSubmissions/${sid}`),{
+      status:'rejected',
+      rejectedAt:Date.now(),
+      rejectedBy:currentAdminUid,
+      rejectReason:reason||'Does not meet win conditions'
+    });
+    // Notify player via transaction log
+    await push(ref(db,`players/${uid}/transactions`),{
+      type:'wow_rejected',amount:0,
+      note:'WOW submission rejected'+(reason?': '+reason:''),
+      submissionId:sid,
+      createdAt:Date.now()
+    });
+    toast('Submission rejected','red');
+    renderWowSubmissions();
+  }catch(e){toast('Failed: '+e.message,'red');}
+};
 async function loadAdminList(){
   const el=document.getElementById('adminList');
   if(!el)return;
