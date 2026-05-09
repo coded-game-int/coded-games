@@ -376,7 +376,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
     <span class="bnav-icon">🏆</span>
     <span class="bnav-label">Ranks</span>
   </a>
-  <a class="bnav-item" href="#" onclick="openM('mHistory');loadHistory();return false">
+  <a class="bnav-item" href="#" onclick="openM('mHistory');window.loadHistory&&window.loadHistory();return false">
     <span class="bnav-icon">📋</span>
     <span class="bnav-label">History</span>
   </a>
@@ -1254,44 +1254,6 @@ window._initDashCountdown=function(){
     if(banner)banner.style.display='none';
   });
 };
-</script>
-
-<script>
-function openM(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
-function closeM(id){document.getElementById(id).classList.remove('on');document.body.style.overflow='';}
-function ovClick(e,id){if(e.target===document.getElementById(id))closeM(id);}
-
-function copyRef(code){
-  navigator.clipboard.writeText(code).then(()=>{
-    const btn=event.target;btn.textContent='✅ Copied!';
-    setTimeout(()=>btn.textContent='Copy',2000);
-  });
-}
-
-// TOP-UP FLOW
-function ts2(){
-  const amt=document.getElementById('taAmt').value;
-  const nm=document.getElementById('taName').value.trim();
-  if(!amt||amt<100){alert('Minimum top-up is ₦100');return;}
-  if(!nm){alert('Please enter your account name');return;}
-  const f='₦'+Number(amt).toLocaleString();
-  document.getElementById('taD1').textContent=f;
-  document.getElementById('taD2').textContent=f;
-  document.getElementById('ts1').classList.remove('on');
-  document.getElementById('ts2').classList.add('on');
-}
-function tsBack(){
-  document.getElementById('ts2').classList.remove('on');
-  document.getElementById('ts1').classList.add('on');
-}
-function rTopup(){
-  document.getElementById('taAmt').value='';
-  document.getElementById('taName').value='';
-  document.getElementById('ts2').classList.remove('on');
-  document.getElementById('ts1').classList.add('on');
-}
-// ---- WOW CHALLENGE ----
-let wowSettings={};
 
 async function loadWowSection(){
   try{
@@ -1338,6 +1300,46 @@ async function loadWowSection(){
     }
   }catch(e){console.error('WOW load error:',e);}
 }
+
+window.submitTopupRequest=async function(){
+  const amt=Number(document.getElementById('taAmt').value);
+  const senderName=document.getElementById('taName').value.trim();
+  const btn=document.getElementById('topup-confirm-btn');
+  if(!amt||!senderName)return;
+  if(!window._db||!window._uid){alert('Not logged in. Please refresh.');return;}
+  // Check for existing pending topup
+  const existingSnap=await window._get(window._ref(window._db,`players/${window._uid}/topups`));
+  if(existingSnap.exists()){
+    const topups=existingSnap.val();
+    const hasPending=Object.values(topups).some(t=>t.status==='pending');
+    if(hasPending){
+      alert('⚠️ You already have a pending top-up request. Please wait for it to be approved or rejected before submitting a new one.');
+      closeM('mTopup');
+      return;
+    }
+  }
+  btn.textContent='Submitting...';btn.disabled=true;
+  try{
+    await window._push(window._ref(window._db,`players/${window._uid}/topups`),{
+      amount:amt,
+      senderName:senderName,
+      status:'pending',
+      createdAt:Date.now()
+    });
+    const p=window._player||{};
+    if(p.pendingReferralReward&&p.referralCondition==='topup'){
+      await window._set(window._ref(window._db,`players/${window._uid}/profile/pendingReferralTopupAmt`),amt);
+    }
+    closeM('mTopup');
+    rTopup();
+    alert('✅ Top-up request submitted! Your balance will be credited once confirmed.');
+  }catch(e){
+    alert('Failed to submit: '+e.message);
+    console.error('Topup error:',e);
+  }finally{
+    btn.textContent='✅ Done — I\'ve Sent the Money';btn.disabled=false;
+  }
+};
 
 window.openWowSubmit=function(){
   const today=new Date().toISOString().slice(0,10);
@@ -1415,45 +1417,46 @@ window.submitWowWin=async function(){
   if(!matchTime){showErr('Enter the match time from your status bar');return;}
   if(!score){showErr('Enter your score/points');return;}
 
-window.submitTopupRequest=async function(){
-  const amt=Number(document.getElementById('taAmt').value);
-  const senderName=document.getElementById('taName').value.trim();
-  const btn=document.getElementById('topup-confirm-btn');
-  if(!amt||!senderName)return;
-  if(!window._db||!window._uid){alert('Not logged in. Please refresh.');return;}
-  // Check for existing pending topup
-  const existingSnap=await window._get(window._ref(window._db,`players/${window._uid}/topups`));
-  if(existingSnap.exists()){
-    const topups=existingSnap.val();
-    const hasPending=Object.values(topups).some(t=>t.status==='pending');
-    if(hasPending){
-      alert('⚠️ You already have a pending top-up request. Please wait for it to be approved or rejected before submitting a new one.');
-      closeM('mTopup');
-      return;
-    }
-  }
-  btn.textContent='Submitting...';btn.disabled=true;
-  try{
-    await window._push(window._ref(window._db,`players/${window._uid}/topups`),{
-      amount:amt,
-      senderName:senderName,
-      status:'pending',
-      createdAt:Date.now()
-    });
-    const p=window._player||{};
-    if(p.pendingReferralReward&&p.referralCondition==='topup'){
-      await window._set(window._ref(window._db,`players/${window._uid}/profile/pendingReferralTopupAmt`),amt);
-    }
-    closeM('mTopup');
-    rTopup();
-    alert('✅ Top-up request submitted! Your balance will be credited once confirmed.');
-  }catch(e){
-    alert('Failed to submit: '+e.message);
-    console.error('Topup error:',e);
-  }finally{
-    btn.textContent='✅ Done — I\'ve Sent the Money';btn.disabled=false;
-  }
-};
+</script>
+
+<script>
+function openM(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
+function closeM(id){document.getElementById(id).classList.remove('on');document.body.style.overflow='';}
+function ovClick(e,id){if(e.target===document.getElementById(id))closeM(id);}
+
+function copyRef(code){
+  navigator.clipboard.writeText(code).then(()=>{
+    const btn=event.target;btn.textContent='✅ Copied!';
+    setTimeout(()=>btn.textContent='Copy',2000);
+  });
+}
+
+// TOP-UP FLOW
+function ts2(){
+  const amt=document.getElementById('taAmt').value;
+  const nm=document.getElementById('taName').value.trim();
+  if(!amt||amt<100){alert('Minimum top-up is ₦100');return;}
+  if(!nm){alert('Please enter your account name');return;}
+  const f='₦'+Number(amt).toLocaleString();
+  document.getElementById('taD1').textContent=f;
+  document.getElementById('taD2').textContent=f;
+  document.getElementById('ts1').classList.remove('on');
+  document.getElementById('ts2').classList.add('on');
+}
+function tsBack(){
+  document.getElementById('ts2').classList.remove('on');
+  document.getElementById('ts1').classList.add('on');
+}
+function rTopup(){
+  document.getElementById('taAmt').value='';
+  document.getElementById('taName').value='';
+  document.getElementById('ts2').classList.remove('on');
+  document.getElementById('ts1').classList.add('on');
+}
+// ---- WOW CHALLENGE ----
+let wowSettings={};
+
+
 </script>
 
 <script>
