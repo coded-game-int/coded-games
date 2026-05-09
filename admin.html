@@ -618,12 +618,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
   <div class="card">
     <div class="card-top-line blue"></div>
     <div class="sec-title" style="font-size:.82rem;margin-bottom:.6rem">📲 Social Media</div>
-    <div class="form-group"><label class="form-label">WhatsApp Link (Announcement Group)</label><input type="url" class="form-input" id="socWhatsapp" placeholder="https://wa.me/234... or group link"></div>
-    <div class="form-group">
-      <label class="form-label">⚡ WOW Submissions WhatsApp Number</label>
-      <input type="text" class="form-input" id="socWowWhatsapp" placeholder="2348012345678 (country code, no + or spaces)">
-      <div class="form-hint">Players will be sent directly to this number with their win claim pre-filled. Use your brother's number here.</div>
-    </div>
+    <div class="form-group"><label class="form-label">WhatsApp Link</label><input type="url" class="form-input" id="socWhatsapp" placeholder="https://wa.me/234..."></div>
     <div class="form-group"><label class="form-label">Instagram</label><input type="url" class="form-input" id="socInstagram" placeholder="https://instagram.com/..."></div>
     <div class="form-group"><label class="form-label">Twitter / X</label><input type="url" class="form-input" id="socTwitter" placeholder="https://x.com/..."></div>
     <div class="form-group"><label class="form-label">TikTok</label><input type="url" class="form-input" id="socTiktok" placeholder="https://tiktok.com/@..."></div>
@@ -2987,7 +2982,6 @@ async function loadSettings(){
   }
   if(s.social){
     document.getElementById('socWhatsapp').value=s.social.whatsapp||'';
-    document.getElementById('socWowWhatsapp').value=s.social.wowWhatsapp||'';
     document.getElementById('socInstagram').value=s.social.instagram||'';
     document.getElementById('socTwitter').value=s.social.twitter||'';
     document.getElementById('socTiktok').value=s.social.tiktok||'';
@@ -3044,7 +3038,6 @@ window.savePaymentSettings=async function(){
 window.saveSocialSettings=async function(){
   await update(ref(db,'settings/social'),{
     whatsapp:document.getElementById('socWhatsapp').value.trim(),
-    wowWhatsapp:document.getElementById('socWowWhatsapp').value.trim().replace(/\D/g,''),
     instagram:document.getElementById('socInstagram').value.trim(),
     twitter:document.getElementById('socTwitter').value.trim(),
     tiktok:document.getElementById('socTiktok').value.trim(),
