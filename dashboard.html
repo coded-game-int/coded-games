@@ -1300,8 +1300,8 @@ async function loadWowSection(){
       return;
     }
     wowSettings=snap.val();
+    // Show section immediately
     document.getElementById('wowSection').style.display='block';
-    // Populate display fields
     document.getElementById('wowPrizeDisplay').textContent='₦'+(wowSettings.prize||100).toLocaleString();
     document.getElementById('wowMapCodeDisplay').textContent=wowSettings.mapCode||'25341057';
     document.getElementById('wowLimitDisplay').textContent=wowSettings.dailyLimit||2;
@@ -1311,31 +1311,36 @@ async function loadWowSection(){
       el.textContent=wowSettings.rules;
       el.style.display='block';
     }
-    // Load today's wins
-    const today=new Date().toISOString().slice(0,10);
-    const uid=window._uid;
-    if(!uid)return;
-    const winsSnap=await get(ref(db,`players/${uid}/wowWins/${today}`));
-    const todayWins=winsSnap.exists()?parseInt(winsSnap.val())||0:0;
-    document.getElementById('wowTodayWins').textContent=todayWins;
-    // Load total earned from transactions
-    const txSnap=await get(ref(db,`players/${uid}/transactions`));
-    let total=0;
-    if(txSnap.exists()){
-      Object.values(txSnap.val()).forEach(tx=>{
-        if(tx.type==='wow_prize')total+=tx.amount||0;
-      });
-    }
-    document.getElementById('wowTotalEarned').textContent='₦'+total.toLocaleString();
-    // Check limit
-    const limit=wowSettings.dailyLimit||2;
-    if(todayWins>=limit){
-      document.getElementById('wowSubmitBtn').disabled=true;
-      document.getElementById('wowSubmitBtn').style.opacity='0.5';
-      document.getElementById('wowLimitMsg').style.display='block';
-      document.getElementById('wowLimitMsg').textContent=`Daily limit reached (${todayWins}/${limit} wins today). Come back tomorrow!`;
-    }
-  }catch(e){console.error('WOW load error:',e);}
+    // Load today's wins — separate try/catch so failure doesn't hide section
+    try{
+      const today=new Date().toISOString().slice(0,10);
+      const uid=window._uid;
+      if(!uid)return;
+      const winsSnap=await get(ref(db,`players/${uid}/wowWins/${today}`));
+      const todayWins=winsSnap.exists()?parseInt(winsSnap.val())||0:0;
+      document.getElementById('wowTodayWins').textContent=todayWins;
+      const limit=wowSettings.dailyLimit||2;
+      if(todayWins>=limit){
+        document.getElementById('wowSubmitBtn').disabled=true;
+        document.getElementById('wowSubmitBtn').style.opacity='0.5';
+        document.getElementById('wowLimitMsg').style.display='block';
+        document.getElementById('wowLimitMsg').textContent=`Daily limit reached (${todayWins}/${limit} wins today). Come back tomorrow!`;
+      }
+    }catch(e){console.warn('WOW wins load error (check Firebase rules for wowWins):',e);}
+    // Load total WOW earned — separate try/catch
+    try{
+      const uid=window._uid;
+      if(!uid)return;
+      const txSnap=await get(ref(db,`players/${uid}/transactions`));
+      let total=0;
+      if(txSnap.exists()){
+        Object.values(txSnap.val()).forEach(tx=>{
+          if(tx.type==='wow_prize')total+=tx.amount||0;
+        });
+      }
+      document.getElementById('wowTotalEarned').textContent='₦'+total.toLocaleString();
+    }catch(e){console.warn('WOW earnings load error:',e);}
+  }catch(e){console.error('WOW section load error:',e);}
 }
 
 window.previewWowShot=function(){};// no longer needed
