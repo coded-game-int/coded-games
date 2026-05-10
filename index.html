@@ -328,7 +328,7 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:2rem 1.2rem
 </nav>
 
 <!-- WOW BANNER: sticky below fixed nav, visible above hero -->
-<div id="wowBannerIndex" style="display:none;position:sticky;top:52px;z-index:150;width:100%;background:linear-gradient(135deg,#1a0a2e,#2d0a4e);border-bottom:2px solid #9333ea;padding:.75rem 1rem;text-align:center;cursor:pointer;box-sizing:border-box" onclick="location.href='wow.html'">
+<div id="wowBannerIndex" style="display:none;position:fixed;top:56px;left:0;right:0;z-index:99;width:100%;background:linear-gradient(135deg,#1a0a2e,#2d0a4e);border-bottom:2px solid #9333ea;padding:.75rem 1rem;text-align:center;cursor:pointer;box-sizing:border-box" onclick="location.href='wow.html'">
   <div style="display:flex;align-items:center;justify-content:center;gap:.6rem;flex-wrap:wrap">
     <span style="font-size:1.1rem">⚡</span>
     <span style="font-size:.88rem;font-weight:800;color:#c084fc">WOW 1v1 Challenge</span>
@@ -558,7 +558,12 @@ window._db=db; window._ref=ref; window._get=get; window._push=push;
   get(ref(db,'settings/wow')).then(snap=>{
     if(snap&&snap.exists()&&snap.val().enabled){
       const banner=document.getElementById('wowBannerIndex');
-      if(banner)banner.style.display='block';
+      if(banner){
+        banner.style.display='block';
+        // Push hero down so content isn't hidden behind fixed banner
+        const hero=document.getElementById('heroSection')||document.querySelector('.hero');
+        if(hero)hero.style.paddingTop=(parseInt(hero.style.paddingTop||'0')+44)+'px';
+      }
     }
   }).catch(()=>{});
 
