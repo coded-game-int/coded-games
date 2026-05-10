@@ -1289,6 +1289,15 @@ let currentTopupId=null;
 let currentWithdrawId=null;
 
 // ---- AUTH ----
+// Safety net: if auth takes too long, hide loader and show login
+setTimeout(()=>{
+  const el=document.getElementById('authLoading');
+  if(el&&el.style.display!=='none'){
+    hideAuthLoading();
+    showLoginScreen();
+  }
+},8000);
+
 onAuthStateChanged(auth,async user=>{
   if(user){
     currentAdminUid=user.uid;
@@ -1326,6 +1335,7 @@ onAuthStateChanged(auth,async user=>{
       applyRoleRestrictions();
     }catch(e){
       console.error('Admin auth error:',e.code, e.message);
+      hideAuthLoading();
       const btn=document.getElementById('loginBtn');
       if(btn){btn.disabled=false;btn.classList.remove('blink');btn.textContent='Sign In to Admin';}
       if(e.code==='permission-denied'||e.code==='PERMISSION_DENIED'){
@@ -2520,7 +2530,8 @@ window.savePrizePool=async function(){
     updatedPrize.killPct=killPct;
     updatedPrize.killCap=killCap;
     updatedPrize.platformCut=parseFloat((100-total).toFixed(2));
-  }
+  } else {
+    updatedPrize.positions={
       '1':parseFloat(document.getElementById('mt-prize-1')?.value)||0,
       '2':parseFloat(document.getElementById('mt-prize-2')?.value)||0,
       '3':parseFloat(document.getElementById('mt-prize-3')?.value)||0,
