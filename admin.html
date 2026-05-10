@@ -1067,20 +1067,25 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
             <div class="form-hint" style="background:rgba(251,191,36,.08);border:1px solid var(--or);border-radius:8px;padding:.5rem;margin-bottom:.5rem;font-size:.7rem">
               Set what % of total entry fees goes to each prize. Your cut = whatever is left under 100%.
             </div>
-            ${[['1st Place %','cdyn-p1','40'],['2nd Place %','cdyn-p2','24'],['3rd Place %','cdyn-p3','8'],['4th Place %','cdyn-p4','0'],['5th Place %','cdyn-p5','0']].map(([lbl,id,def])=>`
-              <div class="form-row">
-                <div class="form-group"><label class="form-label">${lbl}</label>
-                <input type="number" class="form-input" id="${id}" value="${def}" min="0" max="100" step="0.1" oninput="updateCdynCut()"></div>
-              </div>`).join('')}
+            <div class="form-row"><div class="form-group"><label class="form-label">1st Place %</label>
+              <input type="number" class="form-input" id="cdyn-p1" value="40" min="0" max="100" step="0.1" oninput="updateCdynCut()"></div></div>
+            <div class="form-row"><div class="form-group"><label class="form-label">2nd Place %</label>
+              <input type="number" class="form-input" id="cdyn-p2" value="24" min="0" max="100" step="0.1" oninput="updateCdynCut()"></div></div>
+            <div class="form-row"><div class="form-group"><label class="form-label">3rd Place %</label>
+              <input type="number" class="form-input" id="cdyn-p3" value="8" min="0" max="100" step="0.1" oninput="updateCdynCut()"></div></div>
+            <div class="form-row"><div class="form-group"><label class="form-label">4th Place %</label>
+              <input type="number" class="form-input" id="cdyn-p4" value="0" min="0" max="100" step="0.1" oninput="updateCdynCut()"></div></div>
+            <div class="form-row"><div class="form-group"><label class="form-label">5th Place %</label>
+              <input type="number" class="form-input" id="cdyn-p5" value="0" min="0" max="100" step="0.1" oninput="updateCdynCut()"></div></div>
             <div class="form-row">
               <div class="form-group"><label class="form-label">Kill Bonus %</label>
               <input type="number" class="form-input" id="cdyn-kill" value="9.6" min="0" max="100" step="0.1" oninput="updateCdynCut()"></div>
               <div class="form-group"><label class="form-label">Kill Cap</label>
-              <input type="number" class="form-input" id="cdyn-killcap" value="24" min="1"></div>
+              <input type="number" class="form-input" id="conv-killcap" value="24" min="1"></div>
             </div>
             <div style="background:var(--card2);border-radius:8px;padding:.5rem;margin-bottom:.5rem;font-size:.75rem;display:flex;justify-content:space-between">
               <span style="color:var(--muted)">Your cut</span>
-              <span id="cdyn-cut" style="font-weight:700;color:var(--green)">18.4%</span>
+              <span id="conv-cut" style="font-weight:700;color:var(--green)">18.4%</span>
             </div>
             <button class="btn btn-or btn-sm" style="width:100%" onclick="window.convertToDynamic&&window.convertToDynamic()">🔄 Convert to Dynamic</button>
           </div>
@@ -1115,15 +1120,20 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
         Set prize percentages below. Prize amounts will automatically scale with how many players register. Your cut is whatever % is left.
       </div>
       <div id="conv-preview" style="background:var(--card2);border-radius:8px;padding:.6rem;margin-bottom:.75rem;font-size:.75rem"></div>
-      ${[['1st Place %','cdyn-p1','40'],['2nd Place %','cdyn-p2','24'],['3rd Place %','cdyn-p3','8'],['4th Place %','cdyn-p4','0'],['5th Place %','cdyn-p5','0']].map(([lbl,id,def])=>`
-        <div class="form-group">
-          <label class="form-label">${lbl}</label>
-          <input type="number" class="form-input" id="${id}" value="${def}" min="0" max="100" step="0.1" oninput="updateConvPreview()">
-        </div>`).join('')}
+      <div class="form-group"><label class="form-label">1st Place %</label>
+        <input type="number" class="form-input" id="conv-p1" value="40" min="0" max="100" step="0.1" oninput="updateConvPreview()"></div>
+      <div class="form-group"><label class="form-label">2nd Place %</label>
+        <input type="number" class="form-input" id="conv-p2" value="24" min="0" max="100" step="0.1" oninput="updateConvPreview()"></div>
+      <div class="form-group"><label class="form-label">3rd Place %</label>
+        <input type="number" class="form-input" id="conv-p3" value="8" min="0" max="100" step="0.1" oninput="updateConvPreview()"></div>
+      <div class="form-group"><label class="form-label">4th Place %</label>
+        <input type="number" class="form-input" id="conv-p4" value="0" min="0" max="100" step="0.1" oninput="updateConvPreview()"></div>
+      <div class="form-group"><label class="form-label">5th Place %</label>
+        <input type="number" class="form-input" id="conv-p5" value="0" min="0" max="100" step="0.1" oninput="updateConvPreview()"></div>
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Kill Bonus %</label>
-          <input type="number" class="form-input" id="cdyn-kill" value="9.6" min="0" max="100" step="0.1" oninput="updateConvPreview()">
+          <input type="number" class="form-input" id="conv-kill" value="9.6" min="0" max="100" step="0.1" oninput="updateConvPreview()">
         </div>
         <div class="form-group">
           <label class="form-label">Max Kill Cap</label>
@@ -2399,9 +2409,9 @@ window.updateCdynCut=function(){
 window.convertToDynamic=async function(){
   const tid=activeTournamentId;
   const t=allTournaments[tid];
-  const p1=parseFloat(document.getElementById('cdyn-p1')?.value)||0;
-  const p2=parseFloat(document.getElementById('cdyn-p2')?.value)||0;
-  const p3=parseFloat(document.getElementById('cdyn-p3')?.value)||0;
+  const p1=parseFloat(document.getElementById('conv-p1')?.value)||0;
+  const p2=parseFloat(document.getElementById('conv-p2')?.value)||0;
+  const p3=parseFloat(document.getElementById('conv-p3')?.value)||0;
   const p4=parseFloat(document.getElementById('cdyn-p4')?.value)||0;
   const p5=parseFloat(document.getElementById('cdyn-p5')?.value)||0;
   const killPct=parseFloat(document.getElementById('cdyn-kill')?.value)||0;
@@ -2550,9 +2560,9 @@ window.updateConvPreview=function(){
   const regCount=t?.registrations?Object.keys(t.registrations).length:0;
   const currentPool=fee*regCount;
   const fullPool=fee*(t?.maxPlayers||25);
-  const p1=parseFloat(document.getElementById('cdyn-p1')?.value)||0;
-  const p2=parseFloat(document.getElementById('cdyn-p2')?.value)||0;
-  const p3=parseFloat(document.getElementById('cdyn-p3')?.value)||0;
+  const p1=parseFloat(document.getElementById('conv-p1')?.value)||0;
+  const p2=parseFloat(document.getElementById('conv-p2')?.value)||0;
+  const p3=parseFloat(document.getElementById('conv-p3')?.value)||0;
   const p4=parseFloat(document.getElementById('cdyn-p4')?.value)||0;
   const p5=parseFloat(document.getElementById('cdyn-p5')?.value)||0;
   const killPct=parseFloat(document.getElementById('cdyn-kill')?.value)||0;
@@ -2581,13 +2591,13 @@ window.updateConvPreview=function(){
 window.confirmConvertToDynamic=async function(){
   const tid=activeTournamentId;
   const t=allTournaments[tid];
-  const p1=parseFloat(document.getElementById('cdyn-p1')?.value)||0;
-  const p2=parseFloat(document.getElementById('cdyn-p2')?.value)||0;
-  const p3=parseFloat(document.getElementById('cdyn-p3')?.value)||0;
-  const p4=parseFloat(document.getElementById('cdyn-p4')?.value)||0;
-  const p5=parseFloat(document.getElementById('cdyn-p5')?.value)||0;
-  const killPct=parseFloat(document.getElementById('cdyn-kill')?.value)||0;
-  const killCap=parseInt(document.getElementById('cdyn-killcap')?.value)||24;
+  const p1=parseFloat(document.getElementById('conv-p1')?.value)||0;
+  const p2=parseFloat(document.getElementById('conv-p2')?.value)||0;
+  const p3=parseFloat(document.getElementById('conv-p3')?.value)||0;
+  const p4=parseFloat(document.getElementById('conv-p4')?.value)||0;
+  const p5=parseFloat(document.getElementById('conv-p5')?.value)||0;
+  const killPct=parseFloat(document.getElementById('conv-kill')?.value)||0;
+  const killCap=parseInt(document.getElementById('conv-killcap')?.value)||24;
   const total=p1+p2+p3+p4+p5+killPct;
   if(total>=100){toast('Total must be under 100%','red');return;}
   const platformCut=parseFloat((100-total).toFixed(2));
