@@ -441,7 +441,17 @@ onAuthStateChanged(auth,async user=>{
   if(!tournamentId){showError('No tournament specified.','Go Home','index.html');return;}
 
   // Load tournament
-  const snap=await get(ref(db,'tournaments/'+tournamentId));
+  let snap;
+  try{
+    snap=await get(ref(db,'tournaments/'+tournamentId));
+  }catch(e){
+    if(e.code==='PERMISSION_DENIED'||String(e).includes('permission')){
+      showError('Please log in to view this tournament.','Login','auth.html');
+    } else {
+      showError('Failed to load tournament. Check your connection and try again.','Go Home','index.html');
+    }
+    return;
+  }
   if(!snap.exists()){showError('Tournament not found.','Go Home','index.html');return;}
   tournamentData=snap.val();
 
@@ -776,6 +786,7 @@ function renderPrize(prize,t){
   }
   return'';
 }
+function renderResultsTable(t){
   const results=t.results||{};
   const regs=t.registrations||{};
   const prize=t.prize||{};
