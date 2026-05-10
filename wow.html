@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>/* instant theme — prevents flash */
+(function(){
+  var t=localStorage.getItem('cg-theme');
+  var d=t?t==='dark':window.matchMedia('(prefers-color-scheme:dark)').matches;
+  var r=document.documentElement.style;
+  if(d){
+    r.setProperty('--bg','#130805');r.setProperty('--bg2','#1a0d08');
+    r.setProperty('--card','#1f1008');r.setProperty('--card2','#261508');
+    r.setProperty('--bdr','#3a1f0f');r.setProperty('--bdr2','#4a2a18');
+    r.setProperty('--txt','#f5f0e8');r.setProperty('--txt2','#c8a882');r.setProperty('--muted','#8a6a50');
+  }else{
+    r.setProperty('--bg','#f5ede0');r.setProperty('--bg2','#ede0cf');
+    r.setProperty('--card','#fff8f0');r.setProperty('--card2','#f5ede0');
+    r.setProperty('--bdr','#dcc8b0');r.setProperty('--bdr2','#cbb898');
+    r.setProperty('--txt','#1a0e05');r.setProperty('--txt2','#6a4828');r.setProperty('--muted','#9a7858');
+  }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coded Games — WOW Challenge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --or:#f5a020;--or2:#c43a00;--or3:#ffd234;
+  --bg:#130805;--bg2:#1a0d08;--card:#1f1008;--card2:#261508;
+  --bdr:#3a1f0f;--bdr2:#4a2a18;
+  --txt:#f5f0e8;--txt2:#c8a882;--muted:#8a6a50;
+  --green:#4caf50;--red:#ef4444;--blue:#3b82f6;
+  --wow:#9333ea;--wow2:#7c3aed;--wow3:#c084fc;
+  --ff:'Plus Jakarta Sans',sans-serif;--fb:'Plus Jakarta Sans',sans-serif;--fc:'Nunito',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--fb);background:var(--bg);color:var(--txt);min-height:100vh;padding-bottom:90px}
+body::before{content:'';position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse 70% 40% at 50% 0%,rgba(147,51,234,.15) 0%,transparent 60%),var(--bg);
+  pointer-events:none}
+
+/* TOPBAR */
+.tb{position:sticky;top:0;z-index:100;height:52px;
+  display:flex;align-items:center;justify-content:space-between;padding:0 1rem;
+  background:rgba(19,8,5,.92);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--bdr)}
+.logo{display:flex;align-items:center;gap:.5rem;text-decoration:none}
+.logo img{width:28px;height:28px;border-radius:50%;object-fit:cover;border:1.5px solid var(--or)}
+.logo-txt{font-family:var(--ff);font-size:1.1rem;font-weight:700;letter-spacing:2px;color:var(--txt)}
+.logo-txt b{color:var(--or)}
+.back-btn{background:none;border:1px solid var(--bdr2);color:var(--txt2);border-radius:8px;
+  padding:.3rem .75rem;font-size:.8rem;cursor:pointer;font-family:var(--fc);font-weight:700}
+.back-btn:hover{border-color:var(--wow);color:var(--wow3)}
+
+/* CONTENT */
+.content{position:relative;z-index:1;padding:1rem;max-width:600px;margin:0 auto}
+
+/* HERO */
+.wow-hero{background:linear-gradient(135deg,#1a0a2e,#2d0a4e,#1a0a2e);
+  border:1px solid var(--wow);border-radius:16px;padding:1.5rem 1.2rem;
+  text-align:center;margin-bottom:1.2rem;position:relative;overflow:hidden}
+.wow-hero::before{content:'⚡';position:absolute;top:-10px;right:-10px;font-size:5rem;opacity:.08;
+  transform:rotate(20deg)}
+.wow-hero-label{font-family:var(--fc);font-size:.65rem;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:var(--wow3);margin-bottom:.4rem}
+.wow-hero-title{font-family:var(--ff);font-size:1.9rem;font-weight:900;
+  background:linear-gradient(135deg,#c084fc,#facc15);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;margin-bottom:.4rem}
+.wow-hero-sub{font-size:.82rem;color:#a78bfa;line-height:1.5}
+.wow-prize-big{font-family:var(--ff);font-size:2.4rem;font-weight:900;color:#facc15;
+  margin:.8rem 0 .2rem}
+.wow-prize-note{font-size:.72rem;color:#a78bfa}
+
+/* STATUS BAR */
+.wow-status{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin-bottom:1.2rem}
+.wow-stat{background:rgba(147,51,234,.1);border:1px solid rgba(147,51,234,.3);border-radius:10px;
+  padding:.7rem .5rem;text-align:center}
+.wow-stat-num{font-family:var(--ff);font-size:1.2rem;font-weight:800;color:var(--wow3)}
+.wow-stat-label{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:.1rem}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:12px;
+  padding:1rem;margin-bottom:1rem}
+.card-title{font-family:var(--ff);font-size:.95rem;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;margin-bottom:.8rem;
+  display:flex;align-items:center;gap:.5rem}
+.card-title::before{content:'';width:3px;height:1rem;background:var(--wow);border-radius:2px;flex-shrink:0}
+
+/* HOW IT WORKS */
+.step-list{display:flex;flex-direction:column;gap:.7rem}
+.step-item{display:flex;gap:.8rem;align-items:flex-start}
+.step-num{width:28px;height:28px;border-radius:50%;background:rgba(147,51,234,.2);
+  border:1.5px solid var(--wow);display:flex;align-items:center;justify-content:center;
+  font-family:var(--ff);font-size:.82rem;font-weight:800;color:var(--wow3);flex-shrink:0;margin-top:.1rem}
+.step-text{font-size:.82rem;color:var(--txt2);line-height:1.6}
+.step-text strong{color:var(--txt)}
+
+/* MAP CODE */
+.map-code-box{background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.3);
+  border-radius:10px;padding:.8rem 1rem;display:flex;align-items:center;justify-content:space-between;
+  margin:.7rem 0}
+.map-code-val{font-family:var(--ff);font-size:1.5rem;font-weight:900;color:#facc15;letter-spacing:2px}
+.copy-btn{background:rgba(250,204,21,.15);border:1px solid rgba(250,204,21,.3);
+  color:#facc15;border-radius:6px;padding:.35rem .8rem;font-family:var(--fc);
+  font-size:.72rem;font-weight:700;cursor:pointer;letter-spacing:.5px}
+.copy-btn:hover{background:rgba(250,204,21,.25)}
+
+/* WIN HISTORY */
+.history-item{display:flex;align-items:center;justify-content:space-between;
+  padding:.6rem 0;border-bottom:1px solid var(--bdr)}
+.history-item:last-child{border-bottom:none}
+.history-date{font-size:.72rem;color:var(--muted)}
+.history-wins{font-family:var(--ff);font-size:.92rem;font-weight:700;color:var(--wow3)}
+.history-amt{font-family:var(--ff);font-size:.88rem;font-weight:700;color:var(--green)}
+
+/* SUBMIT BUTTON */
+.wow-submit-btn{width:100%;padding:1rem;border-radius:10px;
+  background:linear-gradient(135deg,var(--wow),var(--wow2));color:#fff;
+  border:none;font-family:var(--fc);font-size:1rem;font-weight:800;
+  letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;
+  box-shadow:0 4px 20px rgba(147,51,234,.4)}
+.wow-submit-btn:hover{background:linear-gradient(135deg,#a855f7,#6d28d9);transform:translateY(-1px)}
+.wow-submit-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.wow-limit-msg{text-align:center;font-size:.78rem;color:var(--red);margin-top:.5rem;
+  padding:.5rem;background:rgba(239,68,68,.08);border-radius:6px;border:1px solid rgba(239,68,68,.2)}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:rgba(19,8,5,.95);backdrop-filter:blur(14px);
+  border-top:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:space-around;
+  padding:.4rem 0 .6rem;max-width:500px;margin:0 auto}
+.bnav-item{display:flex;flex-direction:column;align-items:center;gap:.15rem;
+  cursor:pointer;padding:.3rem .6rem;border-radius:8px;transition:all .2s;
+  border:none;background:none;color:var(--muted);text-decoration:none;flex:1}
+.bnav-item.active{color:var(--wow3)}
+.bnav-item:hover{color:var(--or)}
+.bnav-icon{font-size:1.2rem;line-height:1}
+.bnav-label{font-family:var(--fc);font-size:.58rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+
+/* MODAL */
+.mover{position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);
+  z-index:200;display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .28s}
+.mover.on{opacity:1;pointer-events:all}
+.modal{background:var(--card);border:1px solid var(--bdr);border-radius:16px 16px 0 0;
+  width:100%;max-width:500px;padding:1.4rem;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);
+  max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative}
+.mover.on .modal{transform:translateY(0)}
+.mhndl{width:34px;height:3.5px;background:var(--bdr2);border-radius:2px;margin:0 auto 1.1rem}
+.mtitle{font-family:var(--ff);font-size:1.2rem;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem}
+.mclose{position:absolute;top:.9rem;right:.9rem;background:var(--card2);
+  border:1px solid var(--bdr);color:var(--txt2);width:28px;height:28px;
+  border-radius:50%;cursor:pointer;font-size:.9rem;display:grid;place-items:center}
+.fg{margin-bottom:1rem}
+.fl{display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.5px;color:var(--muted);margin-bottom:.35rem}
+.fi{width:100%;background:var(--bg2);border:1.5px solid var(--bdr);color:var(--txt);
+  padding:.78rem .95rem;border-radius:8px;font-family:var(--fb);font-size:.92rem;
+  transition:border-color .2s}
+.fi:focus{outline:none;border-color:var(--wow)}
+.bfull{width:100%;padding:.88rem;border-radius:8px;font-family:var(--fc);font-size:.98rem;
+  font-weight:800;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;border:none;
+  background:linear-gradient(135deg,var(--wow),var(--wow2));color:#fff;transition:all .2s}
+.bfull:hover{background:linear-gradient(135deg,#a855f7,#6d28d9)}
+.alert{border-radius:8px;padding:.75rem 1rem;margin-bottom:1rem;font-size:.8rem;
+  line-height:1.5}
+.alert.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--red)}
+.alert.suc{background:rgba(76,175,80,.1);border:1px solid rgba(76,175,80,.3);color:var(--green)}
+.empty{text-align:center;padding:2rem 1rem;color:var(--muted)}
+.empty-icon{font-size:2.5rem;margin-bottom:.6rem}
+.empty p{font-size:.82rem;line-height:1.5}
+
+/* DISABLED OVERLAY */
+.wow-disabled{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);
+  border-radius:12px;padding:1.5rem;text-align:center;margin-bottom:1rem}
+.wow-disabled h3{color:var(--red);font-family:var(--ff);margin-bottom:.5rem}
+.wow-disabled p{font-size:.82rem;color:var(--txt2);line-height:1.5}
+
+/* LOADING */
+.loading-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<nav class="tb">
+  <a class="logo" href="index.html">
+    <img src="logo.jpg" alt="CG" onerror="this.style.display='none'">
+    <div class="logo-txt">CODED <b>GAMES</b></div>
+  </a>
+  <button class="back-btn" onclick="history.back()">← Back</button>
+</nav>
+
+<div class="content" id="mainContent">
+  <div class="loading-state">
+    <div style="font-size:2rem;margin-bottom:.5rem">⚡</div>
+    <div>Loading WOW Challenge...</div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <a class="bnav-item" href="dashboard.html">
+    <span class="bnav-icon">🏠</span>
+    <span class="bnav-label">Home</span>
+  </a>
+  <a class="bnav-item" href="index.html#tournaments">
+    <span class="bnav-icon">🎮</span>
+    <span class="bnav-label">Tournaments</span>
+  </a>
+  <a class="bnav-item active" href="wow.html">
+    <span class="bnav-icon">⚡</span>
+    <span class="bnav-label">WOW</span>
+  </a>
+  <a class="bnav-item" href="leaderboard.html">
+    <span class="bnav-icon">🏆</span>
+    <span class="bnav-label">Ranks</span>
+  </a>
+  <a class="bnav-item" href="dashboard.html#history" onclick="sessionStorage.setItem('openHistory','1')">
+    <span class="bnav-icon">📋</span>
+    <span class="bnav-label">History</span>
+  </a>
+</nav>
+
+<!-- WOW SUBMIT MODAL -->
+<div class="mover" id="mWow" onclick="ovClick(event,'mWow')">
+  <div class="modal">
+    <div class="mhndl"></div>
+    <button class="mclose" onclick="closeM('mWow')">✕</button>
+    <div class="mtitle">⚡ Submit WOW Win</div>
+    <div id="wow-alert" class="alert" style="display:none"></div>
+    <div style="background:rgba(147,51,234,.1);border:1px solid var(--wow);border-radius:8px;padding:.6rem;margin-bottom:.75rem;font-size:.72rem;color:var(--txt2);line-height:1.6">
+      📸 After filling this form you will be redirected to WhatsApp.<br>
+      <strong style="color:var(--wow3)">Attach both screenshots in that WhatsApp message</strong> — one in-game (showing status bar time) and one result screen.
+    </div>
+    <div class="fg">
+      <label class="fl">Match Time (from status bar) <span style="color:var(--red)">*</span></label>
+      <input type="time" class="fi" id="wowMatchTime">
+    </div>
+    <div class="fg">
+      <label class="fl">Your Score / Points <span style="color:var(--red)">*</span></label>
+      <input type="number" class="fi" id="wowScore" placeholder="e.g. 25" min="0">
+    </div>
+    <div class="fg">
+      <label class="fl">Additional Note (optional)</label>
+      <input type="text" class="fi" id="wowNote" placeholder="Any extra info...">
+    </div>
+    <button class="bfull" id="wowSubmitFormBtn" onclick="submitWowWin()">⚡ Submit &amp; Open WhatsApp</button>
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getDatabase, ref, get, set, push, onValue }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const cfg={
+  apiKey:"AIzaSyClCRS0krUtQuKbhJ3a2VftBx_z2iO6lfA",
+  authDomain:"coded-games.firebaseapp.com",
+  projectId:"coded-games",
+  storageBucket:"coded-games.firebasestorage.app",
+  messagingSenderId:"717673651238",
+  appId:"1:717673651238:web:be30019855d767c4d95ae7",
+  databaseURL:"https://coded-games-default-rtdb.firebaseio.com"
+};
+const app=initializeApp(cfg);
+const auth=getAuth(app);
+const db=getDatabase(app);
+setPersistence(auth,browserLocalPersistence).catch(()=>{});
+window._db=db; window._ref=ref; window._push=push; window._set=set; window._get=get;
+window._auth=auth; window._signOut=signOut;
+
+let wowSettings={};
+let currentUser=null;
+
+onAuthStateChanged(auth, async user=>{
+  if(!user){location.href='auth.html';return;}
+  currentUser=user;
+  window._uid=user.uid;
+  try{
+    const snap=await get(ref(db,`players/${user.uid}/profile`));
+    if(!snap.exists()||!snap.val().username){location.href='setup.html';return;}
+    const p=snap.val();
+    if(p.blocked===true){await signOut(auth);location.href='auth.html?blocked=1';return;}
+    window._player=p;
+  }catch(e){
+    document.getElementById('mainContent').innerHTML=`<div style="text-align:center;padding:3rem 1rem;color:var(--muted)">
+      <div style="font-size:2rem;margin-bottom:.8rem">📡</div>
+      <div style="font-family:var(--ff);font-weight:700;margin-bottom:.5rem">Connection Error</div>
+      <p style="font-size:.82rem;margin-bottom:1rem">Could not load your profile. Check your internet connection.</p>
+      <button onclick="location.reload()" style="background:var(--or);color:#000;border:none;border-radius:8px;padding:.6rem 1.2rem;font-family:var(--fc);font-weight:700;cursor:pointer">Retry</button>
+    </div>`;
+    return;
+  }
+  loadWowPage();
+});
+
+async function loadWowPage(){
+  const uid=window._uid;
+  try{
+    // Load WOW settings
+    const snap=await get(ref(db,'settings/wow'));
+    if(!snap.exists()||!snap.val().enabled){
+      document.getElementById('mainContent').innerHTML=`
+        <div class="wow-disabled">
+          <div style="font-size:3rem;margin-bottom:.5rem">⚡</div>
+          <h3>WOW Challenge — Coming Soon</h3>
+          <p>The WOW Challenge is not currently active. Check back later or follow our socials for announcements!</p>
+          <a href="dashboard.html" style="display:inline-block;margin-top:1rem;background:var(--or);color:#000;border-radius:8px;padding:.55rem 1.2rem;font-family:var(--fc);font-size:.88rem;font-weight:800;text-decoration:none">← Back to Dashboard</a>
+        </div>`;
+      return;
+    }
+    wowSettings=snap.val();
+    window._wowSettings=wowSettings;
+
+    // Load today's wins
+    const today=new Date().toISOString().slice(0,10);
+    let todayWins=0;
+    try{
+      const winsSnap=await get(ref(db,`players/${uid}/wowWins/${today}`));
+      if(winsSnap.exists())todayWins=parseInt(winsSnap.val())||0;
+    }catch(e){console.warn('wowWins read error:',e);}
+
+    // Load total WOW earned from transactions
+    let totalEarned=0;
+    let wowHistory=[];
+    try{
+      const txSnap=await get(ref(db,`players/${uid}/transactions`));
+      if(txSnap.exists()){
+        Object.values(txSnap.val()).forEach(tx=>{
+          if(tx.type==='wow_prize'){totalEarned+=tx.amount||0;}
+        });
+      }
+    }catch(e){}
+
+    // Load win history (per day wowWins)
+    try{
+      const allWinsSnap=await get(ref(db,`players/${uid}/wowWins`));
+      if(allWinsSnap.exists()){
+        wowHistory=Object.entries(allWinsSnap.val())
+          .sort((a,b)=>b[0].localeCompare(a[0]))
+          .slice(0,14);
+      }
+    }catch(e){}
+
+    const limit=wowSettings.dailyLimit||2;
+    const prize=wowSettings.prize||100;
+    const atLimit=todayWins>=limit;
+    const mapCode=wowSettings.mapCode||'25341057';
+    const winCond=wowSettings.winCondition||'surviving the time OR reaching 25 points';
+
+    document.getElementById('mainContent').innerHTML=`
+      <!-- HERO -->
+      <div class="wow-hero">
+        <div class="wow-hero-label">⚡ Daily Challenge</div>
+        <div class="wow-hero-title">WOW 1v1</div>
+        <div class="wow-hero-sub">Beat your opponent in WOW Maps and claim real money every day</div>
+        <div class="wow-prize-big">₦${prize.toLocaleString()}</div>
+        <div class="wow-prize-note">per verified win · up to ${limit} wins/day</div>
+      </div>
+
+      <!-- STATS -->
+      <div class="wow-status">
+        <div class="wow-stat">
+          <div class="wow-stat-num" id="wowTodayWins">${todayWins}</div>
+          <div class="wow-stat-label">Today's Wins</div>
+        </div>
+        <div class="wow-stat">
+          <div class="wow-stat-num">${limit}</div>
+          <div class="wow-stat-label">Daily Limit</div>
+        </div>
+        <div class="wow-stat">
+          <div class="wow-stat-num" style="color:var(--green)">₦${totalEarned.toLocaleString()}</div>
+          <div class="wow-stat-label">Total Earned</div>
+        </div>
+      </div>
+
+      <!-- SUBMIT BUTTON -->
+      <button class="wow-submit-btn" id="wowSubmitBtn" onclick="openM('mWow')" ${atLimit?'disabled':''}>
+        ⚡ Submit Win
+      </button>
+      ${atLimit?`<div class="wow-limit-msg">Daily limit reached (${todayWins}/${limit}). Come back tomorrow! 🌅</div>`:''}
+
+      <!-- HOW IT WORKS -->
+      <div class="card" style="margin-top:1rem">
+        <div class="card-title">📋 How to Play</div>
+        <div class="step-list">
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div class="step-text">Open <strong>PUBG Mobile</strong> → <strong>WOW Maps</strong> → enter the map code below</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div class="step-text">Win the match by <strong style="color:var(--wow3)">${winCond}</strong></div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <div class="step-text">Take <strong>2 screenshots</strong> — swipe down your status bar to show the time in both:<br>
+              • One <strong>during</strong> the match<br>
+              • One of the <strong>result screen</strong>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">4</div>
+            <div class="step-text"><strong>Submit here within 30 minutes</strong> of the match ending, then send the 2 screenshots on WhatsApp</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">5</div>
+            <div class="step-text">Admin reviews your screenshots and credits <strong style="color:var(--green)">₦${prize.toLocaleString()}</strong> to your real balance ✅</div>
+          </div>
+        </div>
+        ${wowSettings.rules?`<div style="background:rgba(147,51,234,.08);border:1px solid rgba(147,51,234,.2);border-radius:8px;padding:.7rem;margin-top:.8rem;font-size:.75rem;color:var(--txt2);line-height:1.6"><strong style="color:var(--wow3)">📌 Additional Rules:</strong><br>${wowSettings.rules}</div>`:''}
+      </div>
+
+      <!-- MAP CODE -->
+      <div class="card">
+        <div class="card-title">🗺 Map Code</div>
+        <p style="font-size:.78rem;color:var(--txt2);margin-bottom:.4rem">Enter this code in PUBG Mobile → WOW Maps:</p>
+        <div class="map-code-box">
+          <div class="map-code-val" id="wowMapCodeDisplay">${mapCode}</div>
+          <button class="copy-btn" onclick="copyCode('${mapCode}')">📋 Copy</button>
+        </div>
+        <p style="font-size:.72rem;color:var(--muted)">⚠️ Make sure you're using exactly this code — wrong map won't count</p>
+      </div>
+
+      <!-- WIN HISTORY -->
+      <div class="card">
+        <div class="card-title">📅 Win History</div>
+        ${wowHistory.length===0
+          ?`<div class="empty"><div class="empty-icon">⚡</div><p>No wins yet. Play your first WOW match and claim your prize!</p></div>`
+          :wowHistory.map(([date,wins])=>{
+            const prize2=wowSettings.prize||100;
+            const earned=wins*prize2;
+            const d=new Date(date+'T12:00:00');
+            const dateStr=d.toLocaleDateString('en-NG',{weekday:'short',day:'numeric',month:'short'});
+            return`<div class="history-item">
+              <div>
+                <div class="history-date">${dateStr}</div>
+                <div style="font-size:.65rem;color:var(--muted);margin-top:.05rem">${wins} win${wins===1?'':'s'}</div>
+              </div>
+              <div class="history-amt">+₦${earned.toLocaleString()}</div>
+            </div>`;
+          }).join('')
+        }
+      </div>
+
+      <!-- DISCLAIMER -->
+      <div style="background:rgba(245,160,32,.06);border:1px solid rgba(245,160,32,.15);border-radius:10px;padding:.8rem;font-size:.72rem;color:var(--txt2);line-height:1.6;margin-bottom:.5rem">
+        ⚠️ <strong style="color:var(--or)">Important:</strong> Screenshots must show the status bar time. Any attempt to submit fake screenshots will result in a permanent ban. Each win is manually reviewed — do not submit the same match twice.
+      </div>
+    `;
+
+    // Set up real-time balance listener
+    onValue(ref(db,`players/${uid}/profile`),s=>{
+      if(s.exists()){window._player=s.val();}
+    });
+
+  }catch(e){
+    document.getElementById('mainContent').innerHTML=`<div style="text-align:center;padding:3rem 1rem;color:var(--muted)">
+      <div style="font-size:2rem;margin-bottom:.5rem">⚠️</div>
+      <p style="font-size:.82rem;margin-bottom:1rem">Could not load WOW Challenge. Check your connection.</p>
+      <button onclick="location.reload()" style="background:var(--wow);color:#fff;border:none;border-radius:8px;padding:.6rem 1.2rem;font-family:var(--fc);font-weight:700;cursor:pointer">Retry</button>
+    </div>`;
+  }
+}
+</script>
+
+<script>
+function openM(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
+function closeM(id){document.getElementById(id).classList.remove('on');document.body.style.overflow='';}
+function ovClick(e,id){if(e.target===document.getElementById(id))closeM(id);}
+
+function copyCode(code){
+  navigator.clipboard.writeText(code).then(()=>{
+    const btn=event.target;const orig=btn.textContent;
+    btn.textContent='✅ Copied!';setTimeout(()=>btn.textContent=orig,2000);
+  }).catch(()=>{
+    // Fallback
+    const ta=document.createElement('textarea');ta.value=code;
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');
+    document.body.removeChild(ta);
+    const btn=event.target;btn.textContent='✅ Copied!';setTimeout(()=>btn.textContent='📋 Copy',2000);
+  });
+}
+
+async function submitWowWin(){
+  const matchTime=document.getElementById('wowMatchTime').value;
+  const score=document.getElementById('wowScore').value;
+  const note=document.getElementById('wowNote').value.trim();
+  const alertEl=document.getElementById('wow-alert');
+  alertEl.style.display='none';
+  const showErr=msg=>{alertEl.textContent=msg;alertEl.style.display='block';alertEl.className='alert err';};
+
+  if(!matchTime){showErr('Enter the match time from your status bar');return;}
+  if(!score){showErr('Enter your score/points');return;}
+
+  // Check submission time vs match time (must be within 45 mins)
+  const now=new Date();
+  const [mh,mm]=matchTime.split(':').map(Number);
+  const matchMins=mh*60+mm;
+  const nowMins=now.getHours()*60+now.getMinutes();
+  let diff=Math.abs(nowMins-matchMins);
+  if(diff>720)diff=1440-diff;
+  if(diff>45){showErr('Screenshots must be submitted within 45 minutes of match time.');return;}
+
+  const btn=document.getElementById('wowSubmitFormBtn');
+  btn.disabled=true;btn.textContent='Saving...';
+
+  try{
+    const uid=window._uid;
+    const username=window._player?.username||'Unknown';
+    const wowSettings=window._wowSettings||{};
+    const ts=Date.now();
+    const subRef=await window._push(window._ref(window._db,'wowSubmissions'),{
+      uid,username,matchTime,
+      score:parseInt(score)||0,
+      note:note||'',
+      status:'pending',
+      submittedAt:ts,
+      screenshotMethod:'whatsapp'
+    });
+    const sid=subRef.key;
+    const waNumber=wowSettings.whatsapp||'';
+    const waMsg=encodeURIComponent(
+      `⚡ WOW WIN CLAIM\nUsername: ${username}\nMatch Time: ${matchTime}\nScore: ${score}${note?'\nNote: '+note:''}\nSubmission ID: ${sid}\n\n📸 Attaching 2 screenshots below (in-game + result screen, both showing status bar time)`
+    );
+    closeM('mWow');
+    document.getElementById('wowMatchTime').value='';
+    document.getElementById('wowScore').value='';
+    document.getElementById('wowNote').value='';
+    // Update today's wins display
+    const winsEl=document.getElementById('wowTodayWins');
+    if(winsEl){
+      const cur=parseInt(winsEl.textContent)||0;
+      winsEl.textContent=cur+1;
+    }
+    if(waNumber){
+      window.open(`https://wa.me/${waNumber}?text=${waMsg}`,'_blank');
+    }else{
+      alert('✅ Submission saved! Now send your 2 screenshots to the admin WhatsApp number to complete your claim.');
+    }
+  }catch(e){
+    showErr('Failed to submit: '+e.message);
+  }finally{
+    btn.disabled=false;btn.textContent='⚡ Submit & Open WhatsApp';
+  }
+}
+
+/* THEME */
+(function(){
+  const saved=localStorage.getItem('cg-theme');
+  const sysDark=window.matchMedia('(prefers-color-scheme:dark)').matches;
+  _cgApplyTheme(saved?saved==='dark':sysDark);
+})();
+function _cgApplyTheme(dark){
+  const r=document.documentElement.style;
+  if(dark){
+    r.setProperty('--bg','#130805');r.setProperty('--bg2','#1a0d08');
+    r.setProperty('--card','#1f1008');r.setProperty('--card2','#261508');
+    r.setProperty('--bdr','#3a1f0f');r.setProperty('--bdr2','#4a2a18');
+    r.setProperty('--txt','#f5f0e8');r.setProperty('--txt2','#c8a882');r.setProperty('--muted','#8a6a50');
+  }else{
+    r.setProperty('--bg','#f5ede0');r.setProperty('--bg2','#ede0cf');
+    r.setProperty('--card','#fff8f0');r.setProperty('--card2','#f5ede0');
+    r.setProperty('--bdr','#dcc8b0');r.setProperty('--bdr2','#cbb898');
+    r.setProperty('--txt','#1a0e05');r.setProperty('--txt2','#6a4828');r.setProperty('--muted','#9a7858');
+  }
+  localStorage.setItem('cg-theme',dark?'dark':'light');
+}
+</script>
+</body>
+</html>

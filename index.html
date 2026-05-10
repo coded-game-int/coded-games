@@ -315,6 +315,16 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:2rem 1.2rem
 
 <div id="mainContent">
 
+
+<div id="wowBannerIndex" style="display:none;width:100%;background:linear-gradient(135deg,#1a0a2e,#2d0a4e);border-bottom:2px solid #9333ea;padding:.75rem 1rem;text-align:center;cursor:pointer" onclick="location.href='wow.html'">
+  <div style="display:flex;align-items:center;justify-content:center;gap:.6rem;flex-wrap:wrap">
+    <span style="font-size:1.1rem">⚡</span>
+    <span style="font-family:sans-serif;font-size:.88rem;font-weight:800;color:#c084fc">WOW 1v1 Challenge</span>
+    <span style="font-size:.75rem;color:#a78bfa">— Beat opponents in WOW Maps. Win real ₦ daily!</span>
+    <span style="font-size:.78rem;color:#facc15;font-weight:700;white-space:nowrap">Play now →</span>
+  </div>
+</div>
+
 <nav class="tb">
   <a class="logo" href="#">
     <img src="logo.jpg" alt="Coded Games" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid var(--or)" onerror="this.style.display='none';this.nextElementSibling&&(this.nextElementSibling.style.display='grid')">
@@ -543,6 +553,14 @@ window._db=db; window._ref=ref; window._get=get; window._push=push;
       }
     }).catch(()=>{});
   })();
+
+  // Show WOW banner if WOW is enabled
+  get(ref(db,'settings/wow')).then(snap=>{
+    if(snap&&snap.exists()&&snap.val().enabled){
+      const banner=document.getElementById('wowBannerIndex');
+      if(banner)banner.style.display='block';
+    }
+  }).catch(()=>{});
 
   const _SOCIAL_ICONS={
     whatsapp:{icon:'💬',label:'WhatsApp'},

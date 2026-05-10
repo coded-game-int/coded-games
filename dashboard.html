@@ -287,6 +287,18 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
   <div id="dcdDateStr" style="font-size:.72rem;color:#f5a020;font-weight:600;letter-spacing:.05em"></div>
 </div>
 
+<!-- WOW CHALLENGE BANNER -->
+<div id="wowBanner" style="display:none;width:100%;background:linear-gradient(135deg,#1a0a2e,#2d0a4e);border-bottom:2px solid #9333ea;padding:.75rem 1rem;text-align:center;position:relative;z-index:190;cursor:pointer" onclick="location.href='wow.html'">
+  <div style="display:flex;align-items:center;justify-content:center;gap:.6rem">
+    <span style="font-size:1.1rem">⚡</span>
+    <div>
+      <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:.85rem;font-weight:800;color:#c084fc">WOW Challenge</span>
+      <span style="font-size:.75rem;color:#a78bfa;margin-left:.4rem">— Win real ₦ every day!</span>
+    </div>
+    <span style="font-size:.75rem;color:#facc15;font-weight:700">Tap to play →</span>
+  </div>
+</div>
+
 <!-- TOPBAR -->
 <nav class="tb">
   <a class="logo" href="index.html">
@@ -375,6 +387,10 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
   <a class="bnav-item" href="leaderboard.html">
     <span class="bnav-icon">🏆</span>
     <span class="bnav-label">Ranks</span>
+  </a>
+  <a class="bnav-item" href="wow.html">
+    <span class="bnav-icon">⚡</span>
+    <span class="bnav-label">WOW</span>
   </a>
   <a class="bnav-item" href="#" onclick="openM('mHistory');loadHistory();return false">
     <span class="bnav-icon">📋</span>
@@ -1300,8 +1316,10 @@ async function loadWowSection(){
       return;
     }
     wowSettings=snap.val();
-    // Show section immediately
+    // Show section and banner
     document.getElementById('wowSection').style.display='block';
+    const wowBanner=document.getElementById('wowBanner');
+    if(wowBanner)wowBanner.style.display='block';
     document.getElementById('wowPrizeDisplay').textContent='₦'+(wowSettings.prize||100).toLocaleString();
     document.getElementById('wowMapCodeDisplay').textContent=wowSettings.mapCode||'25341057';
     document.getElementById('wowLimitDisplay').textContent=wowSettings.dailyLimit||2;
@@ -1344,6 +1362,10 @@ async function loadWowSection(){
 }
 
 window.previewWowShot=function(){};// no longer needed
+
+window.openWowSubmit=function(){
+  openM('mWow');
+};
 
 window.submitWowWin=async function(){
   const matchTime=document.getElementById('wowMatchTime').value;

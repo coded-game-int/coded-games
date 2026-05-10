@@ -1,0 +1,139 @@
+{
+  "rules": {
+    "admins": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && root.child('admins').child(auth.uid).child('role').val() === 'master'"
+      }
+    },
+    "players": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists()",
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).exists())",
+        ".write": false,
+        "profile": {
+          ".write": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).exists())",
+          "balanceReal": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000"
+          },
+          "balanceBonus": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000"
+          },
+          "verified": {
+            ".write": "auth != null && root.child('admins').child(auth.uid).exists()",
+            ".validate": "newData.isBoolean()"
+          },
+          "rejected": {
+            ".write": "auth != null && root.child('admins').child(auth.uid).exists()",
+            ".validate": "newData.isBoolean()"
+          },
+          "referralCount": {
+            ".write": "auth != null && root.child('admins').child(auth.uid).exists()",
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          }
+        },
+        "transactions": {
+          ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).exists())",
+          ".write": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).exists())",
+          "$txId": {
+            ".validate": "newData.hasChildren(['amount','type','createdAt']) && newData.child('amount').isNumber() && newData.child('amount').val() >= 0"
+          }
+        },
+        "topups": {
+          ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).exists())",
+          "$Id": {
+            ".write": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).exists())",
+            ".validate": "newData.hasChildren(['amount','status']) && newData.child('amount').isNumber() && newData.child('amount').val() > 0"
+          }
+        },
+        "withdrawals": {
+          ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).exists())",
+          "$Id": {
+            ".write": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).exists())",
+            ".validate": "newData.hasChildren(['amount','status']) && newData.child('amount').isNumber() && newData.child('amount').val() > 0"
+          }
+        },
+        "usedPromos": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid"
+        },
+        "tournaments": {
+          ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).exists())",
+          ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
+        },
+        "wowWins": {
+          ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).exists())",
+          ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
+        }
+      }
+    },
+    "tournaments": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists()",
+      "$tid": {
+        "registrations": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && root.child('players').child(auth.uid).child('profile').child('verified').val() === true",
+            ".validate": "newData.hasChildren(['username','registeredAt','feePaid','feeSource']) && newData.child('feePaid').isNumber() && newData.child('feePaid').val() >= 0"
+          }
+        }
+      }
+    },
+    "settings": {
+      ".read": true,
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
+    },
+    "promoCodes": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists()",
+      "$code": {
+        "usedCount": {
+          ".write": "auth != null"
+        }
+      }
+    },
+    "prizeTemplates": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
+    },
+    "adminContactRequests": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      ".write": "auth != null"
+    },
+    "adminComplaints": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      ".write": "auth != null"
+    },
+    "usernames": {
+      ".read": "auth != null",
+      "$username": {
+        ".write": "auth != null && !data.exists()",
+        ".validate": "newData.isString()"
+      }
+    },
+    "pubgUids": {
+      ".read": "auth != null",
+      "$pubgUid": {
+        ".write": "auth != null && !data.exists()",
+        ".validate": "newData.isString()"
+      }
+    },
+    "wowSubmissions": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      ".write": "auth != null",
+      "$sid": {
+        ".write": "auth != null && (root.child('admins').child(auth.uid).exists() || newData.child('uid').val() === auth.uid)"
+      }
+    },
+    "pendingAdmins": {
+      ".read": false,
+      ".write": false
+    },
+    "leaderboard": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists()"
+    }
+  }
+}
