@@ -827,11 +827,13 @@ function calcPrize(res,prize,fee,t){
     const posMap={1:p.p1||0,2:p.p2||0,3:p.p3||0,4:p.p4||0,5:p.p5||0};
     const posPct=posMap[rank]||0;
     const posAward=posPct>0?Math.floor(totalPool*posPct/100):0;
+    // Kill estimate: split kill pool evenly across expected kills (killCap per player)
+    // This matches awardPrizes which splits proportionally across actual kills earned
     const killPoolTotal=Math.floor(totalPool*(prize.killPct||0)/100);
     const killCap=prize.killCap||24;
-    // For display purposes use per-kill estimate
-    const perKill=killCap>0?Math.floor(killPoolTotal/killCap):0;
-    const killAward=Math.min(res.kills||0,killCap)*perKill;
+    const expectedTotalKills=regCount*killCap; // worst-case denominator gives conservative per-kill
+    const perKill=expectedTotalKills>0?killPoolTotal/expectedTotalKills:0;
+    const killAward=Math.floor(Math.min(res.kills||0,killCap)*perKill);
     return posAward+killAward;
   }
   if(prize.type==='position'){

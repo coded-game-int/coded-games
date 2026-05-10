@@ -475,7 +475,7 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:2rem 1.2rem
         <div class="ar"><span class="al">Amount</span><span class="av hi" id="taD2"></span></div>
       </div>
       <div class="nbox"><p>ℹ️ Your balance will be credited once payment is confirmed. <strong>Transactions made between 8PM – 8AM may take longer to verify as they exceed our working hours.</strong></p></div>
-      <button class="bfull" onclick="closeM('mTopup');rTopup()">✅ Done — I've Sent the Money</button>
+      <button class="bfull" onclick="submitTopupFromIndex()">✅ Done — I've Sent the Money</button>
       <button class="bfull out" onclick="tsBack()">← Go Back</button>
     </div>
   </div>
@@ -514,7 +514,7 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:2rem 1.2rem
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, get, onValue }
+import { getDatabase, ref, get, push, onValue }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -530,7 +530,7 @@ const cfg={
 };
 const app=initializeApp(cfg);
 const db=getDatabase(app);
-window._db=db; window._ref=ref; window._get=get;
+window._db=db; window._ref=ref; window._get=get; window._push=push;
   // Load WhatsApp float button link from Firebase
   (function(){
     const waDiv=document.getElementById('waFloat');
@@ -575,6 +575,7 @@ setPersistence(auth,browserLocalPersistence).catch(()=>{});
 // Track login state — update topbar buttons
 onAuthStateChanged(auth, user=>{
   window._loggedIn=!!user;
+  window._uid=user?user.uid:null;
   const loginBtn=document.getElementById('navLogin');
   const regBtn=document.getElementById('navRegister');
   const dashBtn=document.getElementById('navDash');
@@ -825,6 +826,36 @@ function rTopup(){
   document.getElementById('taName').value='';
   document.getElementById('ts2').classList.remove('on');
   document.getElementById('ts1').classList.add('on');
+}
+
+async function submitTopupFromIndex(){
+  const amt=parseFloat(document.getElementById('taAmt').value)||0;
+  const name=document.getElementById('taName').value.trim();
+  if(!amt||amt<100){alert('Minimum top-up is ₦100');return;}
+  if(!name){alert('Enter your account name');return;}
+  if(!window._loggedIn||!window._uid){
+    alert('Please log in first to submit a top-up request.');
+    closeM('mTopup');
+    openM('mLogin');
+    return;
+  }
+  const btn=document.querySelector('#ts2 .bfull');
+  if(btn){btn.disabled=true;btn.textContent='Submitting...';}
+  try{
+    await window._push(window._ref(window._db,`players/${window._uid}/topups`),{
+      amount:amt,
+      senderName:name,
+      status:'pending',
+      createdAt:Date.now()
+    });
+    closeM('mTopup');
+    rTopup();
+    alert('✅ Top-up request submitted! Admin will verify and credit your account shortly.');
+  }catch(e){
+    alert('Failed to submit: '+e.message);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='✅ Done — I\'ve Sent the Money';}
+  }
 }
 
 // ── ANIMATED STATS ──

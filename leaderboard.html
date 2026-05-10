@@ -191,6 +191,22 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
 </head>
 <body>
 
+<!-- COUNTDOWN GATE BANNER -->
+<div id="lbCdBanner" style="display:none;position:fixed;inset:0;background:#0a0501;z-index:9999;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem">
+  <img src="logo.jpg" alt="Coded Games" style="width:60px;height:60px;border-radius:50%;border:2px solid var(--or);margin-bottom:1rem">
+  <div style="font-family:'Rajdhani',sans-serif;font-size:1.5rem;font-weight:800;color:var(--txt);margin-bottom:.3rem">LAUNCHING SOON</div>
+  <div id="lbCdDate" style="font-size:.78rem;color:var(--txt2);margin-bottom:1.5rem"></div>
+  <div style="display:flex;gap:.8rem;justify-content:center">
+    <div style="text-align:center"><div id="lbCdD" style="font-family:'Rajdhani',sans-serif;font-size:2.2rem;font-weight:800;color:var(--or)">00</div><div style="font-size:.6rem;letter-spacing:2px;color:var(--muted)">DAYS</div></div>
+    <div style="font-family:'Rajdhani',sans-serif;font-size:2.2rem;font-weight:800;color:var(--txt2)">:</div>
+    <div style="text-align:center"><div id="lbCdH" style="font-family:'Rajdhani',sans-serif;font-size:2.2rem;font-weight:800;color:var(--or)">00</div><div style="font-size:.6rem;letter-spacing:2px;color:var(--muted)">HRS</div></div>
+    <div style="font-family:'Rajdhani',sans-serif;font-size:2.2rem;font-weight:800;color:var(--txt2)">:</div>
+    <div style="text-align:center"><div id="lbCdM" style="font-family:'Rajdhani',sans-serif;font-size:2.2rem;font-weight:800;color:var(--or)">00</div><div style="font-size:.6rem;letter-spacing:2px;color:var(--muted)">MINS</div></div>
+    <div style="font-family:'Rajdhani',sans-serif;font-size:2.2rem;font-weight:800;color:var(--txt2)">:</div>
+    <div style="text-align:center"><div id="lbCdS" style="font-family:'Rajdhani',sans-serif;font-size:2.2rem;font-weight:800;color:var(--or)">00</div><div style="font-size:.6rem;letter-spacing:2px;color:var(--muted)">SECS</div></div>
+  </div>
+</div>
+
 <!-- TOPBAR -->
 <div class="tb">
   <a href="index.html" class="back-btn">

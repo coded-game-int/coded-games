@@ -2447,8 +2447,24 @@ window.convertToDynamic=async function(){
 };
 
 window.saveTournamentDetails=async function(){
-
-function renderManagePrizeFields(prize){
+  const tid=activeTournamentId;
+  const name=document.getElementById('mt-edit-name').value.trim();
+  const maxPlayers=parseInt(document.getElementById('mt-edit-maxplayers').value)||0;
+  const fee=parseFloat(document.getElementById('mt-edit-fee').value)||0;
+  const map=document.getElementById('mt-edit-map').value;
+  const rules=document.getElementById('mt-edit-rules').value.trim();
+  const startVal=document.getElementById('mt-edit-start').value;
+  const startTime=startVal?new Date(startVal).getTime():allTournaments[tid].startTime;
+  if(!name){toast('Tournament name cannot be empty','red');return;}
+  if(!maxPlayers){toast('Max players cannot be zero','red');return;}
+  if(!confirm(`Save changes to "${name}"?\nStart: ${startVal||'unchanged'}\nMax Players: ${maxPlayers}\nEntry Fee: ₦${fee}`))return;
+  try{
+    await update(ref(db,'tournaments/'+tid),{name,maxPlayers,fee,map,rules,startTime,updatedAt:Date.now()});
+    allTournaments[tid]={...allTournaments[tid],name,maxPlayers,fee,map,rules,startTime};
+    document.getElementById('mt-title').textContent=name;
+    toast('Tournament updated ✅','green');
+  }catch(e){toast('Failed: '+e.message,'red');}
+};
   const el=document.getElementById('mt-edit-prize-fields');
   if(!el||!prize)return;
   const type=prize.type;
@@ -2530,8 +2546,7 @@ window.savePrizePool=async function(){
     updatedPrize.killPct=killPct;
     updatedPrize.killCap=killCap;
     updatedPrize.platformCut=parseFloat((100-total).toFixed(2));
-  } else {
-    updatedPrize.positions={
+  }
       '1':parseFloat(document.getElementById('mt-prize-1')?.value)||0,
       '2':parseFloat(document.getElementById('mt-prize-2')?.value)||0,
       '3':parseFloat(document.getElementById('mt-prize-3')?.value)||0,
@@ -2627,24 +2642,6 @@ window.confirmConvertToDynamic=async function(){
     closeModal('convertDynModal');
     closeModal('manageTournModal');
     toast(`✅ Converted to dynamic prize pool — cut: ${platformCut}%`,'green');
-  }catch(e){toast('Failed: '+e.message,'red');}
-};
-  const tid=activeTournamentId;
-  const name=document.getElementById('mt-edit-name').value.trim();
-  const maxPlayers=parseInt(document.getElementById('mt-edit-maxplayers').value)||0;
-  const fee=parseFloat(document.getElementById('mt-edit-fee').value)||0;
-  const map=document.getElementById('mt-edit-map').value;
-  const rules=document.getElementById('mt-edit-rules').value.trim();
-  const startVal=document.getElementById('mt-edit-start').value;
-  const startTime=startVal?new Date(startVal).getTime():allTournaments[tid].startTime;
-  if(!name){toast('Tournament name cannot be empty','red');return;}
-  if(!maxPlayers){toast('Max players cannot be zero','red');return;}
-  if(!confirm(`Save changes to "${name}"?\nStart: ${startVal||'unchanged'}\nMax Players: ${maxPlayers}\nEntry Fee: ₦${fee}`))return;
-  try{
-    await update(ref(db,'tournaments/'+tid),{name,maxPlayers,fee,map,rules,startTime,updatedAt:Date.now()});
-    allTournaments[tid]={...allTournaments[tid],name,maxPlayers,fee,map,rules,startTime};
-    document.getElementById('mt-title').textContent=name;
-    toast('Tournament updated ✅','green');
   }catch(e){toast('Failed: '+e.message,'red');}
 };
 
@@ -2909,6 +2906,56 @@ async function awardPrizes(tid,results,t){
       }
     }
   }
+
+  // ---- Check tournament-condition referral for all players who played ----
+  try{
+    const refSnap=await get(ref(db,'settings/referral'));
+    const refRules=refSnap.val()||{};
+    if(refRules.condition==='tournament'&&refRules.referrerAmt>0){
+      const minT=parseInt(refRules.conditionValue)||1;
+      for(const pid of Object.keys(results)){
+        const pSnap=await get(ref(db,'players/'+pid+'/profile'));
+        if(!pSnap.exists())continue;
+        const pData=pSnap.val();
+        if(!pData.pendingReferralReward||pData.referralCondition!=='tournament')continue;
+        // Count tournaments this player has participated in
+        const txSnap=await get(ref(db,'players/'+pid+'/transactions'));
+        let tourneysPlayed=0;
+        if(txSnap.exists()){
+          Object.values(txSnap.val()).forEach(tx=>{
+            if(tx.type==='tournament_entry'||tx.type==='prize')tourneysPlayed++;
+          });
+        }
+        if(tourneysPlayed>=minT){
+          // Credit referrer
+          const referrerEntry=Object.entries(allPlayers).find(([,rp])=>rp.username===pData.referredBy);
+          if(referrerEntry){
+            const[refId,refP]=referrerEntry;
+            const balKey=refRules.rewardType==='real'?'balanceReal':'balanceBonus';
+            const curBal=parseInt(refP[balKey])||0;
+            await update(ref(db,'players/'+refId+'/profile'),{
+              [balKey]:curBal+refRules.referrerAmt,
+              referralCount:(parseInt(refP.referralCount)||0)+1
+            });
+            await push(ref(db,'players/'+refId+'/transactions'),{
+              type:'referral',amount:refRules.referrerAmt,
+              note:'Referral bonus — '+pData.username+' played '+tourneysPlayed+' tournament(s)',
+              createdAt:Date.now()
+            });
+          }
+          // Credit new player if applicable
+          if(refRules.newPlayerAmt>0){
+            const npKey=refRules.newPlayerRewardType==='real'?'balanceReal':'balanceBonus';
+            const npBal=parseInt(pData[npKey])||0;
+            await update(ref(db,'players/'+pid+'/profile'),{[npKey]:npBal+refRules.newPlayerAmt});
+            await push(ref(db,'players/'+pid+'/transactions'),{type:'referral',amount:refRules.newPlayerAmt,note:'Welcome referral bonus',createdAt:Date.now()});
+          }
+          // Clear pending flag
+          await update(ref(db,'players/'+pid+'/profile'),{pendingReferralReward:false});
+        }
+      }
+    }
+  }catch(refErr){console.warn('Referral tournament check error:',refErr);}
 }
 
 window.updateTournamentStatus=async function(){
@@ -3467,8 +3514,18 @@ function renderWowCard(sid,s){
 
 window.approveWow=async function(sid,uid,username){
   const settSnap=await get(ref(db,'settings/wow'));
-  const prize=settSnap.exists()?(settSnap.val().prize||100):100;
-  if(!confirm(`Approve WOW win for ${username}?\nCredits ₦${prize} real balance to their account.`))return;
+  const wowCfg=settSnap.exists()?settSnap.val():{};
+  const prize=wowCfg.prize||100;
+  const dailyLimit=wowCfg.dailyLimit||2;
+  // Check daily limit before approving
+  const today=new Date().toISOString().slice(0,10);
+  const winsSnap=await get(ref(db,`players/${uid}/wowWins/${today}`));
+  const currentWins=winsSnap.exists()?parseInt(winsSnap.val())||0:0;
+  if(currentWins>=dailyLimit){
+    toast(`❌ ${username} has already reached the daily limit (${currentWins}/${dailyLimit} wins today). Cannot approve.`,'red');
+    return;
+  }
+  if(!confirm(`Approve WOW win for ${username}?\nCredits ₦${prize} real balance to their account.\nThey have ${currentWins}/${dailyLimit} wins today.`))return;
   try{
     // Credit balance
     const pSnap=await get(ref(db,`players/${uid}/profile`));
@@ -3490,9 +3547,6 @@ window.approveWow=async function(sid,uid,username){
       prizePaid:prize
     });
     // Record win for daily limit tracking
-    const today=new Date().toISOString().slice(0,10);
-    const winsSnap=await get(ref(db,`players/${uid}/wowWins/${today}`));
-    const currentWins=winsSnap.exists()?parseInt(winsSnap.val())||0:0;
     await set(ref(db,`players/${uid}/wowWins/${today}`),currentWins+1);
     toast(`✅ Approved — ₦${prize} credited to ${username}`,'green');
     renderWowSubmissions();

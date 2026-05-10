@@ -608,8 +608,6 @@ onAuthStateChanged(auth, async user=>{
     }
     window._player=playerData;
     window._uid=user.uid;
-    // Load WOW section
-    loadWowSection();
   }catch(e){
     // Network error on load — show retry message instead of crashing
     document.getElementById('mainContent').innerHTML=`<div style="text-align:center;padding:3rem 1rem;color:var(--muted)">
@@ -621,6 +619,8 @@ onAuthStateChanged(auth, async user=>{
     return;
   }
   renderDashboard();
+  // Load WOW AFTER renderDashboard so wowSection div exists in the DOM
+  loadWowSection();
   // Init countdown banner now that auth is confirmed (safe to read settings)
   window._initDashCountdown&&window._initDashCountdown();
   // Load payment settings from Firebase (so top-up modal shows correct bank details)

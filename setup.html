@@ -564,23 +564,6 @@ function setContactType(type){
   document.getElementById('contact-phone-fg').style.display=type==='phone'?'block':'none';
 }
 
-function handleUpload(input){
-  const file=input.files[0];
-  if(!file)return;
-  if(file.size>5*1024*1024){alert('File too large. Max 5MB.');return;}
-  const reader=new FileReader();
-  reader.onload=function(e){
-    screenshotB64=e.target.result;
-    window.screenshotB64=screenshotB64;
-    const preview=document.getElementById('upload-preview');
-    preview.src=screenshotB64;preview.style.display='block';
-    document.getElementById('upload-area').classList.add('has-file');
-    document.querySelector('#upload-area .upload-title').textContent='✅ Screenshot uploaded!';
-    document.querySelector('#upload-area .upload-sub').textContent='Tap to change';
-  };
-  reader.readAsDataURL(file);
-}
-
 function showAlert(id,msg,type){
   const el=document.getElementById(id);
   el.textContent=msg;el.className='alert'+(type?' '+type:'');
