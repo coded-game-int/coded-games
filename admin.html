@@ -2031,6 +2031,16 @@ window.openCreateTournament=function(tid){
   openModal('createTournModal');
 };
 
+window.updateDynCut=function(){
+  const pcts=['p1','p2','p3','p4','p5','kill'].map(k=>parseFloat(document.getElementById('dyn-'+k)?.value)||0);
+  const total=pcts.reduce((a,b)=>a+b,0);
+  const cut=Math.max(0,100-total);
+  const te=document.getElementById('dyn-total-pct');
+  const ce=document.getElementById('dyn-cut-pct');
+  if(te)te.textContent=total.toFixed(1)+'%';
+  if(ce){ce.textContent=cut.toFixed(1)+'%';ce.style.color=cut<0?'var(--red)':'var(--green)';}
+};
+
 window.renderPrizeFields=function(){
   const type=document.getElementById('ct-prizeType').value;
   const el=document.getElementById('ct-prize-fields');
@@ -2093,20 +2103,33 @@ window.renderPrizeFields=function(){
       </div>`;
   } else if(type==='dynamic'){
     el.innerHTML=`
-      <div class="form-hint" style="margin-bottom:.5rem">Prize pool = % of total entry fees collected. Scales automatically with registrations.</div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">1st Place (%)</label>
-        <input type="number" class="form-input" id="prize-dyn-1" placeholder="50" min="0" max="100"></div>
-        <div class="form-group"><label class="form-label">2nd Place (%)</label>
-        <input type="number" class="form-input" id="prize-dyn-2" placeholder="30" min="0" max="100"></div>
+      <div class="form-hint" style="margin-bottom:.6rem;background:rgba(251,191,36,.1);border:1px solid var(--or);border-radius:8px;padding:.5rem">
+        🔄 Prize pool = entry fees collected × your percentages. Updates live as players register. Your cut is automatic — whatever % is left after all prizes and kill bonus.
       </div>
+      <div class="divider-label" style="margin:.4rem 0">📍 Position Prizes (% of total pool)</div>
+      ${[['1st','p1'],['2nd','p2'],['3rd','p3'],['4th','p4'],['5th','p5']].map(([lbl,key])=>`
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">${lbl} Place %</label>
+          <input type="number" class="form-input" id="dyn-${key}" placeholder="0" min="0" max="100" step="0.1" oninput="updateDynCut()"></div>
+        </div>`).join('')}
+      <div class="divider-label" style="margin:.6rem 0">🔫 Kill Bonus (% of total pool)</div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">3rd Place (%)</label>
-        <input type="number" class="form-input" id="prize-dyn-3" placeholder="20" min="0" max="100"></div>
-        <div class="form-group"><label class="form-label">Platform Cut (%)</label>
-        <input type="number" class="form-input" id="prize-dyn-cut" placeholder="0" min="0" max="100"></div>
+        <div class="form-group"><label class="form-label">Kill Bonus %</label>
+        <input type="number" class="form-input" id="dyn-kill" placeholder="0" min="0" max="100" step="0.1" oninput="updateDynCut()"></div>
+        <div class="form-group"><label class="form-label">Max Kills Cap</label>
+        <input type="number" class="form-input" id="dyn-killcap" placeholder="24" min="1"></div>
       </div>
-      <div class="form-hint" style="color:var(--or)">⚠️ All % must add up to 100. Platform cut is kept by the house.</div>`;
+      <div style="background:var(--card2);border-radius:8px;padding:.6rem;margin-top:.4rem">
+        <div style="display:flex;justify-content:space-between;font-size:.78rem">
+          <span style="color:var(--muted)">Total allocated</span>
+          <span id="dyn-total-pct" style="font-weight:700;color:var(--or)">0%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-top:.3rem">
+          <span style="color:var(--muted)">Your platform cut</span>
+          <span id="dyn-cut-pct" style="font-weight:700;color:var(--green)">100%</span>
+        </div>
+        <div style="font-size:.65rem;color:var(--muted);margin-top:.3rem">Total must be under 100% — remainder is your cut</div>
+      </div>`;
   } else if(type==='custom'){
     el.innerHTML=`
       <div class="form-group"><label class="form-label">Prize Description</label>
@@ -2149,12 +2172,17 @@ function getPrizeData(){
       killCap:parseInt(document.getElementById('prize-killcap')?.value)||999
     };
   } else if(type==='dynamic'){
-    return{type,balanceType,
-      pct1:parseFloat(document.getElementById('prize-dyn-1')?.value)||50,
-      pct2:parseFloat(document.getElementById('prize-dyn-2')?.value)||30,
-      pct3:parseFloat(document.getElementById('prize-dyn-3')?.value)||20,
-      platformCut:parseFloat(document.getElementById('prize-dyn-cut')?.value)||0
-    };
+    const p1=parseFloat(document.getElementById('dyn-p1')?.value)||0;
+    const p2=parseFloat(document.getElementById('dyn-p2')?.value)||0;
+    const p3=parseFloat(document.getElementById('dyn-p3')?.value)||0;
+    const p4=parseFloat(document.getElementById('dyn-p4')?.value)||0;
+    const p5=parseFloat(document.getElementById('dyn-p5')?.value)||0;
+    const killPct=parseFloat(document.getElementById('dyn-kill')?.value)||0;
+    const killCap=parseInt(document.getElementById('dyn-killcap')?.value)||24;
+    const totalPct=p1+p2+p3+p4+p5+killPct;
+    if(totalPct>=100){toast('Total percentages must be under 100% — leave room for your cut','red');return null;}
+    const platformCut=parseFloat((100-totalPct).toFixed(2));
+    return{type,balanceType:'real',positions:{p1,p2,p3,p4,p5},killPct,killCap,platformCut};
   } else if(type==='custom'){
     return{type,balanceType,description:document.getElementById('prize-custom')?.value||''};
   }
@@ -2621,6 +2649,37 @@ async function awardPrizes(tid,results,t){
         const curKillBal=parseInt(freshData[killBalKey])||0;
         await update(ref(db,'players/'+pid+'/profile'),{[killBalKey]:curKillBal+killAward});
         await push(ref(db,'players/'+pid+'/transactions'),{type:'prize',amount:killAward,balanceType:prize.killBalanceType||'real',label:'Kill Bonus',tournament:t.name,tid,createdAt:Date.now()});
+      }
+    }
+  }
+
+  // Handle dynamic prize type — calculate from actual pool
+  if(prize.type==='dynamic'){
+    const regs=t?.registrations?Object.entries(t.registrations):[];
+    const fee=t.fee||0;
+    const totalPool=fee*regs.length;
+    const p=prize.positions||{};
+    const killPct=prize.killPct||0;
+    const killCap=prize.killCap||24;
+    let totalKillsEarned=0;
+    Object.values(results).forEach(r=>{totalKillsEarned+=Math.min(r.kills||0,killCap);});
+    const killPoolTotal=Math.floor(totalPool*killPct/100);
+    const perKillAmt=totalKillsEarned>0?killPoolTotal/totalKillsEarned:0;
+    const posMap={1:p.p1||0,2:p.p2||0,3:p.p3||0,4:p.p4||0,5:p.p5||0};
+    for(const[pid,res] of Object.entries(results)){
+      const rank=res.rank;
+      const kills=Math.min(res.kills||0,killCap);
+      const posAwardPct=posMap[rank]||0;
+      const posAward=posAwardPct>0?Math.floor(totalPool*posAwardPct/100):0;
+      const killAward=Math.floor(kills*perKillAmt);
+      const totalAward=posAward+killAward;
+      if(totalAward>0){
+        const pSnap2=await get(ref(db,'players/'+pid+'/profile'));
+        const pData2=pSnap2.val()||{};
+        const curBal=parseInt(pData2.balanceReal)||0;
+        await update(ref(db,'players/'+pid+'/profile'),{balanceReal:curBal+totalAward});
+        if(posAward>0)await push(ref(db,'players/'+pid+'/transactions'),{type:'prize',amount:posAward,balanceType:'real',label:`${rank===1?'1st':rank===2?'2nd':rank===3?'3rd':rank+'th'} Place (${posAwardPct}%)`,tournament:t.name,tid,createdAt:Date.now()});
+        if(killAward>0)await push(ref(db,'players/'+pid+'/transactions'),{type:'prize',amount:killAward,balanceType:'real',label:`Kill Bonus (${kills} kills × ₦${Math.floor(perKillAmt)})`,tournament:t.name,tid,createdAt:Date.now()});
       }
     }
   }

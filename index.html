@@ -625,7 +625,7 @@ onValue(ref(db,'tournaments'), snap=>{
       fmt:t.mode||'Open',
       sts:t.status==='upcoming'?'open':t.status==='live'?'live':t.status==='completed'?'ended':t.status==='cancelled'?'cancelled':t.status||'open',
       fee:t.fee||0,
-      prize:t.prize?(t.prize.type==='kill'?'₦'+(t.prize.perKill||0)+'/kill':t.prize.positions?'₦'+((t.prize.positions['1']||0)).toLocaleString()+' top':'TBD'):'TBD',
+      prize:t.prize?(t.prize.type==='kill'?'₦'+(t.prize.perKill||0)+'/kill':t.prize.type==='dynamic'?'🔄 Dynamic Pool':t.prize.positions?'₦'+((t.prize.positions['1']||0)).toLocaleString()+' top':'TBD'):'TBD',
       slots:t.maxPlayers||25,
       filled:t.registrations?Object.keys(t.registrations).length:0,
       start:t.startTime||0,
