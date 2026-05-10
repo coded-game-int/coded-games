@@ -1305,20 +1305,15 @@ onAuthStateChanged(auth,async user=>{
       // Check if this user is an admin
       const snap=await get(ref(db,'admins/'+user.uid));
       if(!snap.exists()){
-        // Not an admin — check if there are ANY admins at all (bootstrap)
-        let anyAdmins=false;
+        // Not found as admin — try to bootstrap as master (will fail if admins already exist due to rules)
         try{
-          const allSnap=await get(ref(db,'admins'));
-          anyAdmins=allSnap.exists();
-        }catch(_){}
-        if(!anyAdmins){
-          // First ever login — make them master
           await set(ref(db,'admins/'+user.uid),{email:user.email,role:'master',createdAt:Date.now()});
-        } else {
-          await signOut(auth);
+          // Bootstrap succeeded — no other admins existed
+        }catch(bootstrapErr){
+          // Bootstrap failed — other admins exist, this user is not one of them
+          await signOut(auth).catch(()=>{});
           showLoginScreen();
           showErr('Access denied. This account is not an admin.');
-          // Reset the login button
           const btn=document.getElementById('loginBtn');
           if(btn){btn.disabled=false;btn.classList.remove('blink');btn.textContent='Sign In to Admin';}
           return;
