@@ -917,7 +917,6 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
           <option value="position">Position-Based (1st, 2nd, 3rd...)</option>
           <option value="kill">Kill-Based (₦ per kill)</option>
           <option value="mixed">Mixed (Position + Per Kill)</option>
-          <option value="dynamic">🔄 Dynamic (% of entry fees collected)</option>
           <option value="custom">Custom / Sponsor Prize</option>
           <option value="free">Free Tournament (no prize)</option>
         </select>
@@ -1060,38 +1059,6 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
           <textarea class="form-textarea" id="mt-edit-rules" placeholder="Tournament rules..."></textarea>
         </div>
         <button class="btn btn-green btn-sm" onclick="window.saveTournamentDetails&&window.saveTournamentDetails()">💾 Save Changes</button>
-        <div style="margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--bdr)">
-          <div class="form-label" style="margin-bottom:.3rem">🔄 Convert Prize Pool</div>
-          <div class="form-hint" style="margin-bottom:.5rem">Switch this tournament to Dynamic pricing. Prizes will scale automatically based on how many players register.</div>
-          <div id="cdyn-fields" style="display:none">
-            <div class="form-hint" style="background:rgba(251,191,36,.08);border:1px solid var(--or);border-radius:8px;padding:.5rem;margin-bottom:.5rem;font-size:.7rem">
-              Set what % of total entry fees goes to each prize. Your cut = whatever is left under 100%.
-            </div>
-            <div class="form-row"><div class="form-group"><label class="form-label">1st Place %</label>
-              <input type="number" class="form-input" id="cdyn-p1" value="40" min="0" max="100" step="0.1" oninput="updateCdynCut()"></div></div>
-            <div class="form-row"><div class="form-group"><label class="form-label">2nd Place %</label>
-              <input type="number" class="form-input" id="cdyn-p2" value="24" min="0" max="100" step="0.1" oninput="updateCdynCut()"></div></div>
-            <div class="form-row"><div class="form-group"><label class="form-label">3rd Place %</label>
-              <input type="number" class="form-input" id="cdyn-p3" value="8" min="0" max="100" step="0.1" oninput="updateCdynCut()"></div></div>
-            <div class="form-row"><div class="form-group"><label class="form-label">4th Place %</label>
-              <input type="number" class="form-input" id="cdyn-p4" value="0" min="0" max="100" step="0.1" oninput="updateCdynCut()"></div></div>
-            <div class="form-row"><div class="form-group"><label class="form-label">5th Place %</label>
-              <input type="number" class="form-input" id="cdyn-p5" value="0" min="0" max="100" step="0.1" oninput="updateCdynCut()"></div></div>
-            <div class="form-row">
-              <div class="form-group"><label class="form-label">Kill Bonus %</label>
-              <input type="number" class="form-input" id="cdyn-kill" value="9.6" min="0" max="100" step="0.1" oninput="updateCdynCut()"></div>
-              <div class="form-group"><label class="form-label">Kill Cap</label>
-              <input type="number" class="form-input" id="conv-killcap" value="24" min="1"></div>
-            </div>
-            <div style="background:var(--card2);border-radius:8px;padding:.5rem;margin-bottom:.5rem;font-size:.75rem;display:flex;justify-content:space-between">
-              <span style="color:var(--muted)">Your cut</span>
-              <span id="conv-cut" style="font-weight:700;color:var(--green)">18.4%</span>
-            </div>
-            <button class="btn btn-or btn-sm" style="width:100%" onclick="window.convertToDynamic&&window.convertToDynamic()">🔄 Convert to Dynamic</button>
-          </div>
-          <button class="btn btn-sm" id="cdyn-toggle-btn" style="width:100%;background:var(--card2)" onclick="window.toggleCdynFields&&window.toggleCdynFields()">⚡ Set Up Dynamic Pricing</button>
-        </div>
-        <button class="btn btn-sm" style="width:100%;margin-top:.4rem;background:rgba(251,191,36,.15);color:var(--or);border:1px solid var(--or)" onclick="window.openConvertToDynamic&&window.openConvertToDynamic()">🔄 Convert to Dynamic Prize Pool</button>
         <div style="margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--bdr)">
           <div class="form-label" style="margin-bottom:.5rem">🏆 Edit Prize Pool</div>
           <div id="mt-edit-prize-fields"></div>
@@ -1104,47 +1071,6 @@ body::before{content:'';position:fixed;inset:0;z-index:0;
         <div class="form-hint" style="margin-bottom:.75rem">Registered players. You can remove a player and refund their entry fee.</div>
         <div id="mt-players-list"></div>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- ======= MODAL: CONVERT TO DYNAMIC ======= -->
-<div class="modal-overlay" id="convertDynModal">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-title">🔄 Convert to Dynamic Prize Pool</div>
-      <button class="modal-close" onclick="closeModal('convertDynModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-hint" style="margin-bottom:.75rem;background:rgba(251,191,36,.1);border:1px solid var(--or);border-radius:8px;padding:.5rem">
-        Set prize percentages below. Prize amounts will automatically scale with how many players register. Your cut is whatever % is left.
-      </div>
-      <div id="conv-preview" style="background:var(--card2);border-radius:8px;padding:.6rem;margin-bottom:.75rem;font-size:.75rem"></div>
-      <div class="form-group"><label class="form-label">1st Place %</label>
-        <input type="number" class="form-input" id="conv-p1" value="40" min="0" max="100" step="0.1" oninput="updateConvPreview()"></div>
-      <div class="form-group"><label class="form-label">2nd Place %</label>
-        <input type="number" class="form-input" id="conv-p2" value="24" min="0" max="100" step="0.1" oninput="updateConvPreview()"></div>
-      <div class="form-group"><label class="form-label">3rd Place %</label>
-        <input type="number" class="form-input" id="conv-p3" value="8" min="0" max="100" step="0.1" oninput="updateConvPreview()"></div>
-      <div class="form-group"><label class="form-label">4th Place %</label>
-        <input type="number" class="form-input" id="conv-p4" value="0" min="0" max="100" step="0.1" oninput="updateConvPreview()"></div>
-      <div class="form-group"><label class="form-label">5th Place %</label>
-        <input type="number" class="form-input" id="conv-p5" value="0" min="0" max="100" step="0.1" oninput="updateConvPreview()"></div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Kill Bonus %</label>
-          <input type="number" class="form-input" id="conv-kill" value="9.6" min="0" max="100" step="0.1" oninput="updateConvPreview()">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Max Kill Cap</label>
-          <input type="number" class="form-input" id="cdyn-killcap" value="24" min="1">
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;background:var(--card2);border-radius:8px;padding:.6rem;margin-bottom:.75rem;font-size:.78rem">
-        <span style="color:var(--muted)">Your platform cut</span>
-        <span id="cdyn-cut" style="font-weight:700;color:var(--green)">18.4%</span>
-      </div>
-      <button class="btn btn-or" style="width:100%" onclick="window.confirmConvertToDynamic&&window.confirmConvertToDynamic()">🔄 Convert Now</button>
     </div>
   </div>
 </div>
@@ -1289,15 +1215,6 @@ let currentTopupId=null;
 let currentWithdrawId=null;
 
 // ---- AUTH ----
-// Safety net: if auth takes too long, hide loader and show login
-setTimeout(()=>{
-  const el=document.getElementById('authLoading');
-  if(el&&el.style.display!=='none'){
-    hideAuthLoading();
-    showLoginScreen();
-  }
-},8000);
-
 onAuthStateChanged(auth,async user=>{
   if(user){
     currentAdminUid=user.uid;
@@ -1305,15 +1222,20 @@ onAuthStateChanged(auth,async user=>{
       // Check if this user is an admin
       const snap=await get(ref(db,'admins/'+user.uid));
       if(!snap.exists()){
-        // Not found as admin — try to bootstrap as master (will fail if admins already exist due to rules)
+        // Not an admin — check if there are ANY admins at all (bootstrap)
+        let anyAdmins=false;
         try{
+          const allSnap=await get(ref(db,'admins'));
+          anyAdmins=allSnap.exists();
+        }catch(_){}
+        if(!anyAdmins){
+          // First ever login — make them master
           await set(ref(db,'admins/'+user.uid),{email:user.email,role:'master',createdAt:Date.now()});
-          // Bootstrap succeeded — no other admins existed
-        }catch(bootstrapErr){
-          // Bootstrap failed — other admins exist, this user is not one of them
-          await signOut(auth).catch(()=>{});
+        } else {
+          await signOut(auth);
           showLoginScreen();
           showErr('Access denied. This account is not an admin.');
+          // Reset the login button
           const btn=document.getElementById('loginBtn');
           if(btn){btn.disabled=false;btn.classList.remove('blink');btn.textContent='Sign In to Admin';}
           return;
@@ -1330,7 +1252,6 @@ onAuthStateChanged(auth,async user=>{
       applyRoleRestrictions();
     }catch(e){
       console.error('Admin auth error:',e.code, e.message);
-      hideAuthLoading();
       const btn=document.getElementById('loginBtn');
       if(btn){btn.disabled=false;btn.classList.remove('blink');btn.textContent='Sign In to Admin';}
       if(e.code==='permission-denied'||e.code==='PERMISSION_DENIED'){
@@ -2109,16 +2030,6 @@ window.openCreateTournament=function(tid){
   openModal('createTournModal');
 };
 
-window.updateDynCut=function(){
-  const pcts=['p1','p2','p3','p4','p5','kill'].map(k=>parseFloat(document.getElementById('dyn-'+k)?.value)||0);
-  const total=pcts.reduce((a,b)=>a+b,0);
-  const cut=Math.max(0,100-total);
-  const te=document.getElementById('dyn-total-pct');
-  const ce=document.getElementById('dyn-cut-pct');
-  if(te)te.textContent=total.toFixed(1)+'%';
-  if(ce){ce.textContent=cut.toFixed(1)+'%';ce.style.color=cut<0?'var(--red)':'var(--green)';}
-};
-
 window.renderPrizeFields=function(){
   const type=document.getElementById('ct-prizeType').value;
   const el=document.getElementById('ct-prize-fields');
@@ -2179,35 +2090,6 @@ window.renderPrizeFields=function(){
         <div class="form-group"><label class="form-label">Kill Cap (max kills counted)</label>
         <input type="number" class="form-input" id="prize-killcap" placeholder="30"></div>
       </div>`;
-  } else if(type==='dynamic'){
-    el.innerHTML=`
-      <div class="form-hint" style="margin-bottom:.6rem;background:rgba(251,191,36,.1);border:1px solid var(--or);border-radius:8px;padding:.5rem">
-        🔄 Prize pool = entry fees collected × your percentages. Updates live as players register. Your cut is automatic — whatever % is left after all prizes and kill bonus.
-      </div>
-      <div class="divider-label" style="margin:.4rem 0">📍 Position Prizes (% of total pool)</div>
-      ${[['1st','p1'],['2nd','p2'],['3rd','p3'],['4th','p4'],['5th','p5']].map(([lbl,key])=>`
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">${lbl} Place %</label>
-          <input type="number" class="form-input" id="dyn-${key}" placeholder="0" min="0" max="100" step="0.1" oninput="updateDynCut()"></div>
-        </div>`).join('')}
-      <div class="divider-label" style="margin:.6rem 0">🔫 Kill Bonus (% of total pool)</div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Kill Bonus %</label>
-        <input type="number" class="form-input" id="dyn-kill" placeholder="0" min="0" max="100" step="0.1" oninput="updateDynCut()"></div>
-        <div class="form-group"><label class="form-label">Max Kills Cap</label>
-        <input type="number" class="form-input" id="dyn-killcap" placeholder="24" min="1"></div>
-      </div>
-      <div style="background:var(--card2);border-radius:8px;padding:.6rem;margin-top:.4rem">
-        <div style="display:flex;justify-content:space-between;font-size:.78rem">
-          <span style="color:var(--muted)">Total allocated</span>
-          <span id="dyn-total-pct" style="font-weight:700;color:var(--or)">0%</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-top:.3rem">
-          <span style="color:var(--muted)">Your platform cut</span>
-          <span id="dyn-cut-pct" style="font-weight:700;color:var(--green)">100%</span>
-        </div>
-        <div style="font-size:.65rem;color:var(--muted);margin-top:.3rem">Total must be under 100% — remainder is your cut</div>
-      </div>`;
   } else if(type==='custom'){
     el.innerHTML=`
       <div class="form-group"><label class="form-label">Prize Description</label>
@@ -2251,21 +2133,6 @@ function getPrizeData(){
     };
   } else if(type==='custom'){
     return{type,balanceType,description:document.getElementById('prize-custom')?.value||''};
-  } else if(type==='dynamic'){
-    const p1=parseFloat(document.getElementById('dyn-p1')?.value)||0;
-    const p2=parseFloat(document.getElementById('dyn-p2')?.value)||0;
-    const p3=parseFloat(document.getElementById('dyn-p3')?.value)||0;
-    const p4=parseFloat(document.getElementById('dyn-p4')?.value)||0;
-    const p5=parseFloat(document.getElementById('dyn-p5')?.value)||0;
-    const killPct=parseFloat(document.getElementById('dyn-kill')?.value)||0;
-    const killCap=parseInt(document.getElementById('dyn-killcap')?.value)||24;
-    const totalPct=p1+p2+p3+p4+p5+killPct;
-    if(totalPct>=100){toast('Total percentages must be under 100% — leave room for your cut','red');return null;}
-    const platformCut=parseFloat((100-totalPct).toFixed(2));
-    return{type,balanceType:'real',
-      positions:{p1,p2,p3,p4,p5},
-      killPct,killCap,platformCut
-    };
   }
   return{type:'free'};
 }
@@ -2395,93 +2262,11 @@ window.saveRoomCode=async function(){
   toast('Room code saved ✅','green');
 };
 
-window.toggleCdynFields=function(){
-  const fields=document.getElementById('cdyn-fields');
-  const btn=document.getElementById('cdyn-toggle-btn');
-  const showing=fields&&fields.style.display!=='none';
-  if(fields)fields.style.display=showing?'none':'block';
-  if(btn)btn.style.display=showing?'block':'none';
-};
-
-window.updateCdynCut=function(){
-  const ids=['cdyn-p1','cdyn-p2','cdyn-p3','cdyn-p4','cdyn-p5','cdyn-kill'];
-  const total=ids.reduce((sum,id)=>sum+(parseFloat(document.getElementById(id)?.value)||0),0);
-  const cut=Math.max(0,100-total);
-  const el=document.getElementById('cdyn-cut');
-  if(el){el.textContent=cut.toFixed(1)+'%';el.style.color=cut<0?'var(--red)':'var(--green)';}
-};
-
-window.convertToDynamic=async function(){
-  const tid=activeTournamentId;
-  const t=allTournaments[tid];
-  const p1=parseFloat(document.getElementById('conv-p1')?.value)||0;
-  const p2=parseFloat(document.getElementById('conv-p2')?.value)||0;
-  const p3=parseFloat(document.getElementById('conv-p3')?.value)||0;
-  const p4=parseFloat(document.getElementById('cdyn-p4')?.value)||0;
-  const p5=parseFloat(document.getElementById('cdyn-p5')?.value)||0;
-  const killPct=parseFloat(document.getElementById('cdyn-kill')?.value)||0;
-  const killCap=parseInt(document.getElementById('cdyn-killcap')?.value)||24;
-  const total=p1+p2+p3+p4+p5+killPct;
-  if(total>=100){toast('Total must be under 100% — leave room for your cut','red');return;}
-  const platformCut=parseFloat((100-total).toFixed(2));
-  const regCount=t?.registrations?Object.keys(t.registrations).length:0;
-  const currentPool=(t.fee||0)*regCount;
-  const potentialPool=(t.fee||0)*(t.maxPlayers||25);
-  if(!confirm(`Convert "${t.name}" to Dynamic pricing?\n\nWith ${regCount} players registered:\n• Current pool: ₦${currentPool.toLocaleString()}\n• 1st: ₦${Math.floor(currentPool*p1/100).toLocaleString()} → up to ₦${Math.floor(potentialPool*p1/100).toLocaleString()}\n• 2nd: ₦${Math.floor(currentPool*p2/100).toLocaleString()} → up to ₦${Math.floor(potentialPool*p2/100).toLocaleString()}\n• 3rd: ₦${Math.floor(currentPool*p3/100).toLocaleString()} → up to ₦${Math.floor(potentialPool*p3/100).toLocaleString()}\n• Kill bonus: ${killPct}% of pool\n• Your cut: ${platformCut}%\n\nThis replaces the current fixed prize structure. Cannot be undone.`))return;
-  try{
-    const newPrize={type:'dynamic',balanceType:'real',positions:{p1,p2,p3,p4,p5},killPct,killCap,platformCut};
-    await update(ref(db,'tournaments/'+tid),{prize:newPrize,updatedAt:Date.now()});
-    allTournaments[tid].prize=newPrize;
-    const fields=document.getElementById('cdyn-fields');
-    const btn=document.getElementById('cdyn-toggle-btn');
-    if(fields)fields.style.display='none';
-    if(btn)btn.style.display='block';
-    renderManagePrizeFields(newPrize);
-    toast('✅ Converted to Dynamic pricing!','green');
-  }catch(e){toast('Failed: '+e.message,'red');}
-};
-
-window.saveTournamentDetails=async function(){
-  const tid=activeTournamentId;
-  const name=document.getElementById('mt-edit-name').value.trim();
-  const maxPlayers=parseInt(document.getElementById('mt-edit-maxplayers').value)||0;
-  const fee=parseFloat(document.getElementById('mt-edit-fee').value)||0;
-  const map=document.getElementById('mt-edit-map').value;
-  const rules=document.getElementById('mt-edit-rules').value.trim();
-  const startVal=document.getElementById('mt-edit-start').value;
-  const startTime=startVal?new Date(startVal).getTime():allTournaments[tid].startTime;
-  if(!name){toast('Tournament name cannot be empty','red');return;}
-  if(!maxPlayers){toast('Max players cannot be zero','red');return;}
-  if(!confirm(`Save changes to "${name}"?\nStart: ${startVal||'unchanged'}\nMax Players: ${maxPlayers}\nEntry Fee: ₦${fee}`))return;
-  try{
-    await update(ref(db,'tournaments/'+tid),{name,maxPlayers,fee,map,rules,startTime,updatedAt:Date.now()});
-    allTournaments[tid]={...allTournaments[tid],name,maxPlayers,fee,map,rules,startTime};
-    document.getElementById('mt-title').textContent=name;
-    toast('Tournament updated ✅','green');
-  }catch(e){toast('Failed: '+e.message,'red');}
-};
+function renderManagePrizeFields(prize){
   const el=document.getElementById('mt-edit-prize-fields');
   if(!el||!prize)return;
   const type=prize.type;
   const p=prize.positions||{};
-  if(type==='dynamic'){
-    el.innerHTML=`
-      <div class="form-hint" style="background:rgba(251,191,36,.08);border:1px solid var(--or);border-radius:8px;padding:.5rem;margin-bottom:.5rem;font-size:.7rem">
-        🔄 Dynamic pricing active. Prizes scale with registrations automatically.
-      </div>
-      ${[['1st Place %','p1'],['2nd Place %','p2'],['3rd Place %','p3'],['4th Place %','p4'],['5th Place %','p5']].map(([lbl,key])=>`
-        <div class="form-row"><div class="form-group">
-          <label class="form-label">${lbl} <span style="font-size:.65rem;color:var(--muted)">current: ${p[key]||0}%</span></label>
-          <input type="number" class="form-input" id="mt-prize-${key}" value="${p[key]||0}" min="0" max="100" step="0.1">
-        </div></div>`).join('')}
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Kill Bonus %</label>
-        <input type="number" class="form-input" id="mt-prize-killpct" value="${prize.killPct||0}" min="0" max="100" step="0.1"></div>
-        <div class="form-group"><label class="form-label">Kill Cap</label>
-        <input type="number" class="form-input" id="mt-prize-killcap" value="${prize.killCap||24}" min="1"></div>
-      </div>`;
-    return;
-  }
   if(type==='position'||type==='mixed'){
     const positions=[['1st Place','1'],['2nd Place','2'],['3rd Place','3'],['4th Place','4'],['5th Place','5'],['6th–10th Place','6-10']];
     el.innerHTML=positions.map(([lbl,key])=>`
@@ -2527,21 +2312,8 @@ window.savePrizePool=async function(){
   if(!t||!t.prize){toast('No prize data found','red');return;}
   const type=t.prize.type;
   let updatedPrize={...t.prize};
-  if(type==='dynamic'){
-    const p1=parseFloat(document.getElementById('mt-prize-p1')?.value)||0;
-    const p2=parseFloat(document.getElementById('mt-prize-p2')?.value)||0;
-    const p3=parseFloat(document.getElementById('mt-prize-p3')?.value)||0;
-    const p4=parseFloat(document.getElementById('mt-prize-p4')?.value)||0;
-    const p5=parseFloat(document.getElementById('mt-prize-p5')?.value)||0;
-    const killPct=parseFloat(document.getElementById('mt-prize-killpct')?.value)||0;
-    const killCap=parseInt(document.getElementById('mt-prize-killcap')?.value)||24;
-    const total=p1+p2+p3+p4+p5+killPct;
-    if(total>=100){toast('Total must be under 100%','red');return;}
-    updatedPrize.positions={p1,p2,p3,p4,p5};
-    updatedPrize.killPct=killPct;
-    updatedPrize.killCap=killCap;
-    updatedPrize.platformCut=parseFloat((100-total).toFixed(2));
-  }
+  if(type==='position'||type==='mixed'){
+    updatedPrize.positions={
       '1':parseFloat(document.getElementById('mt-prize-1')?.value)||0,
       '2':parseFloat(document.getElementById('mt-prize-2')?.value)||0,
       '3':parseFloat(document.getElementById('mt-prize-3')?.value)||0,
@@ -2566,77 +2338,23 @@ window.savePrizePool=async function(){
   }catch(e){toast('Failed: '+e.message,'red');}
 };
 
-window.openConvertToDynamic=function(){
+window.saveTournamentDetails=async function(){
   const tid=activeTournamentId;
-  const t=allTournaments[tid];
-  if(t.prizesAwarded){toast('Cannot convert — prizes already awarded','red');return;}
-  updateConvPreview();
-  openModal('convertDynModal');
-};
-
-window.updateConvPreview=function(){
-  const tid=activeTournamentId;
-  const t=allTournaments[tid];
-  const fee=t?.fee||0;
-  const regCount=t?.registrations?Object.keys(t.registrations).length:0;
-  const currentPool=fee*regCount;
-  const fullPool=fee*(t?.maxPlayers||25);
-  const p1=parseFloat(document.getElementById('conv-p1')?.value)||0;
-  const p2=parseFloat(document.getElementById('conv-p2')?.value)||0;
-  const p3=parseFloat(document.getElementById('conv-p3')?.value)||0;
-  const p4=parseFloat(document.getElementById('cdyn-p4')?.value)||0;
-  const p5=parseFloat(document.getElementById('cdyn-p5')?.value)||0;
-  const killPct=parseFloat(document.getElementById('cdyn-kill')?.value)||0;
-  const total=p1+p2+p3+p4+p5+killPct;
-  const cut=Math.max(0,100-total);
-  const cutEl=document.getElementById('cdyn-cut');
-  if(cutEl){cutEl.textContent=cut.toFixed(1)+'%';cutEl.style.color=total>=100?'var(--red)':'var(--green)';}
-  const prev=document.getElementById('conv-preview');
-  if(prev&&currentPool>0){
-    const fmt=n=>'₦'+Math.floor(n).toLocaleString();
-    prev.innerHTML=`
-      <div style="font-weight:700;color:var(--or);margin-bottom:.4rem">Current (${regCount} players · ${fmt(currentPool)} pool)</div>
-      ${p1?`<div>🥇 1st: ${fmt(currentPool*p1/100)}</div>`:''}
-      ${p2?`<div>🥈 2nd: ${fmt(currentPool*p2/100)}</div>`:''}
-      ${p3?`<div>🥉 3rd: ${fmt(currentPool*p3/100)}</div>`:''}
-      ${p4?`<div>4th: ${fmt(currentPool*p4/100)}</div>`:''}
-      ${p5?`<div>5th: ${fmt(currentPool*p5/100)}</div>`:''}
-      ${killPct?`<div>🔫 Kill pool: ${fmt(currentPool*killPct/100)} (÷ kills earned)</div>`:''}
-      <div style="color:var(--green);margin-top:.3rem">Your cut: ${fmt(currentPool*cut/100)}</div>
-      <div style="color:var(--muted);font-size:.68rem;margin-top:.3rem">If full (${t?.maxPlayers||25} players · ${fmt(fullPool)}): 1st = ${fmt(fullPool*p1/100)}</div>`;
-  } else if(prev){
-    prev.innerHTML=`<div style="color:var(--muted);font-size:.72rem">${regCount} players registered · ₦${currentPool.toLocaleString()} current pool</div>`;
-  }
-};
-
-window.confirmConvertToDynamic=async function(){
-  const tid=activeTournamentId;
-  const t=allTournaments[tid];
-  const p1=parseFloat(document.getElementById('conv-p1')?.value)||0;
-  const p2=parseFloat(document.getElementById('conv-p2')?.value)||0;
-  const p3=parseFloat(document.getElementById('conv-p3')?.value)||0;
-  const p4=parseFloat(document.getElementById('conv-p4')?.value)||0;
-  const p5=parseFloat(document.getElementById('conv-p5')?.value)||0;
-  const killPct=parseFloat(document.getElementById('conv-kill')?.value)||0;
-  const killCap=parseInt(document.getElementById('conv-killcap')?.value)||24;
-  const total=p1+p2+p3+p4+p5+killPct;
-  if(total>=100){toast('Total must be under 100%','red');return;}
-  const platformCut=parseFloat((100-total).toFixed(2));
-  const regCount=t?.registrations?Object.keys(t.registrations).length:0;
-  const fee=t?.fee||0;
-  const currentPool=fee*regCount;
-  if(!confirm(`Convert "${t.name}" to Dynamic Prize Pool?\n\nCurrent pool (${regCount} players): ₦${currentPool.toLocaleString()}\n1st: ₦${Math.floor(currentPool*p1/100).toLocaleString()} (${p1}%)\n2nd: ₦${Math.floor(currentPool*p2/100).toLocaleString()} (${p2}%)\n3rd: ₦${Math.floor(currentPool*p3/100).toLocaleString()} (${p3}%)\nKill pool: ₦${Math.floor(currentPool*killPct/100).toLocaleString()} (${killPct}%)\nYour cut: ₦${Math.floor(currentPool*platformCut/100).toLocaleString()} (${platformCut}%)\n\nThis replaces the current fixed prize structure. Cannot be undone.`))return;
+  const name=document.getElementById('mt-edit-name').value.trim();
+  const maxPlayers=parseInt(document.getElementById('mt-edit-maxplayers').value)||0;
+  const fee=parseFloat(document.getElementById('mt-edit-fee').value)||0;
+  const map=document.getElementById('mt-edit-map').value;
+  const rules=document.getElementById('mt-edit-rules').value.trim();
+  const startVal=document.getElementById('mt-edit-start').value;
+  const startTime=startVal?new Date(startVal).getTime():allTournaments[tid].startTime;
+  if(!name){toast('Tournament name cannot be empty','red');return;}
+  if(!maxPlayers){toast('Max players cannot be zero','red');return;}
+  if(!confirm(`Save changes to "${name}"?\nStart: ${startVal||'unchanged'}\nMax Players: ${maxPlayers}\nEntry Fee: ₦${fee}`))return;
   try{
-    const dynPrize={
-      type:'dynamic',balanceType:'real',
-      positions:{p1,p2,p3,p4,p5},
-      killPct,killCap,platformCut
-    };
-    await update(ref(db,'tournaments/'+tid),{prize:dynPrize,updatedAt:Date.now()});
-    allTournaments[tid].prize=dynPrize;
-    closeModal('convertDynModal');
-    closeModal('manageTournModal');
-    toast(`✅ Converted to dynamic prize pool — cut: ${platformCut}%`,'green');
+    await update(ref(db,'tournaments/'+tid),{name,maxPlayers,fee,map,rules,startTime,updatedAt:Date.now()});
+    allTournaments[tid]={...allTournaments[tid],name,maxPlayers,fee,map,rules,startTime};
+    document.getElementById('mt-title').textContent=name;
+    toast('Tournament updated ✅','green');
   }catch(e){toast('Failed: '+e.message,'red');}
 };
 
@@ -2861,96 +2579,6 @@ async function awardPrizes(tid,results,t){
       }
     }
   }
-
-  // Handle dynamic prize type — calculate from actual pool
-  if(prize.type==='dynamic'){
-    const regs=t?.registrations?Object.entries(t.registrations):[];
-    const fee=t.fee||0;
-    const totalPool=fee*regs.length;
-    const p=prize.positions||{};
-    const killPct=prize.killPct||0;
-    const killCap=prize.killCap||24;
-
-    // Calculate total kills for kill pool distribution
-    let totalKillsEarned=0;
-    Object.values(results).forEach(r=>{totalKillsEarned+=Math.min(r.kills||0,killCap);});
-    const killPoolTotal=Math.floor(totalPool*killPct/100);
-    const perKillAmt=totalKillsEarned>0?killPoolTotal/totalKillsEarned:0;
-
-    // Position prize map
-    const posMap={1:p.p1||0,2:p.p2||0,3:p.p3||0,4:p.p4||0,5:p.p5||0};
-
-    for(const[pid,res] of Object.entries(results)){
-      const rank=res.rank;
-      const kills=Math.min(res.kills||0,killCap);
-      const posAwardPct=posMap[rank]||0;
-      const posAward=posAwardPct>0?Math.floor(totalPool*posAwardPct/100):0;
-      const killAward=Math.floor(kills*perKillAmt);
-      const totalAward=posAward+killAward;
-      if(totalAward>0){
-        const pSnap2=await get(ref(db,'players/'+pid+'/profile'));
-        const pData2=pSnap2.val()||{};
-        const curBal=parseInt(pData2.balanceReal)||0;
-        await update(ref(db,'players/'+pid+'/profile'),{balanceReal:curBal+totalAward});
-        if(posAward>0){
-          await push(ref(db,'players/'+pid+'/transactions'),{type:'prize',amount:posAward,balanceType:'real',label:`${rank===1?'1st':rank===2?'2nd':rank===3?'3rd':rank+'th'} Place (${posAwardPct}%)`,tournament:t.name,tid,createdAt:Date.now()});
-        }
-        if(killAward>0){
-          await push(ref(db,'players/'+pid+'/transactions'),{type:'prize',amount:killAward,balanceType:'real',label:`Kill Bonus (${kills} kills × ₦${Math.floor(perKillAmt)})`,tournament:t.name,tid,createdAt:Date.now()});
-        }
-      }
-    }
-  }
-
-  // ---- Check tournament-condition referral for all players who played ----
-  try{
-    const refSnap=await get(ref(db,'settings/referral'));
-    const refRules=refSnap.val()||{};
-    if(refRules.condition==='tournament'&&refRules.referrerAmt>0){
-      const minT=parseInt(refRules.conditionValue)||1;
-      for(const pid of Object.keys(results)){
-        const pSnap=await get(ref(db,'players/'+pid+'/profile'));
-        if(!pSnap.exists())continue;
-        const pData=pSnap.val();
-        if(!pData.pendingReferralReward||pData.referralCondition!=='tournament')continue;
-        // Count tournaments this player has participated in
-        const txSnap=await get(ref(db,'players/'+pid+'/transactions'));
-        let tourneysPlayed=0;
-        if(txSnap.exists()){
-          Object.values(txSnap.val()).forEach(tx=>{
-            if(tx.type==='tournament_entry'||tx.type==='prize')tourneysPlayed++;
-          });
-        }
-        if(tourneysPlayed>=minT){
-          // Credit referrer
-          const referrerEntry=Object.entries(allPlayers).find(([,rp])=>rp.username===pData.referredBy);
-          if(referrerEntry){
-            const[refId,refP]=referrerEntry;
-            const balKey=refRules.rewardType==='real'?'balanceReal':'balanceBonus';
-            const curBal=parseInt(refP[balKey])||0;
-            await update(ref(db,'players/'+refId+'/profile'),{
-              [balKey]:curBal+refRules.referrerAmt,
-              referralCount:(parseInt(refP.referralCount)||0)+1
-            });
-            await push(ref(db,'players/'+refId+'/transactions'),{
-              type:'referral',amount:refRules.referrerAmt,
-              note:'Referral bonus — '+pData.username+' played '+tourneysPlayed+' tournament(s)',
-              createdAt:Date.now()
-            });
-          }
-          // Credit new player if applicable
-          if(refRules.newPlayerAmt>0){
-            const npKey=refRules.newPlayerRewardType==='real'?'balanceReal':'balanceBonus';
-            const npBal=parseInt(pData[npKey])||0;
-            await update(ref(db,'players/'+pid+'/profile'),{[npKey]:npBal+refRules.newPlayerAmt});
-            await push(ref(db,'players/'+pid+'/transactions'),{type:'referral',amount:refRules.newPlayerAmt,note:'Welcome referral bonus',createdAt:Date.now()});
-          }
-          // Clear pending flag
-          await update(ref(db,'players/'+pid+'/profile'),{pendingReferralReward:false});
-        }
-      }
-    }
-  }catch(refErr){console.warn('Referral tournament check error:',refErr);}
 }
 
 window.updateTournamentStatus=async function(){
@@ -3454,7 +3082,6 @@ async function loadWowSettings(){
   if(el('wowMapCode'))el('wowMapCode').value=s.mapCode||'';
   if(el('wowWinCondition'))el('wowWinCondition').value=s.winCondition||'';
   if(el('wowWhatsapp'))el('wowWhatsapp').value=s.whatsapp||'';
-  if(el('wowRules'))el('wowRules').value=s.rules||'';
 }
 
 async function renderWowSubmissions(){
@@ -3509,18 +3136,8 @@ function renderWowCard(sid,s){
 
 window.approveWow=async function(sid,uid,username){
   const settSnap=await get(ref(db,'settings/wow'));
-  const wowCfg=settSnap.exists()?settSnap.val():{};
-  const prize=wowCfg.prize||100;
-  const dailyLimit=wowCfg.dailyLimit||2;
-  // Check daily limit before approving
-  const today=new Date().toISOString().slice(0,10);
-  const winsSnap=await get(ref(db,`players/${uid}/wowWins/${today}`));
-  const currentWins=winsSnap.exists()?parseInt(winsSnap.val())||0:0;
-  if(currentWins>=dailyLimit){
-    toast(`❌ ${username} has already reached the daily limit (${currentWins}/${dailyLimit} wins today). Cannot approve.`,'red');
-    return;
-  }
-  if(!confirm(`Approve WOW win for ${username}?\nCredits ₦${prize} real balance to their account.\nThey have ${currentWins}/${dailyLimit} wins today.`))return;
+  const prize=settSnap.exists()?(settSnap.val().prize||100):100;
+  if(!confirm(`Approve WOW win for ${username}?\nCredits ₦${prize} real balance to their account.`))return;
   try{
     // Credit balance
     const pSnap=await get(ref(db,`players/${uid}/profile`));
@@ -3542,6 +3159,9 @@ window.approveWow=async function(sid,uid,username){
       prizePaid:prize
     });
     // Record win for daily limit tracking
+    const today=new Date().toISOString().slice(0,10);
+    const winsSnap=await get(ref(db,`players/${uid}/wowWins/${today}`));
+    const currentWins=winsSnap.exists()?parseInt(winsSnap.val())||0:0;
     await set(ref(db,`players/${uid}/wowWins/${today}`),currentWins+1);
     toast(`✅ Approved — ₦${prize} credited to ${username}`,'green');
     renderWowSubmissions();
